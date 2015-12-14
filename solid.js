@@ -299,9 +299,9 @@ Solid.auth = (function(window) {
     var authEndpoint = 'https://databox.me/';
     var signupEndpoint = 'https://solid.github.io/solid-idps/';
 
-    // return the current user's WebID from the User header if authenticated
-    // resolve(string)
-    var withWebID = function(url) {
+    // attempt to find the current user's WebID from the User header if authenticated
+    // resolve(webid) - string
+    var login = function(url) {
         url = url || window.location.origin+window.location.pathname;
         var promise = new Promise(function(resolve, reject) {
             var http = new XMLHttpRequest();
@@ -388,7 +388,7 @@ Solid.auth = (function(window) {
 
     // return public methods
     return {
-        withWebID: withWebID,
+        login: login,
         signup: signup,
         listen: listen,
     };
