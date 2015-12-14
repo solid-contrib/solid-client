@@ -3,6 +3,9 @@
 
 Javascript library for Solid applications
 
+# Dependencies
+Solid.js currently depends on [rdflib.js](https://github.com/linkeddata/rdflib.js/). Please make sure to load the `rdflib.js` script **before** loading `solid.js`.
+
 # Examples
 
 Here are some useful examples of functions you can implement in your own app. Just make sure you include the `solid.js` script in your HTML page.
