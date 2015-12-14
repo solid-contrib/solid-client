@@ -14,10 +14,10 @@ Here are some useful examples of functions you can implement in your own app. Ju
 var login = function() {
     // Get the current user
     Solid.auth.login().then(function(webid){
-    	// authentication succeeded
+    	// authentication succeeded; do something with the WebID string
         gotWebID(webid);
     }).catch(function(err) {
-        // authentication failed
+        // authentication failed; display some error message
         console.log(err);
     });
 };
@@ -29,10 +29,10 @@ var login = function() {
 // Signup for a WebID
 var signup = function() {
     Solid.auth.signup().then(function(webid) {
-    	// authentication succeeded
+    	// authentication succeeded; do something with the WebID string
         console.log(webid);
     }).catch(function(err) {
-        // authentication failed
+        // authentication failed; display some error message
         console.log(err);
     });
 };
