@@ -6,12 +6,100 @@ Javascript library for Solid applications
 # Dependencies
 Solid.js currently depends on [rdflib.js](https://github.com/linkeddata/rdflib.js/). Please make sure to load the `rdflib.js` script **before** loading `solid.js`.
 
-# Examples
+# Web operations to manipulate resources using LDP-friendly calls
 
 Here are some useful examples of functions you can implement in your own app. Just make sure you include the `solid.js` script in your HTML page.
 
+## Creating a container (folder)
+Creating an LDP container quite trivial. The `post` method accepts the following parameters:
+
+* `parentDir` (string) - the URL of the parent container in which the new resource will be created
+* `slug` (string) - the value for the `Slug` header -- i.e. the name of the new resource to be created
+* `metaData` (string) - RDF data serialized as `text/turtle`; can also be an empty string is no data needs to be sent
+* `isContainer` (boolean) (optional) - whether the new resource should be an LDP container or a regular LDP resource; defaults to LDP resource if the value is not present
+
+Here is an example where we try to create a container called `blog` under `https://example.org/`. We are also sending some meta data about the container, setting its type to `sioc:Blog`. 
+
+```
+var parentDir = 'https://example.org/';
+var slug = 'blog';
+var metaData = '<> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/sioc/ns#Blog> .';
+Solid.web.post(parentDir, slug, metaData, true).then(
+    function(meta) {
+        console.log(meta);
+        // The resulting object has the following properties:
+        // meta.url - Location header value
+        // meta.acl - url of acl resource
+        // meta.meta - url of meta resource
+        // meta.user - User header value
+        // meta.exists - bool (will default to true in this case, but may change for HEAD/GET requests)
+        // meta.xhr - xhr object
+        // }
+    }
+);
+```
+
+## Creating a resource
+Creating a regular LDP resource is very similar to creating containers, except for the `isContainer` value, which is now set to `false`.
+
+Here is an example where we try to create the resource `hellow-world` under `https://example.org/`. We are also sending some meta data about the resource, setting its type to `sioc:Post`. 
+
+```
+var parentDir = 'https://example.org/';
+var slug = 'hellow-world';
+var metaData = '<> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/sioc/ns#Post> .';
+Solid.web.post(parentDir, slug, metaData, false).then(
+    function(meta) {
+        console.log(meta);
+        // The resulting object has the following properties:
+        // meta.url - Location header value
+        // meta.acl - url of acl resource
+        // meta.meta - url of meta resource
+        // meta.user - User header value
+        // meta.exists - bool (will default to true in this case, but may change for HEAD/GET requests)
+        // meta.xhr - xhr object
+        // }
+    }
+);
+```
+
+## Reading a resource
+Reading an RDF resource from the Web.
+
+```
+var url = 'https://example.org/';
+Solid.web.get(url).then(
+    function(g) {
+        // Print all statements matching resources of type foaf:Person
+        console.log(g.statementsMatching(undefined, RDF('type'), FOAF('Person')));
+    }
+).catch(
+    function(err) {
+        console.log(err);
+    }
+);
+```
+
+## Deleting a resource
+Delete an RDF resource from the Web. For example, we can delete the blog post `hello-world` we created earlier.
+
+```
+var url = 'https://example.org/blog/hello-world';
+Solid.web.del(url).then(
+    function(success) {
+        console.log(success); // true/false
+    }
+).catch(
+    function(err) {
+        console.log(err); // xhr object
+    }
+);
+```
+
+# Authentication
 
 ## Login
+Authenticating a user and returning their WebID.
 
 ```
 var login = function() {
@@ -27,6 +115,8 @@ var login = function() {
 ```
 
 ## Signup
+Signing a user up for a WebID account and storage, and then returning their WebID. If the opreation is successful and a WebID is returned, then the user can also be considered to be authenticated.
+
 ```
 // Signup for a WebID
 var signup = function() {
