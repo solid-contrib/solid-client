@@ -18,7 +18,7 @@ var login = function() {
     // Get the current user
     Solid.auth.login().then(function(webid){
     	// authentication succeeded; do something with the WebID string
-        gotWebID(webid);
+        console.log(webid);
     }).catch(function(err) {
         // authentication failed; display some error message
         console.log(err);
