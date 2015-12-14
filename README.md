@@ -21,7 +21,6 @@ var login = function() {
         console.log(err);
     });
 };
-    
 ```
 
 ## Signup
