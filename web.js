@@ -4,18 +4,11 @@ Solid.web = (function(window) {
     'use strict';
 
     // Init some defaults;
-    var PROXY = "https://databox.me/proxy?uri={uri}";
+    var PROXY = "https://databox.me/,proxy?uri={uri}";
     var TIMEOUT = 5000;
 
     $rdf.Fetcher.crossSiteProxyTemplate = PROXY;
     // common vocabs
-    var RDF = $rdf.Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
-    var RDFS = $rdf.Namespace("http://www.w3.org/2000/01/rdf-schema#");
-    var FOAF = $rdf.Namespace("http://xmlns.com/foaf/0.1/");
-    var OWL = $rdf.Namespace("http://www.w3.org/2002/07/owl#");
-    var PIM = $rdf.Namespace("http://www.w3.org/ns/pim/space#");
-    var UI = $rdf.Namespace("http://www.w3.org/ns/ui#");
-    var DCT = $rdf.Namespace("http://purl.org/dc/terms/");
     var LDP = $rdf.Namespace("http://www.w3.org/ns/ldp#");
 
     // return metadata for a given request
@@ -79,7 +72,7 @@ Solid.web = (function(window) {
     // create new resource
     // resolve(metaObj) | reject
     var post = function(url, slug, data, isContainer) {
-        var resType = (isContainer)?'http://www.w3.org/ns/ldp#BasicContainer':'http://www.w3.org/ns/ldp#Resource';
+        var resType = (isContainer)?LDP('BasicContainer').uri:LDP('Resource').uri;
         var promise = new Promise(function(resolve, reject) {
             var http = new XMLHttpRequest();
             http.open('POST', url);

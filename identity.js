@@ -3,11 +3,6 @@ var Solid = Solid || {};
 Solid.identity = (function(window) {
     'use strict';
 
-    // Init some defaults;
-    var PROXY = "https://databox.me/proxy?uri={uri}";
-    var TIMEOUT = 5000;
-
-    $rdf.Fetcher.crossSiteProxyTemplate = PROXY;
     // common vocabs
     var OWL = $rdf.Namespace("http://www.w3.org/2002/07/owl#");
     var PIM = $rdf.Namespace("http://www.w3.org/ns/pim/space#");
