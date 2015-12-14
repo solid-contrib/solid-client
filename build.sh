@@ -11,6 +11,5 @@ do
   cat $src >> $dist
 done
 
-echo 
+echo "\nBuilt dist file in $dist\n"
 exit 0
-
