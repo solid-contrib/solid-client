@@ -20,15 +20,8 @@ Solid.web = (function(window) {
         meta.meta = (h['meta'])?h['meta']:h['describedBy'];
         meta.user = (resp.getResponseHeader('User'))?resp.getResponseHeader('User'):'';
         meta.exists = false;
-        meta.err = null;
-        if (resp.status === 200) {
-            meta.exists = true;
-        } else if (resp.status >= 500) {
-            meta.err = {
-                status: 500,
-                body: resp.responseText
-            };
-        }
+        meta.exists = (resp.status === 200)true:false;
+        meta.xhr = resp;
         return meta;
     };
 
@@ -91,7 +84,7 @@ Solid.web = (function(window) {
                     }
                 }
             };
-            if (data) {
+            if (data && data.length > 0) {
                 http.send(data);
             } else {
                 http.send();
