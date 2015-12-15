@@ -18,7 +18,7 @@ Creating an LDP container quite trivial. The `post` method accepts the following
 * `metaData` (string) - RDF data serialized as `text/turtle`; can also be an empty string is no data needs to be sent
 * `isContainer` (boolean) (optional) - whether the new resource should be an LDP container or a regular LDP resource; defaults to LDP resource if the value is not present
 
-Here is an example where we try to create a container called `blog` under `https://example.org/`. We are also sending some meta data about the container, setting its type to `sioc:Blog`. 
+Here is a full example where we try to create a container called `blog` under `https://example.org/`. We are also sending some meta data about the container, setting its type to `sioc:Blog`. 
 
 ```
 var parentDir = 'https://example.org/';
@@ -36,31 +36,52 @@ Solid.web.post(parentDir, slug, metaData, true).then(
         // meta.xhr - xhr object
         // }
     }
-);
+).catch(function(err){
+    console.log(err); // error object
+    console.log(err.status); // contains the error status
+    console.log(err.xhr); // contains the xhr object
+});
 ```
 
 ## Creating a resource
 Creating a regular LDP resource is very similar to creating containers, except for the `isContainer` value, which is now set to `false`.
 
-Here is an example where we try to create the resource `hellow-world` under `https://example.org/`. We are also sending some meta data about the resource, setting its type to `sioc:Post`. 
+Here is an example where we try to create the resource `hellow-world` under `https://example.org/`. This will be an empty resource for now. 
 
 ```
 var parentDir = 'https://example.org/';
 var slug = 'hellow-world';
-var metaData = '<> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/sioc/ns#Post> .';
+var metaData = '';
 Solid.web.post(parentDir, slug, metaData, false).then(
     function(meta) {
         console.log(meta);
-        // The resulting object has the following properties:
-        // meta.url - Location header value
-        // meta.acl - url of acl resource
-        // meta.meta - url of meta resource
-        // meta.user - User header value
-        // meta.exists - bool (will default to true in this case, but may change for HEAD/GET requests)
-        // meta.xhr - xhr object
-        // }
+        console.log(meta.xhr.status); // HTTP 201 (created)
+        console.log(meta.url); // URL of the newly created resource
     }
-);
+).catch(function(err){
+    console.log(err); // error object
+    ...
+});
+```
+
+## Overwriting a resource
+You can also overwrite existing resources with new content.
+
+Here is an example where we try to overwrite the resource `hellow-world` by sending some meta data about the resource, setting its type to `sioc:Post`. 
+
+
+```
+var url = 'https://example.org/blog/hellow-world';
+var metaData = '<> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/sioc/ns#Post> .';
+Solid.web.put(url, metaData).then(
+    function(meta) {
+        console.log(meta);
+        console.log(meta.xhr.status); // HTTP 200 (OK)
+    }
+).catch(function(err){
+    console.log(err); // error object
+    ...
+});
 ```
 
 ## Reading a resource
@@ -70,12 +91,13 @@ Reading an RDF resource from the Web.
 var url = 'https://example.org/';
 Solid.web.get(url).then(
     function(g) {
-        // Print all statements matching resources of type foaf:Person
-        console.log(g.statementsMatching(undefined, RDF('type'), FOAF('Person')));
+        // Print all statements matching resources of type foaf:Blog
+        console.log(g.statementsMatching(undefined, RDF('type'), SIOC('Blog')));
     }
 ).catch(
     function(err) {
-        console.log(err);
+        console.log(err); // error object
+        ...
     }
 );
 ```
@@ -91,7 +113,8 @@ Solid.web.del(url).then(
     }
 ).catch(
     function(err) {
-        console.log(err); // xhr object
+        console.log(err); // error object
+        ...
     }
 );
 ```
