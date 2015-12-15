@@ -342,15 +342,8 @@ Solid.web = (function(window) {
         meta.meta = (h['meta'])?h['meta']:h['describedBy'];
         meta.user = (resp.getResponseHeader('User'))?resp.getResponseHeader('User'):'';
         meta.exists = false;
-        meta.err = null;
-        if (resp.status === 200) {
-            meta.exists = true;
-        } else if (resp.status >= 500) {
-            meta.err = {
-                status: 500,
-                body: resp.responseText
-            };
-        }
+        meta.exists = (resp.status === 200)?true:false;
+        meta.xhr = resp;
         return meta;
     };
 
@@ -381,7 +374,7 @@ Solid.web = (function(window) {
             var docURI = (url.indexOf('#') >= 0)?url.slice(0, url.indexOf('#')):url;
             f.nowOrWhenFetched(docURI,undefined,function(ok, body, xhr) {
                 if (!ok) {
-                    reject({ok: ok, status: xhr.status, body: body, xhr: xhr, g: g});
+                    reject({status: xhr.status, xhr: xhr});
                 } else {
                     resolve(g);
                 }
@@ -409,11 +402,11 @@ Solid.web = (function(window) {
                     if (this.status === 200 || this.status === 201) {
                         resolve(parseResponseMeta(this));
                     } else {
-                        reject(this);
+                        reject({status: this.status, xhr: this});
                     }
                 }
             };
-            if (data) {
+            if (data && data.length > 0) {
                 http.send(data);
             } else {
                 http.send();
@@ -436,7 +429,7 @@ Solid.web = (function(window) {
                     if (this.status === 200 || this.status === 201) {
                         return resolve(parseResponseMeta(this));
                     } else {
-                        reject(this);
+                        reject({status: this.status, xhr: this});
                     }
                 }
             };
@@ -462,7 +455,7 @@ Solid.web = (function(window) {
                     if (this.status === 200) {
                         return resolve(true);
                     } else {
-                        reject(this);
+                        reject({status: this.status, xhr: this});
                     }
                 }
             };
