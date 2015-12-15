@@ -88,16 +88,33 @@ Solid.web.put(url, metaData).then(
 Reading an RDF resource from the Web.
 
 ```
-var url = 'https://example.org/';
+var url = 'https://example.org/blog/hellow-world';
 Solid.web.get(url).then(
     function(g) {
-        // Print all statements matching resources of type foaf:Blog
-        console.log(g.statementsMatching(undefined, RDF('type'), SIOC('Blog')));
+        // Print all statements matching resources of type foaf:Post
+        console.log(g.statementsMatching(undefined, RDF('type'), SIOC('Post')));
     }
 ).catch(
     function(err) {
         console.log(err); // error object
         ...
+    }
+);
+```
+
+## Getting some information on a resource
+Sometime an application may need to get some useful meta data about a resource. For instance, it may want to find out where the ACL resource is. Clients should take notice to the fact that the `head()` method will always successfully complete, even for resources that don't exists, since that is considered useful meta data. For instance, clients can use the `meta.xhr.status` value.
+
+Here, for example, we can find out where the corresponding ACL resource is for our new blog post `hellow-world`.
+
+```
+var url = 'https://example.org/blog/hellow-world';
+Solid.web.head(url).then(
+    function(meta) {
+        console.log(meta.acl); // the ACL uri
+        if (meta.xhr.status === 403) {
+            console.log("You don't have access to the resource");
+        }
     }
 );
 ```
