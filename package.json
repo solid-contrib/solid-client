@@ -1,0 +1,24 @@
+{
+  "name": "solid.js",
+  "version": "0.0.1",
+  "description": "Common library for writing Solid applications",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/solid/solid.js"
+  },
+  "keywords": [
+    "solid",
+    "decentralized",
+    "web"
+  ],
+  "author": "Andrei Sambra <andrei@fcns.eu>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/solid/solid.js/issues"
+  },
+  "homepage": "https://github.com/solid/solid.js"
+}
