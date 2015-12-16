@@ -13,12 +13,27 @@
   "keywords": [
     "solid",
     "decentralized",
-    "web"
+    "web",
+    "rdf",
+    "ldp",
+    "linked",
+    "data"
   ],
   "author": "Andrei Sambra <andrei@fcns.eu>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/solid/solid.js/issues"
   },
-  "homepage": "https://github.com/solid/solid.js"
+  "homepage": "https://github.com/solid/solid.js",
+  "dependencies": {
+    "rdflib": "^0.2.9"
+  },
+  "devDependencies": {
+    "async": "^1.3.0",
+    "chai": "^3.0.0",
+    "fs-extra": "^0.21.0",
+    "mocha": "^2.2.5",
+    "nock": "^2.10.0",
+    "supertest": "^1.0.1"
+  }
 }
