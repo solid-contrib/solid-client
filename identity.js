@@ -23,7 +23,8 @@ Solid.identity = (function(window) {
                     var prefs = graph.statementsMatching(webid, PIM('preferencesFile'), undefined);
                     var toLoad = sameAs.length + seeAlso.length + prefs.length;
 
-                    var checkAll = function() {
+                    // sync promises externally instead of using Promise.all() which fails if one GET fails
+                    var syncAll = function() {
                         if (toLoad === 0) {
                             return resolve(graph);
                         }
@@ -35,13 +36,12 @@ Solid.identity = (function(window) {
                                 function(g) {
                                     Solid.utils.appendGraph(graph, g);
                                     toLoad--;
-                                    checkAll();
+                                    syncAll();
                                 }
                             ).catch(
                             function(err){
-                                console.log(err);
                                 toLoad--;
-                                checkAll();
+                                syncAll();
                             });
                         });
                     }
@@ -52,13 +52,12 @@ Solid.identity = (function(window) {
                                 function(g) {
                                     Solid.utils.appendGraph(graph, g, see.object.value);
                                     toLoad--;
-                                    checkAll();
+                                    syncAll();
                                 }
                             ).catch(
                             function(err){
-                                console.log(err);
                                 toLoad--;
-                                checkAll();
+                                syncAll();
                             });
                         });
                     }
@@ -69,13 +68,12 @@ Solid.identity = (function(window) {
                                 function(g) {
                                     Solid.utils.appendGraph(graph, g, pref.object.value);
                                     toLoad--;
-                                    checkAll();
+                                    syncAll();
                                 }
                             ).catch(
                             function(err){
-                                console.log(err);
                                 toLoad--;
-                                checkAll();
+                                syncAll();
                             });
                         });
                     }
@@ -83,7 +81,6 @@ Solid.identity = (function(window) {
             )
             .catch(
                 function(err) {
-                    console.log("Could not load",url);
                     resolve(err);
                 }
             );
