@@ -68,7 +68,7 @@ Solid.auth = (function(window) {
                                     return resolve(user);
                                 }
                             }
-                            return reject({ok: false, status: this.status, body: this.responseText, xhr: this});
+                            return reject({status: this.status, xhr: this});
                         }
                     };
                     http.send();
@@ -149,7 +149,7 @@ Solid.identity = (function(window) {
     // fetch user profile (follow sameAs links) and return promise with a graph
     // resolve(graph)
     var getProfile = function(url) {
-        var promise = new Promise(function(resolve) {
+        var promise = new Promise(function(resolve, reject) {
             // Load main profile
             Solid.web.get(url).then(
                 function(graph) {
@@ -219,7 +219,7 @@ Solid.identity = (function(window) {
             )
             .catch(
                 function(err) {
-                    resolve(err);
+                    reject(err);
                 }
             );
         });
@@ -246,7 +246,6 @@ Solid.identity = (function(window) {
                 // find workspaces
                 var workspaces = [];
                 var ws = graph.statementsMatching($rdf.sym(webid), PIM('workspace'), undefined);
-                console.log(ws);
                 if (ws.length === 0) {
                     return resolve(workspaces);
                 }
@@ -261,7 +260,7 @@ Solid.identity = (function(window) {
                     workspace.statements = graph.statementsMatching(w.object, undefined, undefined);
                     workspaces.push(workspace);
                 });
-                resolve(workspaces);
+                return resolve(workspaces);
             }
         });
 
