@@ -13,7 +13,7 @@ Solid.identity = (function(window) {
     // fetch user profile (follow sameAs links) and return promise with a graph
     // resolve(graph)
     var getProfile = function(url) {
-        var promise = new Promise(function(resolve) {
+        var promise = new Promise(function(resolve, reject) {
             // Load main profile
             Solid.web.get(url).then(
                 function(graph) {
@@ -83,7 +83,7 @@ Solid.identity = (function(window) {
             )
             .catch(
                 function(err) {
-                    resolve(err);
+                    reject(err);
                 }
             );
         });
