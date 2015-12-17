@@ -67,7 +67,7 @@ Solid.auth = (function(window) {
                                     return resolve(user);
                                 }
                             }
-                            return reject({ok: false, status: this.status, body: this.responseText, xhr: this});
+                            return reject({status: this.status, xhr: this});
                         }
                     };
                     http.send();
