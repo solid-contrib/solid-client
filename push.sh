@@ -16,6 +16,10 @@ echo "\nBuilt dist file in $dist\n"
 # works with a file called VERSION in the current directory,
 # the contents of which should be a semantic version number
 # such as "1.2.3"
+#
+# Remember to enable tag following:
+# `git config --global push.followTags true`
+
 
 # this script will display the current version, automatically
 # suggest a "minor" version update, and ask for input to use
@@ -51,7 +55,7 @@ if [ -f VERSION ]; then
     git add CHANGES VERSION
     git commit -m "Version bump to $INPUT_STRING"
     git tag -a -m "Tagging version $INPUT_STRING" "v$INPUT_STRING"
-    git push --tags
+    git push --follow-tags
 else
     echo "Could not find a VERSION file"
     read -p "Do you want to create a version file and start from scratch? [y]" RESPONSE
@@ -69,7 +73,7 @@ else
         git add VERSION CHANGES
         git commit -m "Added VERSION and CHANGES files, Version bump to v0.1.0"
         git tag -a -m "Tagging version 0.1.0" "v0.1.0"
-        git push --tags
+        git push --follow-tags
     fi
 
 fi
