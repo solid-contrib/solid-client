@@ -20,7 +20,7 @@ Creating an LDP container quite trivial. The `post` method accepts the following
 
 Here is a full example where we try to create a container called `blog` under `https://example.org/`. We are also sending some meta data about the container, setting its type to `sioc:Blog`. 
 
-```
+```javascript
 var parentDir = 'https://example.org/';
 var slug = 'blog';
 var metaData = '<> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/sioc/ns#Blog> .';
@@ -48,7 +48,7 @@ Creating a regular LDP resource is very similar to creating containers, except f
 
 Here is an example where we try to create the resource `hellow-world` under `https://example.org/`. This will be an empty resource for now. 
 
-```
+```javascript
 var parentDir = 'https://example.org/';
 var slug = 'hellow-world';
 var metaData = '';
@@ -70,7 +70,7 @@ You can also overwrite existing resources with new content.
 Here is an example where we try to overwrite the resource `hellow-world` by sending some meta data about the resource, setting its type to `sioc:Post`. 
 
 
-```
+```javascript
 var url = 'https://example.org/blog/hellow-world';
 var metaData = '<> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/sioc/ns#Post> .';
 Solid.web.put(url, metaData).then(
@@ -87,7 +87,7 @@ Solid.web.put(url, metaData).then(
 ## Reading a resource
 Reading an RDF resource from the Web.
 
-```
+```javascript
 var url = 'https://example.org/blog/hellow-world';
 Solid.web.get(url).then(
     function(g) {
@@ -107,7 +107,7 @@ Sometime an application may need to get some useful meta data about a resource. 
 
 Here, for example, we can find out where the corresponding ACL resource is for our new blog post `hellow-world`.
 
-```
+```javascript
 var url = 'https://example.org/blog/hellow-world';
 Solid.web.head(url).then(
     function(meta) {
@@ -122,7 +122,7 @@ Solid.web.head(url).then(
 ## Deleting a resource
 Delete an RDF resource from the Web. For example, we can delete the blog post `hello-world` we created earlier.
 
-```
+```javascript
 var url = 'https://example.org/blog/hello-world';
 Solid.web.del(url).then(
     function(success) {
@@ -141,7 +141,7 @@ Solid.web.del(url).then(
 ## Login
 Authenticating a user and returning their WebID.
 
-```
+```javascript
 var login = function() {
     // Get the current user
     Solid.auth.login().then(function(webid){
@@ -157,7 +157,7 @@ var login = function() {
 ## Signup
 Signing a user up for a WebID account and storage, and then returning their WebID. If the opreation is successful and a WebID is returned, then the user can also be considered to be authenticated.
 
-```
+```javascript
 // Signup for a WebID
 var signup = function() {
     Solid.auth.signup().then(function(webid) {
