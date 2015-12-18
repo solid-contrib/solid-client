@@ -20,7 +20,6 @@ echo "\nBuilt dist file in $dist\n"
 # Remember to enable tag following:
 # `git config --global push.followTags true`
 
-
 # this script will display the current version, automatically
 # suggest a "minor" version update, and ask for input to use
 # the suggestion, or a newly entered value.
