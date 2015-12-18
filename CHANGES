@@ -1,3 +1,7 @@
+Version 0.1.4:
+ - Added websocket to the meta object
+ - Removed empty line
+
 Version 0.1.3:
  - Switched to --follow-tags
 
