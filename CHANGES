@@ -1,3 +1,7 @@
+Version 0.1.5:
+ - Incorporating latest changes
+ - Automatically commit the dist file
+
 Version 0.1.4:
  - Added websocket to the meta object
  - Removed empty line
