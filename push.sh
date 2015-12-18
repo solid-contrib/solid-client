@@ -11,6 +11,7 @@ do
   cat $src >> $target
 done
 
+git commit ./dist/solid.js -m "Incorporating latest changes"
 echo "\nBuilt dist file in $dist\n"
 
 # works with a file called VERSION in the current directory,
