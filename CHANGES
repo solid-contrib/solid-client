@@ -1,3 +1,8 @@
+Version 0.2.0:
+ - Added patch support
+ - Merge pull request #1 from solid/nicola-patch-1
+ - Adding highlighting to javascript examples
+
 Version 0.1.5:
  - Incorporating latest changes
  - Automatically commit the dist file
