@@ -122,6 +122,53 @@ Solid.web = (function(window) {
         return promise;
     };
 
+    // patch a resource
+    // accepts arrays of individual statements (turtle) as params
+    // e.g. [ '<a> <b> <c> .', '<d> <e> <f> .']
+    var patch = function(url, toDel, toIns) {
+        var promise = new Promise(function(resolve, reject) {
+            var data = '';
+
+            if (toDel && toDel.length > 0) {
+                for (var i=0; i<toDel.length; i++) {
+                    if (i>0) {
+                        data += " ;\n";
+                    }
+                    data += "DELETE DATA { " + toDel[i] +" }";
+                }
+            }
+            if (toIns && toIns.length > 0) {
+                for (var i=0; i<toIns.length; i++) {
+                    if (i>0 || (toDel && toDel.length > 0)) {
+                        data += " ;\n";
+                    }
+                    data += "INSERT DATA { " + toIns[i] +" }";
+                }
+            }
+
+            var http = new XMLHttpRequest();
+            http.open('PATCH', url);
+            http.setRequestHeader('Content-Type', 'application/sparql-update');
+            http.withCredentials = true;
+            http.onreadystatechange = function() {
+                if (this.readyState == this.DONE) {
+                    if (this.status === 200) {
+                        return resolve(parseResponseMeta(this));
+                    } else {
+                        reject({status: this.status, xhr: this});
+                    }
+                }
+            };
+            if (data && data.length > 0) {
+                http.send(data);
+            } else {
+                http.send();
+            }
+        });
+
+        return promise;
+    };
+
     // delete a resource
     // resolve(true) | reject
     var del = function(url) {
@@ -150,6 +197,7 @@ Solid.web = (function(window) {
         get: get,
         post: post,
         put: put,
+        patch: patch,
         del: del,
     };
 }(this));
