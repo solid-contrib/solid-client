@@ -32,6 +32,7 @@ Solid.web = (function(window) {
         var promise = new Promise(function(resolve) {
             var http = new XMLHttpRequest();
             http.open('HEAD', url);
+            http.withCredentials = true;
             http.onreadystatechange = function() {
                 if (this.readyState == this.DONE) {
                     resolve(parseResponseMeta(this));
