@@ -92,7 +92,6 @@ Solid.auth = (function(window) {
         window.open(url+"?origin="+encodeURIComponent(window.location.origin), "Solid signup", "resizable,scrollbars,status,width="+width+",height="+height+",left="+ leftPosition + ",top=" + topPosition);
 
         var promise = new Promise(function(resolve, reject) {
-            console.log("Starting listener");
             listen().then(function(webid) {
                 return resolve(webid);
             }).catch(function(err){
@@ -106,7 +105,6 @@ Solid.auth = (function(window) {
     // Listen to login messages from child window/iframe
     var listen = function() {
         var promise = new Promise(function(resolve, reject){
-            console.log("In listen()");
             var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
             var eventListener = window[eventMethod];
             var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
