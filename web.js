@@ -20,7 +20,25 @@ Solid.web = (function(window) {
         meta.meta = (h['meta'])?h['meta']:h['describedBy'];
         meta.user = (resp.getResponseHeader('User'))?resp.getResponseHeader('User'):'';
         meta.websocket = (resp.getResponseHeader('Updates-Via'))?resp.getResponseHeader('Updates-Via'):'';
-        meta.exists = false;
+        // writable/editable resource
+        meta.editable = [];
+        var patch = resp.getResponseHeader('Accept-Patch');
+        if (patch && patch.indexOf('application/sparql-update') >= 0) {
+            meta.editable.push('patch');
+        }
+        var allow = resp.getResponseHeader('Allow');
+        if (allow) {
+            if (allow.indexOf('PUT') >= 0) {
+                meta.editable.push('put')
+            }
+            if (allow.indexOf('POST') >= 0) {
+                meta.editable.push('post')
+            }
+            if (allow.indexOf('DELETE') >= 0) {
+                meta.editable.push('delete')
+            }
+        }
+
         meta.exists = (resp.status === 200)?true:false;
         meta.xhr = resp;
         return meta;
