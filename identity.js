@@ -18,67 +18,37 @@ Solid.identity = (function(window) {
             Solid.web.get(url).then(
                 function(graph) {
                     // set WebID
+                    url = (url.indexOf('#') >= 0)?url.slice(0, url.indexOf('#')):url;
                     var webid = graph.any($rdf.sym(url), FOAF('primaryTopic'));
                     // find additional resources to load
-                    var sameAs = graph.statementsMatching(webid, OWL('sameAs'), undefined);
-                    var seeAlso = graph.statementsMatching(webid, OWL('seeAlso'), undefined);
-                    var prefs = graph.statementsMatching(webid, PIM('preferencesFile'), undefined);
-                    var toLoad = sameAs.length + seeAlso.length + prefs.length;
-
+                    var toLoad = [];
+                    toLoad = toLoad.concat(graph.statementsMatching(webid, OWL('sameAs'), undefined, $rdf.sym(url)));
+                    toLoad = toLoad.concat(graph.statementsMatching(webid, OWL('seeAlso'), undefined, $rdf.sym(url)));
+                    toLoad = toLoad.concat(graph.statementsMatching(webid, PIM('preferencesFile'), undefined, $rdf.sym(url)));
+                    var total = toLoad.length;
                     // sync promises externally instead of using Promise.all() which fails if one GET fails
                     var syncAll = function() {
-                        if (toLoad === 0) {
+                        if (total === 0) {
                             return resolve(graph);
                         }
                     }
-                    // Load sameAs files
-                    if (sameAs.length > 0) {
-                        sameAs.forEach(function(same){
-                            Solid.web.get(same.object.value, same.object.value).then(
-                                function(g) {
-                                    Solid.utils.appendGraph(graph, g);
-                                    toLoad--;
-                                    syncAll();
-                                }
-                            ).catch(
-                            function(err){
-                                toLoad--;
-                                syncAll();
-                            });
-                        });
+                    if (total === 0) {
+                        return resolve(graph);
                     }
-                    // Load seeAlso files
-                    if (seeAlso.length > 0) {
-                        seeAlso.forEach(function(see){
-                            Solid.web.get(see.object.value).then(
-                                function(g) {
-                                    Solid.utils.appendGraph(graph, g, see.object.value);
-                                    toLoad--;
-                                    syncAll();
-                                }
-                            ).catch(
-                            function(err){
-                                toLoad--;
+                    // Load other files
+                    toLoad.forEach(function(prof){
+                        Solid.web.get(prof.object.uri).then(
+                            function(g) {
+                                Solid.utils.appendGraph(graph, g, prof.object.uri);
+                                total--;
                                 syncAll();
-                            });
+                            }
+                        ).catch(
+                        function(err){
+                            total--;
+                            syncAll();
                         });
-                    }
-                    // Load preferences files
-                    if (prefs.length > 0) {
-                        prefs.forEach(function(pref){
-                            Solid.web.get(pref.object.value).then(
-                                function(g) {
-                                    Solid.utils.appendGraph(graph, g, pref.object.value);
-                                    toLoad--;
-                                    syncAll();
-                                }
-                            ).catch(
-                            function(err){
-                                toLoad--;
-                                syncAll();
-                            });
-                        });
-                    }
+                    });
                 }
             )
             .catch(
@@ -131,9 +101,72 @@ Solid.identity = (function(window) {
         return promise;
     };
 
+    // Find the user's writable profiles
+    // Return an object with the list of profile URIs
+    var getWritableProfiles = function(webid, graph) {
+        var promise = new Promise(function(resolve, reject){
+            if (!graph) {
+                // fetch profile and call function again
+                getProfile(webid).then(function(g) {
+                    getWritableProfiles(webid, g).then(function(list) {
+                        return resolve(list);
+                    }).catch(function(err) {
+                        return reject(err);
+                    });
+                }).catch(function(err){
+                    return reject(err);
+                });
+            } else {
+                // find profiles
+                var profiles = [];
+
+                webid = (webid.indexOf('#') >= 0)?webid.slice(0, webid.indexOf('#')):webid;
+                var user = graph.any($rdf.sym(webid), FOAF('primaryTopic'));
+                // find additional resources to load
+                var toLoad = [];
+                toLoad = toLoad.concat(graph.statementsMatching(user, OWL('sameAs'), undefined, $rdf.sym(webid)));
+                toLoad = toLoad.concat(graph.statementsMatching(user, OWL('seeAlso'), undefined, $rdf.sym(webid)));
+                toLoad = toLoad.concat(graph.statementsMatching(user, PIM('preferencesFile'), undefined, $rdf.sym(webid)));
+                // also check this (main) profile doc
+                toLoad = toLoad.concat({object: {uri: webid}});
+                var total = toLoad.length;
+                // sync promises externally instead of using Promise.all() which fails if one GET fails
+                var syncAll = function() {
+                    if (total === 0) {
+                        return resolve(profiles);
+                    }
+                }
+                if (total === 0) {
+                    return resolve(profiles);
+                }
+
+                // Load sameAs files
+                toLoad.forEach(function(prof){
+                    var url = prof.object.uri;
+                    Solid.web.head(url).then(
+                        function(meta) {
+                            if (meta.editable.length > 0 && profiles.indexOf(url) < 0) {
+                                profiles.push({url: url, editable: meta.editable});
+                            }
+                            total--;
+                            syncAll();
+                        }
+                    ).catch(
+                    function(err){
+                        total--;
+                        syncAll();
+                    });
+                });
+            }
+        });
+
+        return promise;
+    };
+
     // return public methods
     return {
         getProfile: getProfile,
-        getWorkspaces: getWorkspaces
+        getWorkspaces: getWorkspaces,
+        getWritableProfiles: getWritableProfiles
     };
 }(this));
