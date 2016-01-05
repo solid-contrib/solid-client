@@ -56,6 +56,10 @@ if [ -f VERSION ]; then
     git commit -m "Version bump to $INPUT_STRING"
     git tag -a -m "Tagging version $INPUT_STRING" "v$INPUT_STRING"
     git push --follow-tags
+    git checkout gh-pages
+    git merge master
+    git push
+    git checkout master
 else
     echo "Could not find a VERSION file"
     read -p "Do you want to create a version file and start from scratch? [y]" RESPONSE
@@ -75,5 +79,4 @@ else
         git tag -a -m "Tagging version 0.1.0" "v0.1.0"
         git push --follow-tags
     fi
-
 fi
