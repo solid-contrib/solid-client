@@ -1,32 +1,51 @@
 # solid.js
 [![](https://img.shields.io/badge/project-Solid-7C4DFF.svg?style=flat-square)](https://github.com/solid/solid)
 
-Javascript library for Solid applications
+Javascript library for [Solid](https://github.com/solid/solid-spec) applications
 
 # Dependencies
-This library currently depends on [rdflib.js](https://github.com/linkeddata/rdflib.js/). Please make sure to load the `rdflib.js` script **before** loading `solid.js`.
+This library currently depends on
+[rdflib.js](https://github.com/linkeddata/rdflib.js/). Please make sure to load
+the `rdflib.js` script **before** loading `solid.js`.
 
 # Web operations
 
-This chapter provides an introduction to the functions you can implement in your own app, in order to manipulate resources using LDP-friendly calls.
+This chapter provides an introduction to the functions you can implement in your
+own app, in order to manipulate resources using LDP-friendly calls.
 
-[LDP](http://www.w3.org/TR/ldp/) is a W3C standard that defines a set of rules for HTTP operations on web resources, some based on RDF, to provide an architecture for read-write Linked Data on the web.
+[LDP](http://www.w3.org/TR/ldp/) is a W3C standard that defines a set of rules
+for HTTP operations on web resources, some based on RDF, to provide an
+architecture for read-write Linked Data on the web.
 
-LDP structures web resources into two main categories, in a very similar way to how a file system structures data into files and folders:
+LDP structures web resources into two main categories, in a very similar way to
+how a file system structures data into files and folders:
+
 * containers (i.e. folders)
 * resources (i.e. files or other containers)
 
-For example, a blog application may decide to store posts in a hierarchical manner -- i.e. `/blog/hello-world`. Here, `blog` is a container, while `hello-world` is a regular resource (file).
+For example, a blog application may decide to store posts in a hierarchical
+manner -- i.e. `/blog/hello-world`. Here, `blog` is a container, while
+`hello-world` is a regular resource (file).
 
 ## Creating a container (folder)
-Creating a container is quite trivial. The `solid.js` library offers a function called `Solid.web.post()`, which does most of the work for us. The function accepts the following parameters:
 
-* `parentDir` (string) - the URL of the parent container in which the new resource/container will be created
-* `slug` (string) - the value for the `Slug` header -- i.e. the name of the new resource to be created
-* `data` (string) - RDF data serialized as `text/turtle`; can also be an empty string if no data will be sent
-* `isContainer` (boolean) (optional) - whether the new resource should be an LDP container or a regular LDP resource; defaults to LDP resource if the value is not set
+Creating a container is quite trivial. The `solid.js` library offers a function
+called `Solid.web.post()`, which does most of the work for us. The function
+accepts the following parameters:
 
-Picking up from the blog example above, we will now create a container called `blog` under `https://example.org/`. In this process we are also sending some meta data (semantics) about the container, setting its type to `sioc:Blog`.
+* `parentDir` (string) - the URL of the parent container in which the new
+    resource/container will be created
+* `slug` (string) - the value for the `Slug` header -- i.e. the name of the new
+    resource to be created
+* `data` (string) - RDF data serialized as `text/turtle`; can also be an empty
+    string if no data will be sent
+* `isContainer` (boolean) (optional) - whether the new resource should be an LDP
+    container or a regular LDP resource; defaults to LDP resource if the value
+    is not set
+
+Picking up from the blog example above, we will now create a container called
+`blog` under `https://example.org/`. In this process we are also sending some
+meta data (semantics) about the container, setting its type to `sioc:Blog`.
 
 ```javascript
 var parentDir = 'https://example.org/';
@@ -50,9 +69,12 @@ Solid.web.post(parentDir, slug, data, isContainer).then(
 ```
 
 ## Creating a resource
-Creating a regular LDP resource is very similar to creating containers, except for the `isContainer` value, which is no longer set.
 
-In this example we will create the resource `hello-world` under the newly created `blog/` container. It will be an empty resource for now. 
+Creating a regular LDP resource is very similar to creating containers, except
+for the `isContainer` value, which is no longer set.
+
+In this example we will create the resource `hello-world` under the newly
+created `blog/` container. It will be an empty resource for now.
 
 ```javascript
 var parentDir = 'https://example.org/blog/';
@@ -70,10 +92,12 @@ Solid.web.post(parentDir, slug, data).then(
 ```
 
 ## Overwriting a resource
-You can also overwrite existing resources with new content, using the `Solid.web.put` function.
 
-Here is an example where we try to overwrite the existing resource `hello-world` by sending some data about the resource, setting its type to `sioc:Post`. 
+You can also overwrite existing resources with new content, using the
+`Solid.web.put` function.
 
+Here is an example where we try to overwrite the existing resource `hello-world`
+by sending some data about the resource, setting its type to `sioc:Post`.
 
 ```javascript
 var url = 'https://example.org/blog/hello-world';
@@ -91,7 +115,9 @@ Solid.web.put(url, data).then(
 ```
 
 ## Reading a resource
-We can now read the updated RDF resource, using the function `Solid.web.get`. This function returns a graph object, which can then be queried. The graph object is created by `rdflib.js` and it inherits all its methods.
+We can now read the updated RDF resource, using the function `Solid.web.get`.
+This function returns a graph object, which can then be queried. The graph
+object is created by `rdflib.js` and it inherits all its methods.
 
 ```javascript
 var url = 'https://example.org/blog/hello-world';
@@ -110,9 +136,16 @@ Solid.web.get(url).then(
 ```
 
 ## Getting some information on a resource
-Sometimes an application may need to get some useful meta data about a resource. For instance, it may want to find out where the ACL resource is. Clients should take notice to the fact that the `Solid.web.head` function will always successfully complete, even for resources that don't exists, since that is considered useful information. For instance, clients can use the `meta.xhr.status` value will indicate whether the resource exists or not.
 
-Here, for example, we can find out where the corresponding ACL resource is for our new blog post `hellow-world`.
+Sometimes an application may need to get some useful meta data about a resource.
+For instance, it may want to find out where the ACL resource is. Clients should
+take notice to the fact that the `Solid.web.head` function will always
+successfully complete, even for resources that don't exists, since that is
+considered useful information. For instance, clients can use the
+`meta.xhr.status` value will indicate whether the resource exists or not.
+
+Here, for example, we can find out where the corresponding ACL resource is for
+our new blog post `hellow-world`.
 
 ```javascript
 var url = 'https://example.org/blog/hellow-world';
@@ -127,9 +160,13 @@ Solid.web.head(url).then(
 ```
 
 ## Deleting a resource
-Delete an RDF resource from the Web. For example, we can delete the blog post `hello-world` we created earlier, using the `Solid.web.del` function.
 
-**NOTE:** while this function can also be used to delete containers, it will only work for empty containers. For now, app developers should make sure to empty a container by recursively calling calling this function on its contents.
+Delete an RDF resource from the Web. For example, we can delete the blog post
+`hello-world` we created earlier, using the `Solid.web.del` function.
+
+**NOTE:** while this function can also be used to delete containers, it will
+only work for empty containers. For now, app developers should make sure to
+empty a container by recursively calling calling this function on its contents.
 
 ```javascript
 var url = 'https://example.org/blog/hello-world';
@@ -152,26 +189,39 @@ Solid.web.del(url).then(
 
 [Solid](https://github.com/solid/solid-spec) specification.
 
-
 # Authentication
 
-In the context of Solid, authentication is often conflated with identity discovery. Because applications run in the browser, users don't have to authenticate themselves to applications, but instead to the servers where the data resides.
+In the context of Solid, authentication is often conflated with identity
+discovery. Because applications run in the browser, users don't have to
+authenticate themselves to applications, but instead to the servers where the
+data resides.
 
-However, identity discovery still involves an authentication step, through which the application will have access to the a Solid-specific HTTP header called `User`. Solid servers commonly include this header in HTTP responses, where it contains the `WebID` of the authenticated user. An empty header usually means that the user is not authenticated.
+However, identity discovery still involves an authentication step, through which
+the application will have access to the a Solid-specific HTTP header called
+`User`. Solid servers commonly include this header in HTTP responses, where it
+contains the `WebID` of the authenticated user. An empty header usually means
+that the user is not authenticated.
 
-Both Login and Signup functions return the user's WebID. Sometimes users don't have a WebID account, and in that case they need to sign up for one. The signup process also results in getting the user's WebID. If the opreation is successful and a WebID is returned, then the user is considered to be authenticated.
+Both Login and Signup functions return the user's WebID. Sometimes users don't
+have a WebID account, and in that case they need to sign up for one. The signup
+process also results in getting the user's WebID. If the operation is successful
+and a WebID is returned, then the user is considered to be authenticated.
 
 ## Login example
 
-Here is a typical example of authenticating a user and returning their WebID. The following `login` function, specific to your application, wraps the `Solid.auth.login` function. If the promise is resolved, then an application will do something with the `webid` value. Otherwise, if the promise is rejected, the application may choose to display an error message.
+Here is a typical example of authenticating a user and returning their WebID.
+The following `login` function, specific to your application, wraps the
+`Solid.auth.login` function. If the promise is resolved, then an application
+will do something with the `webid` value. Otherwise, if the promise is rejected,
+the application may choose to display an error message.
 
-`HTML`
+HTML:
 
 ```html
 <a href="#" onclick="login()">Login</a>
 ```
 
-`JAVASCRIPT`
+Javascript:
 
 ```javascript
 var login = function() {
@@ -188,15 +238,17 @@ var login = function() {
 
 ## Signup example
 
-The `signup` function is very similar to the `login` function, wrapping the `Solid.auth.signup` function. It results in either a WebID or an error message being returned.
+The `signup` function is very similar to the `login` function, wrapping the
+`Solid.auth.signup` function. It results in either a WebID or an error message
+being returned.
 
-`HTML`
+HTML:
 
 ```html
 <a href="#" onclick="signup()">Sign up</a>
 ```
 
-`JAVASCRIPT`
+Javascript:
 
 ```javascript
 // Signup for a WebID
@@ -213,6 +265,8 @@ var signup = function() {
 
 ## See also
 
-[WebID](http://www.w3.org/2005/Incubator/webid/spec/identity)
+* [Solid Spec](https://github.com/solid/solid-spec)
 
-[User header](https://github.com/solid/solid-spec#finding-out-the-identity-currently-used)
+* [WebID](http://www.w3.org/2005/Incubator/webid/spec/identity)
+
+* [User header](https://github.com/solid/solid-spec#finding-out-the-identity-currently-used)
