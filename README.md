@@ -148,7 +148,9 @@ Solid.web.del(url).then(
 
 ## See also
 
-[Linked Data Platform](http://www.w3.org/TR/ldp/)
+[Linked Data Platform](http://www.w3.org/TR/ldp/) specification.
+
+[Solid](https://github.com/solid/solid-spec) specification.
 
 
 # Authentication
@@ -212,4 +214,5 @@ var signup = function() {
 ## See also
 
 [WebID](http://www.w3.org/2005/Incubator/webid/spec/identity)
+
 [User header](https://github.com/solid/solid-spec#finding-out-the-identity-currently-used)
