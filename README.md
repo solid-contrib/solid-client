@@ -144,7 +144,6 @@ Solid.web.patch(url, [oldTtitle], [newTitle]).then(function(meta){
    console.log(err); // error object
    ... 
 });
-
 ```
 
 ## Reading a resource
