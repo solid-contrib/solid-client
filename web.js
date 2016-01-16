@@ -12,7 +12,7 @@ Solid.web = (function(window) {
     var LDP = $rdf.Namespace("http://www.w3.org/ns/ldp#");
 
     // return metadata for a given request
-    var parseResponseMeta = function(resp) {
+    function parseResponseMeta (resp) {
         var h = Solid.utils.parseLinkHeader(resp.getResponseHeader('Link'));
         var meta = {};
         meta.url = (resp.getResponseHeader('Location'))?resp.getResponseHeader('Location'):resp.responseURL;
@@ -46,7 +46,7 @@ Solid.web = (function(window) {
 
     // check if a resource exists and return useful Solid info (acl, meta, type, etc)
     // resolve(metaObj)
-    var head = function(url) {
+    function head (url) {
         var promise = new Promise(function(resolve) {
             var http = new XMLHttpRequest();
             http.open('HEAD', url);
@@ -64,7 +64,7 @@ Solid.web = (function(window) {
 
     // fetch an RDF resource
     // resolve(graph) | reject(this)
-    var get = function(url) {
+    function get (url) {
         var promise = new Promise(function(resolve, reject) {
             var g = new $rdf.graph();
             var f = new $rdf.fetcher(g, TIMEOUT);
@@ -84,7 +84,7 @@ Solid.web = (function(window) {
 
     // create new resource
     // resolve(metaObj) | reject
-    var post = function(url, slug, data, isContainer) {
+    function post (url, data, slug, isContainer) {
         var resType = (isContainer)?LDP('BasicContainer').uri:LDP('Resource').uri;
         var promise = new Promise(function(resolve, reject) {
             var http = new XMLHttpRequest();
@@ -116,7 +116,7 @@ Solid.web = (function(window) {
 
     // update/create resource using HTTP PUT
     // resolve(metaObj) | reject
-    var put = function(url, data) {
+    function put (url, data) {
         var promise = new Promise(function(resolve, reject) {
             var http = new XMLHttpRequest();
             http.open('PUT', url);
@@ -144,7 +144,7 @@ Solid.web = (function(window) {
     // patch a resource
     // accepts arrays of individual statements (turtle) as params
     // e.g. [ '<a> <b> <c> .', '<d> <e> <f> .']
-    var patch = function(url, toDel, toIns) {
+    function patch (url, toDel, toIns) {
         var promise = new Promise(function(resolve, reject) {
             var data = '';
 
@@ -190,7 +190,7 @@ Solid.web = (function(window) {
 
     // delete a resource
     // resolve(true) | reject
-    var del = function(url) {
+    function del (url) {
         var promise = new Promise(function(resolve, reject) {
             var http = new XMLHttpRequest();
             http.open('DELETE', url);
@@ -211,12 +211,16 @@ Solid.web = (function(window) {
     }
 
     // return public methods
+    // aliasing post -> create, put -> replace, patch -> update
     return {
         head: head,
         get: get,
         post: post,
+        create: post,
         put: put,
+        replace: put,
         patch: patch,
+        update: patch,
         del: del,
     };
 }(this));
