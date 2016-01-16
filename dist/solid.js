@@ -132,79 +132,6 @@ Solid.auth = (function(window) {
         listen: listen,
     };
 }(this));
-// Access control
-var Solid = Solid || {};
-Solid.acl = (function(window) {
-    'use strict';
-
-    var RDF = $rdf.Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
-    var WAC = $rdf.Namespace("http://www.w3.org/ns/auth/acl#");
-
-    // Make a resource private
-    function setPrivate (uri, webid, defaultForNew) {
-        var promise = new Promise(function(resolve, reject){
-
-            // replace with a proper "builder"
-            var policies = {};
-            policies.owners = { defaultForNew: defaultForNew, users: [ webid ] };
-            data = generateACL(policies);
-
-            writeACL(uri, data).then(function(meta) {
-                resolve(meta);
-            }).catch(function(err) {
-                reject(err);
-            });
-        });
-        return promise;
-    };
-
-    // Generate RDF from a set of policies
-    function generateACL (policies) {
-        if (!policies) {
-            return '';
-        }
-
-        var g = new $rdf.graph();
-
-        g.add($rdf.sym("#"+type), RDF("type"), WAC('Authorization'));
-        g.add($rdf.sym("#"+type), WAC("accessTo"), $rdf.sym(uri));
-        g.add($rdf.sym("#"+type), WAC("accessTo"), $rdf.sym(''));
-        if (defaultForNew) {
-          g.add($rdf.sym("#"+type), WAC("defaultForNew"), $rdf.sym(uri));
-        }
-        users.forEach(function(webid) {
-            g.add($rdf.sym("#"+type), WAC("agent"), $rdf.sym(webid));
-        });
-        g.add($rdf.sym("#"+type), WAC("mode"), WAC('Read'));
-        g.add($rdf.sym("#"+type), WAC("mode"), WAC('Write'));
-        g.add($rdf.sym("#"+type), WAC("mode"), WAC('Control'));
-
-        var data = new $rdf.Serializer(g).toN3(g);
-        return data;
-    };
-
-    // Get location of acl file and write the ACL
-    function writeACL (uri, data) {
-        var promise = new Promise(function(resolve, reject) {
-            Solid.web.head(uri).then(function(meta) {
-                if (!meta.acl || meta.acl.length === 0) {
-                    reject({status: meta.xhr.status, xhr: meta.xhr});
-                }
-                Solid.web.put(meta.acl, data).then(function(meta) {
-                    resolve(meta);
-                }).catch(function(err) {
-                    reject(err);
-                });
-            });
-        });
-        return promise;
-    };
-
-    // return public methods
-    return {
-        setPrivate: setPrivate
-    };
-}(this));
 // Identity / WebID
 var Solid = Solid || {};
 Solid.identity = (function(window) {
@@ -529,7 +456,7 @@ Solid.web = (function(window) {
 
     // create new resource
     // resolve(metaObj) | reject
-    function post (url, slug, data, isContainer) {
+    function post (url, data, slug, isContainer) {
         var resType = (isContainer)?LDP('BasicContainer').uri:LDP('Resource').uri;
         var promise = new Promise(function(resolve, reject) {
             var http = new XMLHttpRequest();
