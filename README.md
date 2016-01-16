@@ -136,7 +136,9 @@ Now we can actually patch the resource. The `Solid.web.patch` function takes thr
 
 ```Javascript
 var url = 'https://example.org/blog/hello-world';
-Solid.web.patch(url, [oldTtitle], [newTitle]).then(function(meta){
+var toDel = [ oldTtitle ];
+var toIns = [ newTitle ];
+Solid.web.patch(url, toDel, toIns).then(function(meta){
     if (meta.xhr.status === 200) {
         // success
     }
