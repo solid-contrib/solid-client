@@ -69,12 +69,16 @@ Creating a regular LDP resource is very similar to creating containers, except
 for the `isContainer` value, which is no longer set.
 
 In this example we will create the resource `hello-world` under the newly
-created `blog/` container. It will be an empty resource for now.
+created `blog/` container.
 
 ```javascript
 var parentDir = 'https://example.org/blog/';
 var slug = 'hello-world';
-var data = '';
+var data = `
+<> a <http://rdfs.org/sioc/ns#Post> ;
+    <http://purl.org/dc/terms/title> "First post" ;
+    <http://rdfs.org/sioc/ns#content> "Hello world! This is my first post" .
+`;
 
 Solid.web.post(parentDir, data, slug).then(
     function(meta) {
@@ -109,6 +113,38 @@ Solid.web.put(url, data).then(
     console.log(err); // error object
     ...
 });
+```
+
+## Patching a resource
+Sometimes we don't really need to update the full resource, especially if the change is really small compared to the amount of data in the resource. For instance, we sometimes need to delete a triple, or update the value of an object (technically by replacing the triple with a new one). Luckily, Solid allows us to use the `HTTP PATCH` operation, to do very small changes.
+
+Let's try to change the value of the title in our first post. To do so, we need to indicate which triple we want to replace, and then the triple that will replace it.
+
+Let's create the statements and serialize them to Turtle before patching the blog post resource:
+
+```Javascript
+var oldTitle = $rdf.st($rdf.sym(''), $rdf.sym('http://purl.org/dc/terms/title'), $rdf.lit("First post")).toNT();
+
+var newTitle = $rdf.st($rdf.sym(''), $rdf.sym('http://purl.org/dc/terms/title'), $rdf.lit("Hello")).toNT();
+```
+
+Now we can actually patch the resource. The `Solid.web.patch` function takes three arguments:
+
+* `url` (string) - the URL of the resource to be overwritten.
+* `toDel` (array) - an array of statements to be deleted, serialized as Turtle.
+* `toIns` (array) - an array of statements to be inserted, serialized as Turtle.
+
+```Javascript
+var url = 'https://example.org/blog/hello-world';
+Solid.web.patch(url, [oldTtitle], [newTitle]).then(function(meta){
+    if (meta.xhr.status === 200) {
+        // success
+    }
+}).catch(function(err) {
+   console.log(err); // error object
+   ... 
+});
+
 ```
 
 ## Reading a resource
