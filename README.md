@@ -37,6 +37,7 @@ accepts the following parameters:
 * `data` (string) - RDF data serialized as `text/turtle`; can also be an empty string if no data will be sent.
 * `slug` (string) (optional) - the value for the `Slug` header -- i.e. the name of the new resource to be created; this value is optional.
 * `isContainer` (boolean) (optional) - whether the new resource should be an LDP container or a regular LDP resource; defaults to LDP resource if the value is not set; this value is optional.
+* `mime` (string) (optional) - the mime type for this resource; this value is optional and defaults to `text/turtle`. This value is ignored when creating containers.
 
 Picking up from the blog example above, we will now create a container called
 `blog` under `https://example.org/`. In this process we are also sending some
@@ -127,6 +128,7 @@ We can also completele replace (overwrite) existing resources with new content, 
 * `url` (string) - the URL of the resource to be overwritten.
 * `data` (string) - RDF data serialized as `text/turtle`; can also be an empty
  string if no data will be sent.
+* `mime` (string) (optional) - the mime type for this resource; this value is optional and defaults to `text/turtle`.
 
 Here is an example where we try to overwrite the existing resource `hello-world`, giving it a bogus type - `http://example.org/#Post`.
 
@@ -193,12 +195,12 @@ Solid.web.head(url).then(
 
 The `meta` object returned by `Solid.web.head` contains the following properties:
 
-* `meta.url` // https://example.org/blog/hellow-world
-* `meta.acl` // https://example.org/blog/hellow-world.acl
-* `meta.meta` // https://example.org/blog/hellow-world.meta
-* `meta.user` // https://user.example.org/profile#me
-* `meta.websocket` // wss://example.org/blog/hellow-world
-* `meta.xhr` // xhr object (e.g. xhr.status)
+* `meta.url` - the URL of the resource // https://example.org/blog/hellow-world
+* `meta.acl` - the URL of the corresponding acl resource  // https://example.org/blog/hellow-world.acl
+* `meta.meta` - the URL of the corresponding meta resource // https://example.org/blog/hellow-world.meta
+* `meta.user` - the WebID of the authenticated user (if authenticated) // https://user.example.org/profile#me
+* `meta.websocket` - the URI of the corresponding websocket instance // wss://example.org/blog/hellow-world
+* `meta.xhr` - the xhr object (e.g. xhr.status)
 
 ## Deleting a resource
 
