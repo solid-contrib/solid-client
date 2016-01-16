@@ -103,7 +103,7 @@ var oldTitle = $rdf.st($rdf.sym(''), $rdf.sym('http://purl.org/dc/terms/title'),
 var newTitle = $rdf.st($rdf.sym(''), $rdf.sym('http://purl.org/dc/terms/title'), $rdf.lit("Hello")).toNT();
 ```
 
-Now we can actually patch the resource. The `Solid.web.patch` function takes three arguments:
+Now we can actually patch the resource. The `Solid.web.patch` function (also aliased to `Solid.web.update()`) takes three arguments:
 
 * `url` (string) - the URL of the resource to be overwritten.
 * `toDel` (array) - an array of statements to be deleted, serialized as Turtle.
