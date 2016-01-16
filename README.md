@@ -30,7 +30,7 @@ manner -- i.e. `/blog/hello-world`. Here, `blog` is a container, while
 ## Creating a container (folder)
 
 Creating a container is quite trivial. The `solid.js` library offers a function
-called `Solid.web.post()`, which does most of the work for us. The function
+called `Solid.web.post()` (also aliased to `Solid.web.create()`), which does most of the work for us. The function
 accepts the following parameters:
 
 * `parentDir` (string) - the URL of the parent container in which the new resource/container will be created.
@@ -87,7 +87,7 @@ Solid.web.post(parentDir, data, slug).then(
 ```
 
 ## Overwriting a resource
-You can also overwrite existing resources with new content, using the `Solid.web.put` function. The function accepts the following parameters:
+You can also overwrite existing resources with new content, using the `Solid.web.put` function (also aliased to `Solid.web.replace()`). The function accepts the following parameters:
 
 * `url` (string) - the URL of the resource to be overwritten.
 * `data` (string) - RDF data serialized as `text/turtle`; can also be an empty
@@ -151,10 +151,21 @@ Solid.web.head(url).then(
         console.log(meta.acl); // the ACL uri
         if (meta.xhr.status === 403) {
             console.log("You don't have access to the resource");
+        } else if (meta.xhr.status === 404) {
+            console.log("This resource doesn't exist");
         }
     }
 );
 ```
+
+The `meta` object returned by `Solid.web.head` contains the following properties:
+
+* `meta.url` // https://example.org/blog/hellow-world
+* `meta.acl` // https://example.org/blog/hellow-world.acl
+* `meta.meta` // https://example.org/blog/hellow-world.meta
+* `meta.user` // https://user.example.org/profile#me
+* `meta.websocket` // wss://example.org/blog/hellow-world
+* `meta.xhr` // xhr object (i.e. xhr.status)
 
 ## Deleting a resource
 
