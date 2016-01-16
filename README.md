@@ -160,11 +160,11 @@ Solid.web.head(url).then(
 
 The `meta` object returned by `Solid.web.head` contains the following properties:
 
-* `meta.url` // e.g. https://example.org/blog/hellow-world
-* `meta.acl` // e.g. https://example.org/blog/hellow-world.acl
-* `meta.meta` // e.g. https://example.org/blog/hellow-world.meta
-* `meta.user` // e.g. https://user.example.org/profile#me
-* `meta.websocket` // e.g. wss://example.org/blog/hellow-world
+* `meta.url` // https://example.org/blog/hellow-world
+* `meta.acl` // https://example.org/blog/hellow-world.acl
+* `meta.meta` // https://example.org/blog/hellow-world.meta
+* `meta.user` // https://user.example.org/profile#me
+* `meta.websocket` // wss://example.org/blog/hellow-world
 * `meta.xhr` // xhr object (e.g. xhr.status)
 
 ## Deleting a resource
