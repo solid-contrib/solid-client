@@ -21,10 +21,10 @@ For example, a blog application may decide to store posts in a hierarchical mann
 ## Creating a container (folder)
 Creating a container is quite trivial. The `solid.js` library offers a function called `Solid.web.post()`, which does most of the work for us. The function accepts the following parameters:
 
-* `parentDir` (string) - the URL of the parent container in which the new resource/container will be created
-* `slug` (string) - the value for the `Slug` header -- i.e. the name of the new resource to be created
-* `data` (string) - RDF data serialized as `text/turtle`; can also be an empty string if no data will be sent
-* `isContainer` (boolean) (optional) - whether the new resource should be an LDP container or a regular LDP resource; defaults to LDP resource if the value is not set
+* `parentDir` (string) - the URL of the parent container in which the new resource/container will be created.
+* `data` (string) - RDF data serialized as `text/turtle`; can also be an empty string if no data will be sent.
+* `slug` (string) (optional) - the value for the `Slug` header -- i.e. the name of the new resource to be created; this value is optional.
+* `isContainer` (boolean) (optional) - whether the new resource should be an LDP container or a regular LDP resource; defaults to LDP resource if the value is not set; this value is optional.
 
 Picking up from the blog example above, we will now create a container called `blog` under `https://example.org/`. In this process we are also sending some meta data (semantics) about the container, setting its type to `sioc:Blog`.
 
@@ -34,7 +34,7 @@ var slug = 'blog';
 var data = '<> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/sioc/ns#Blog> .';
 var isContainer = true;
 
-Solid.web.post(parentDir, slug, data, isContainer).then(
+Solid.web.post(parentDir, data, slug, isContainer).then(
     function(meta) {
         console.log(meta);
         // The resulting object has several useful properties. Refer to the solid.js docs for more information/examples
@@ -59,7 +59,7 @@ var parentDir = 'https://example.org/blog/';
 var slug = 'hello-world';
 var data = '';
 
-Solid.web.post(parentDir, slug, data).then(
+Solid.web.post(parentDir, data, slug).then(
     function(meta) {
         console.log(meta.url); // URL of the newly created resource
     }
@@ -70,7 +70,10 @@ Solid.web.post(parentDir, slug, data).then(
 ```
 
 ## Overwriting a resource
-You can also overwrite existing resources with new content, using the `Solid.web.put` function.
+You can also overwrite existing resources with new content, using the `Solid.web.put` function. The function accepts the following parameters:
+
+* `url` (string) - the URL of the resource to be overwritten.
+* `data` (string) - RDF data serialized as `text/turtle`; can also be an empty string if no data will be sent.
 
 Here is an example where we try to overwrite the existing resource `hello-world` by sending some data about the resource, setting its type to `sioc:Post`. 
 
