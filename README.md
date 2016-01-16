@@ -90,39 +90,14 @@ Solid.web.post(parentDir, data, slug).then(
 });
 ```
 
-## Overwriting a resource
-You can also overwrite existing resources with new content, using the `Solid.web.put` function (also aliased to `Solid.web.replace()`). The function accepts the following parameters:
-
-* `url` (string) - the URL of the resource to be overwritten.
-* `data` (string) - RDF data serialized as `text/turtle`; can also be an empty
- string if no data will be sent.
-
-Here is an example where we try to overwrite the existing resource `hello-world`
-by sending some data about the resource, setting its type to `sioc:Post`.
-
-```javascript
-var url = 'https://example.org/blog/hello-world';
-var data = '<> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/sioc/ns#Post> .';
-
-Solid.web.put(url, data).then(
-    function(meta) {
-        console.log(meta);
-        console.log(meta.xhr.status); // HTTP 200 (OK)
-    }
-).catch(function(err){
-    console.log(err); // error object
-    ...
-});
-```
-
-## Patching a resource
-Sometimes we don't really need to update the full resource, especially if the change is really small compared to the amount of data in the resource. For instance, we sometimes need to delete a triple, or update the value of an object (technically by replacing the triple with a new one). Luckily, Solid allows us to use the `HTTP PATCH` operation to do very small changes.
+## Updating a resource
+Sometimes we need to update a resource after making a small change. For instance, we sometimes need to delete a triple, or update the value of an object (technically by replacing the triple with a new one). Luckily, Solid allows us to use the `HTTP PATCH` operation to do very small changes.
 
 Let's try to change the value of the title in our first post. To do so, we need to indicate which triple we want to replace, and then the triple that will replace it.
 
 Let's create the statements and serialize them to Turtle before patching the blog post resource:
 
-```Javascript
+```javascript
 var oldTitle = $rdf.st($rdf.sym(''), $rdf.sym('http://purl.org/dc/terms/title'), $rdf.lit("First post")).toNT();
 
 var newTitle = $rdf.st($rdf.sym(''), $rdf.sym('http://purl.org/dc/terms/title'), $rdf.lit("Hello")).toNT();
@@ -134,17 +109,38 @@ Now we can actually patch the resource. The `Solid.web.patch` function takes thr
 * `toDel` (array) - an array of statements to be deleted, serialized as Turtle.
 * `toIns` (array) - an array of statements to be inserted, serialized as Turtle.
 
-```Javascript
+```javascript
 var url = 'https://example.org/blog/hello-world';
 var toDel = [ oldTtitle ];
 var toIns = [ newTitle ];
 Solid.web.patch(url, toDel, toIns).then(function(meta){
-    if (meta.xhr.status === 200) {
-        // success
-    }
+    console.log(meta.xhr.status); // HTTP 200 (OK)
 }).catch(function(err) {
    console.log(err); // error object
    ... 
+});
+```
+
+## Replacing a resource
+We can also completele replace (overwrite) existing resources with new content, using the `Solid.web.put` function (also aliased to `Solid.web.replace()`). The function accepts the following parameters:
+
+* `url` (string) - the URL of the resource to be overwritten.
+* `data` (string) - RDF data serialized as `text/turtle`; can also be an empty
+ string if no data will be sent.
+
+Here is an example where we try to overwrite the existing resource `hello-world`, giving it a bogus type - `http://example.org/#Post`.
+
+```javascript
+var url = 'https://example.org/blog/hello-world';
+var data = '<> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/#Post> .';
+
+Solid.web.put(url, data).then(
+    function(meta) {
+        console.log(meta.xhr.status); // HTTP 200 (OK)
+    }
+).catch(function(err){
+    console.log(err); // error object
+    ...
 });
 ```
 

@@ -116,11 +116,12 @@ Solid.web = (function(window) {
 
     // update/create resource using HTTP PUT
     // resolve(metaObj) | reject
-    function put (url, data) {
+    function put (url, data, mime) {
         var promise = new Promise(function(resolve, reject) {
+            mime = (mime)?mime:'text/turtle';
             var http = new XMLHttpRequest();
             http.open('PUT', url);
-            http.setRequestHeader('Content-Type', 'text/turtle');
+            http.setRequestHeader('Content-Type', mime);
             http.withCredentials = true;
             http.onreadystatechange = function() {
                 if (this.readyState == this.DONE) {
