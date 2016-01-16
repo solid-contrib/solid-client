@@ -116,7 +116,7 @@ Solid.web.put(url, data).then(
 ```
 
 ## Patching a resource
-Sometimes we don't really need to update the full resource, especially if the change is really small compared to the amount of data in the resource. For instance, we sometimes need to delete a triple, or update the value of an object (technically by replacing the triple with a new one). Luckily, Solid allows us to use the `HTTP PATCH` operation, to do very small changes.
+Sometimes we don't really need to update the full resource, especially if the change is really small compared to the amount of data in the resource. For instance, we sometimes need to delete a triple, or update the value of an object (technically by replacing the triple with a new one). Luckily, Solid allows us to use the `HTTP PATCH` operation to do very small changes.
 
 Let's try to change the value of the title in our first post. To do so, we need to indicate which triple we want to replace, and then the triple that will replace it.
 
