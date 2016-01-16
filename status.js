@@ -4,16 +4,16 @@ Solid.status = (function(window) {
     'use strict';
 
     // Get current online status
-    var isOnline = function() {
+    function isOnline () {
         return window.navigator.onLine;
     };
 
     // Is offline
-    var onOffline = function(callback) {
+    function onOffline (callback) {
         window.addEventListener("offline", callback, false);
     };
     // Is online
-    var onOnline = function(callback) {
+    function onOnline (callback) {
         window.addEventListener("online", callback, false);
     };
 

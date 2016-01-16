@@ -4,7 +4,7 @@ Solid.utils = (function(window) {
     'use strict';
 
     // parse a Link header
-    var parseLinkHeader = function(link) {
+    function parseLinkHeader (link) {
         var linkexp = /<[^>]*>\s*(\s*;\s*[^\(\)<>@,;:"\/\[\]\?={} \t]+=(([^\(\)<>@,;:"\/\[\]\?={} \t]+)|("[^"]*")))*(,|$)/g;
         var paramexp = /[^\(\)<>@,;:"\/\[\]\?={} \t]+=(([^\(\)<>@,;:"\/\[\]\?={} \t]+)|("[^"]*"))/g;
 
@@ -27,7 +27,7 @@ Solid.utils = (function(window) {
     };
 
     // append statements from one graph object to another
-    var appendGraph = function(toGraph, fromGraph, docURI) {
+    function appendGraph (toGraph, fromGraph, docURI) {
         var why = (docURI)?$rdf.sym(docURI):undefined;
         fromGraph.statementsMatching(undefined, undefined, undefined, why).forEach(function(st) {
             toGraph.add(st.subject, st.predicate, st.object, st.why);

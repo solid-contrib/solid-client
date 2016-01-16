@@ -2,7 +2,7 @@
 # Build the dist file based on individual modules
 # TODO: minify dist file
 
-sources="auth.js identity.js status.js utils.js web.js"
+sources="auth.js acl.js identity.js status.js utils.js web.js"
 target="dist/solid.js"
 
 echo > $target
@@ -12,5 +12,5 @@ do
   cat $src >> $target
 done
 
-echo "\nBuilt dist file in $dist\n"
+echo "\nBuilt dist file in $target\n"
 exit 0

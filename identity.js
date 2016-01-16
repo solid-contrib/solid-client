@@ -12,7 +12,7 @@ Solid.identity = (function(window) {
 
     // fetch user profile (follow sameAs links) and return promise with a graph
     // resolve(graph)
-    var getProfile = function(url) {
+    function getProfile (url) {
         var promise = new Promise(function(resolve, reject) {
             // Load main profile
             Solid.web.get(url).then(
@@ -63,7 +63,7 @@ Solid.identity = (function(window) {
 
     // Find the user's workspaces
     // Return an object with the list of objects (workspaces)
-    var getWorkspaces = function(webid, graph) {
+    function getWorkspaces (webid, graph) {
         var promise = new Promise(function(resolve, reject){
             if (!graph) {
                 // fetch profile and call function again
@@ -103,7 +103,7 @@ Solid.identity = (function(window) {
 
     // Find the user's writable profiles
     // Return an object with the list of profile URIs
-    var getWritableProfiles = function(webid, graph) {
+    function getWritableProfiles (webid, graph) {
         var promise = new Promise(function(resolve, reject){
             if (!graph) {
                 // fetch profile and call function again

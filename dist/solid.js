@@ -42,7 +42,7 @@ Solid.auth = (function(window) {
 
     // attempt to find the current user's WebID from the User header if authenticated
     // resolve(webid) - string
-    var login = function(url) {
+    function login (url) {
         url = url || window.location.origin+window.location.pathname;
         var promise = new Promise(function(resolve, reject) {
             var http = new XMLHttpRequest();
@@ -81,7 +81,7 @@ Solid.auth = (function(window) {
     };
 
     // Open signup window
-    var signup = function(url) {
+    function signup (url) {
         url = url || signupEndpoint;
         var leftPosition, topPosition;
         var width = 1024;
@@ -104,7 +104,7 @@ Solid.auth = (function(window) {
     };
 
     // Listen to login messages from child window/iframe
-    var listen = function() {
+    function listen () {
         var promise = new Promise(function(resolve, reject){
             var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
             var eventListener = window[eventMethod];
@@ -132,6 +132,79 @@ Solid.auth = (function(window) {
         listen: listen,
     };
 }(this));
+// Access control
+var Solid = Solid || {};
+Solid.acl = (function(window) {
+    'use strict';
+
+    var RDF = $rdf.Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+    var WAC = $rdf.Namespace("http://www.w3.org/ns/auth/acl#");
+
+    // Make a resource private
+    function setPrivate (uri, webid, defaultForNew) {
+        var promise = new Promise(function(resolve, reject){
+
+            // replace with a proper "builder"
+            var policies = {};
+            policies.owners = { defaultForNew: defaultForNew, users: [ webid ] };
+            data = generateACL(policies);
+
+            writeACL(uri, data).then(function(meta) {
+                resolve(meta);
+            }).catch(function(err) {
+                reject(err);
+            });
+        });
+        return promise;
+    };
+
+    // Generate RDF from a set of policies
+    function generateACL (policies) {
+        if (!policies) {
+            return '';
+        }
+
+        var g = new $rdf.graph();
+
+        g.add($rdf.sym("#"+type), RDF("type"), WAC('Authorization'));
+        g.add($rdf.sym("#"+type), WAC("accessTo"), $rdf.sym(uri));
+        g.add($rdf.sym("#"+type), WAC("accessTo"), $rdf.sym(''));
+        if (defaultForNew) {
+          g.add($rdf.sym("#"+type), WAC("defaultForNew"), $rdf.sym(uri));
+        }
+        users.forEach(function(webid) {
+            g.add($rdf.sym("#"+type), WAC("agent"), $rdf.sym(webid));
+        });
+        g.add($rdf.sym("#"+type), WAC("mode"), WAC('Read'));
+        g.add($rdf.sym("#"+type), WAC("mode"), WAC('Write'));
+        g.add($rdf.sym("#"+type), WAC("mode"), WAC('Control'));
+
+        var data = new $rdf.Serializer(g).toN3(g);
+        return data;
+    };
+
+    // Get location of acl file and write the ACL
+    function writeACL (uri, data) {
+        var promise = new Promise(function(resolve, reject) {
+            Solid.web.head(uri).then(function(meta) {
+                if (!meta.acl || meta.acl.length === 0) {
+                    reject({status: meta.xhr.status, xhr: meta.xhr});
+                }
+                Solid.web.put(meta.acl, data).then(function(meta) {
+                    resolve(meta);
+                }).catch(function(err) {
+                    reject(err);
+                });
+            });
+        });
+        return promise;
+    };
+
+    // return public methods
+    return {
+        setPrivate: setPrivate
+    };
+}(this));
 // Identity / WebID
 var Solid = Solid || {};
 Solid.identity = (function(window) {
@@ -146,7 +219,7 @@ Solid.identity = (function(window) {
 
     // fetch user profile (follow sameAs links) and return promise with a graph
     // resolve(graph)
-    var getProfile = function(url) {
+    function getProfile (url) {
         var promise = new Promise(function(resolve, reject) {
             // Load main profile
             Solid.web.get(url).then(
@@ -197,7 +270,7 @@ Solid.identity = (function(window) {
 
     // Find the user's workspaces
     // Return an object with the list of objects (workspaces)
-    var getWorkspaces = function(webid, graph) {
+    function getWorkspaces (webid, graph) {
         var promise = new Promise(function(resolve, reject){
             if (!graph) {
                 // fetch profile and call function again
@@ -237,7 +310,7 @@ Solid.identity = (function(window) {
 
     // Find the user's writable profiles
     // Return an object with the list of profile URIs
-    var getWritableProfiles = function(webid, graph) {
+    function getWritableProfiles (webid, graph) {
         var promise = new Promise(function(resolve, reject){
             if (!graph) {
                 // fetch profile and call function again
@@ -309,16 +382,16 @@ Solid.status = (function(window) {
     'use strict';
 
     // Get current online status
-    var isOnline = function() {
+    function isOnline () {
         return window.navigator.onLine;
     };
 
     // Is offline
-    var onOffline = function(callback) {
+    function onOffline (callback) {
         window.addEventListener("offline", callback, false);
     };
     // Is online
-    var onOnline = function(callback) {
+    function onOnline (callback) {
         window.addEventListener("online", callback, false);
     };
 
@@ -335,7 +408,7 @@ Solid.utils = (function(window) {
     'use strict';
 
     // parse a Link header
-    var parseLinkHeader = function(link) {
+    function parseLinkHeader (link) {
         var linkexp = /<[^>]*>\s*(\s*;\s*[^\(\)<>@,;:"\/\[\]\?={} \t]+=(([^\(\)<>@,;:"\/\[\]\?={} \t]+)|("[^"]*")))*(,|$)/g;
         var paramexp = /[^\(\)<>@,;:"\/\[\]\?={} \t]+=(([^\(\)<>@,;:"\/\[\]\?={} \t]+)|("[^"]*"))/g;
 
@@ -358,7 +431,7 @@ Solid.utils = (function(window) {
     };
 
     // append statements from one graph object to another
-    var appendGraph = function(toGraph, fromGraph, docURI) {
+    function appendGraph (toGraph, fromGraph, docURI) {
         var why = (docURI)?$rdf.sym(docURI):undefined;
         fromGraph.statementsMatching(undefined, undefined, undefined, why).forEach(function(st) {
             toGraph.add(st.subject, st.predicate, st.object, st.why);
@@ -384,7 +457,7 @@ Solid.web = (function(window) {
     var LDP = $rdf.Namespace("http://www.w3.org/ns/ldp#");
 
     // return metadata for a given request
-    var parseResponseMeta = function(resp) {
+    function parseResponseMeta (resp) {
         var h = Solid.utils.parseLinkHeader(resp.getResponseHeader('Link'));
         var meta = {};
         meta.url = (resp.getResponseHeader('Location'))?resp.getResponseHeader('Location'):resp.responseURL;
@@ -418,7 +491,7 @@ Solid.web = (function(window) {
 
     // check if a resource exists and return useful Solid info (acl, meta, type, etc)
     // resolve(metaObj)
-    var head = function(url) {
+    function head (url) {
         var promise = new Promise(function(resolve) {
             var http = new XMLHttpRequest();
             http.open('HEAD', url);
@@ -436,7 +509,7 @@ Solid.web = (function(window) {
 
     // fetch an RDF resource
     // resolve(graph) | reject(this)
-    var get = function(url) {
+    function get (url) {
         var promise = new Promise(function(resolve, reject) {
             var g = new $rdf.graph();
             var f = new $rdf.fetcher(g, TIMEOUT);
@@ -456,7 +529,7 @@ Solid.web = (function(window) {
 
     // create new resource
     // resolve(metaObj) | reject
-    var post = function(url, slug, data, isContainer) {
+    function post (url, slug, data, isContainer) {
         var resType = (isContainer)?LDP('BasicContainer').uri:LDP('Resource').uri;
         var promise = new Promise(function(resolve, reject) {
             var http = new XMLHttpRequest();
@@ -488,7 +561,7 @@ Solid.web = (function(window) {
 
     // update/create resource using HTTP PUT
     // resolve(metaObj) | reject
-    var put = function(url, data) {
+    function put (url, data) {
         var promise = new Promise(function(resolve, reject) {
             var http = new XMLHttpRequest();
             http.open('PUT', url);
@@ -516,7 +589,7 @@ Solid.web = (function(window) {
     // patch a resource
     // accepts arrays of individual statements (turtle) as params
     // e.g. [ '<a> <b> <c> .', '<d> <e> <f> .']
-    var patch = function(url, toDel, toIns) {
+    function patch (url, toDel, toIns) {
         var promise = new Promise(function(resolve, reject) {
             var data = '';
 
@@ -562,7 +635,7 @@ Solid.web = (function(window) {
 
     // delete a resource
     // resolve(true) | reject
-    var del = function(url) {
+    function del (url) {
         var promise = new Promise(function(resolve, reject) {
             var http = new XMLHttpRequest();
             http.open('DELETE', url);
@@ -583,12 +656,16 @@ Solid.web = (function(window) {
     }
 
     // return public methods
+    // aliasing post -> create, put -> replace, patch -> update
     return {
         head: head,
         get: get,
         post: post,
+        create: post,
         put: put,
+        replace: put,
         patch: patch,
+        update: patch,
         del: del,
     };
 }(this));

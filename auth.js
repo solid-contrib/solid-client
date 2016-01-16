@@ -41,7 +41,7 @@ Solid.auth = (function(window) {
 
     // attempt to find the current user's WebID from the User header if authenticated
     // resolve(webid) - string
-    var login = function(url) {
+    function login (url) {
         url = url || window.location.origin+window.location.pathname;
         var promise = new Promise(function(resolve, reject) {
             var http = new XMLHttpRequest();
@@ -80,7 +80,7 @@ Solid.auth = (function(window) {
     };
 
     // Open signup window
-    var signup = function(url) {
+    function signup (url) {
         url = url || signupEndpoint;
         var leftPosition, topPosition;
         var width = 1024;
@@ -103,7 +103,7 @@ Solid.auth = (function(window) {
     };
 
     // Listen to login messages from child window/iframe
-    var listen = function() {
+    function listen () {
         var promise = new Promise(function(resolve, reject){
             var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
             var eventListener = window[eventMethod];
