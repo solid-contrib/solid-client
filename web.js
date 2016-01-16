@@ -84,12 +84,17 @@ Solid.web = (function(window) {
 
     // create new resource
     // resolve(metaObj) | reject
-    function post (url, data, slug, isContainer) {
-        var resType = (isContainer)?LDP('BasicContainer').uri:LDP('Resource').uri;
+    function post (url, data, slug, isContainer, mime) {
+        var resType = LDP('Resource').uri;
+        if (isContainer) {
+            resType = LDP('BasicContainer').uri;
+            mime = 'text/turtle'; // force right mime for containers only
+        }
+        mime = (mime)?mime:'text/turtle';
         var promise = new Promise(function(resolve, reject) {
             var http = new XMLHttpRequest();
             http.open('POST', url);
-            http.setRequestHeader('Content-Type', 'text/turtle');
+            http.setRequestHeader('Content-Type', mime);
             http.setRequestHeader('Link', '<'+resType+'>; rel="type"');
             if (slug && slug.length > 0) {
                 http.setRequestHeader('Slug', slug);
