@@ -132,7 +132,7 @@ Solid.web.get(url).then(
 );
 ```
 
-## Getting some information on a resource
+## Getting information about a resource
 
 Sometimes an application may need to get some useful meta data about a resource.
 For instance, it may want to find out where the ACL resource is. Clients should
