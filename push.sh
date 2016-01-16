@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Build dist file
-sources="auth.js acl.js identity.js status.js utils.js web.js"
+sources="auth.js identity.js status.js utils.js web.js"
 target="dist/solid.js"
 
 echo > $target
