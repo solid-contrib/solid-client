@@ -12,28 +12,14 @@ the `rdflib.js` script **before** loading `solid.js`.
 
 # Web operations
 
-This chapter provides an introduction to the functions you can implement in your
-own app, in order to manipulate resources using LDP-friendly calls.
+Solid.js uses a mix of [LDP](http://www.w3.org/TR/ldp/) and Solid-specific functions to manipulate Web resources. Please see the [Solid spec]() for more details.
 
-[LDP](http://www.w3.org/TR/ldp/) is a W3C standard that defines a set of rules
-for HTTP operations on web resources, some based on RDF, to provide an
-architecture for read-write Linked Data on the web.
 
-LDP structures web resources into two main categories, in a very similar way to
-how a file system structures data into files and folders:
 
-* containers (i.e. folders)
-* resources (i.e. files or other containers)
-
-For example, a blog application may decide to store posts in a hierarchical
-manner -- i.e. `/blog/hello-world`. Here, `blog` is a container, while
-`hello-world` is a regular resource (file).
 
 ## Creating a container (folder)
 
-Creating a container is quite trivial. The `solid.js` library offers a function
-called `Solid.web.post()` (also aliased to `Solid.web.create()`), which does most of the work for us. The function
-accepts the following parameters:
+The `solid.js` library offers a function called `Solid.web.post()` (also aliased to `Solid.web.create()`), which is used to create containers. The function accepts the following parameters:
 
 * `parentDir` (string) - the URL of the parent container in which the new resource/container will be created.
 * `data` (string) - RDF data serialized as `text/turtle`; can also be an empty string if no data will be sent.
@@ -41,14 +27,14 @@ accepts the following parameters:
 * `isContainer` (boolean) (optional) - whether the new resource should be an LDP container or a regular LDP resource; defaults to LDP resource if the value is not set; this value is optional.
 * `mime` (string) (optional) - the mime type for this resource; this value is optional and defaults to `text/turtle`. This value is ignored when creating containers.
 
-Picking up from the blog example above, we will now create a container called
-`blog` under `https://example.org/`. In this process we are also sending some
-meta data (semantics) about the container, setting its type to `sioc:Blog`.
+For example, a blog application may decide to store posts in a hierarchical
+manner -- i.e. `/blog/hello-world`. Here, `blog` is a container, while
+`hello-world` is a regular resource (file). In the example below  we are also sending some meta data (semantics) about the container, setting its type to `sioc:Blog`.
 
 ```javascript
 var parentDir = 'https://example.org/';
 var slug = 'blog';
-var data = '<> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/sioc/ns#Blog> .';
+var data = '<#this> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/sioc/ns#Blog> .';
 var isContainer = true;
 
 Solid.web.post(parentDir, data, slug, isContainer).then(
