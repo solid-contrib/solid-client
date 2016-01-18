@@ -99,9 +99,11 @@ Let's try to change the value of the title in our first post. To do so, we need 
 Let's create the statements and serialize them to Turtle before patching the blog post resource:
 
 ```javascript
-var oldTitle = $rdf.st($rdf.sym(''), $rdf.sym('http://purl.org/dc/terms/title'), $rdf.lit("First post")).toNT();
+var url = 'https://example.org/blog/hello-world';
 
-var newTitle = $rdf.st($rdf.sym(''), $rdf.sym('http://purl.org/dc/terms/title'), $rdf.lit("Hello")).toNT();
+var oldTitle = $rdf.st($rdf.sym(url), $rdf.sym('http://purl.org/dc/terms/title'), "First post").toNT();
+
+var newTitle = $rdf.st($rdf.sym(url), $rdf.sym('http://purl.org/dc/terms/title'), "Hello").toNT();
 ```
 
 Now we can actually patch the resource. The `Solid.web.patch` function (also aliased to `Solid.web.update()`) takes three arguments:
@@ -111,7 +113,6 @@ Now we can actually patch the resource. The `Solid.web.patch` function (also ali
 * `toIns` (array) - an array of statements to be inserted, serialized as Turtle.
 
 ```javascript
-var url = 'https://example.org/blog/hello-world';
 var toDel = [ oldTtitle ];
 var toIns = [ newTitle ];
 Solid.web.patch(url, toDel, toIns).then(function(meta){
