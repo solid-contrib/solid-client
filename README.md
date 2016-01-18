@@ -12,9 +12,7 @@ the `rdflib.js` script **before** loading `solid.js`.
 
 # Web operations
 
-Solid.js uses a mix of [LDP](http://www.w3.org/TR/ldp/) and Solid-specific functions to manipulate Web resources. Please see the [Solid spec]() for more details.
-
-
+Solid.js uses a mix of [LDP](http://www.w3.org/TR/ldp/) and Solid-specific functions to manipulate Web resources. Please see the [Solid spec](https://github.com/solid/solid-spec) for more details.
 
 
 ## Creating a container (folder)
