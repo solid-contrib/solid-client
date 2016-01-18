@@ -1,7 +1,9 @@
 # solid.js
 [![](https://img.shields.io/badge/project-Solid-7C4DFF.svg?style=flat-square)](https://github.com/solid/solid)
 
-Javascript library for [Solid](https://github.com/solid/solid-spec) applications
+Javascript library for writing [Solid](https://github.com/solid/solid-spec) applications.
+
+**PLEASE NOTE** This document describes what functionality is offered by the Solid.js library and should not be mistaken for a tutorial on how to write Solid apps. If you would like to learn how to build Solid apps using Solid.js, please see the [pastebin example tutorial](https://github.com/solid/solid-tutorial-pastebin), as well as the [tutorial for using rdflib.js](https://github.com/solid/solid-tutorial-rdflib.js).
 
 # Dependencies
 This library currently depends on
