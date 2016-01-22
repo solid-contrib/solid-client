@@ -1,9 +1,16 @@
 # solid.js
 [![](https://img.shields.io/badge/project-Solid-7C4DFF.svg?style=flat-square)](https://github.com/solid/solid)
 
-Javascript library for writing [Solid](https://github.com/solid/solid-spec) applications.
+Javascript library for writing [Solid](https://github.com/solid/solid-spec)
+applications.
 
-**PLEASE NOTE** This document describes what functionality is offered by the Solid.js library and should not be mistaken for a tutorial on how to write Solid apps. If you would like to learn how to build Solid apps using Solid.js, please see the [pastebin example tutorial](https://github.com/solid/solid-tutorial-pastebin), as well as the [tutorial for using rdflib.js](https://github.com/solid/solid-tutorial-rdflib.js).
+**PLEASE NOTE** This document describes what functionality is offered by
+the Solid.js library and should not be mistaken for a tutorial on how to write
+Solid apps. If you would like to learn how to build Solid apps using Solid.js,
+please see the
+[pastebin example tutorial](https://github.com/solid/solid-tutorial-pastebin),
+as well as the
+[tutorial for using rdflib.js](https://github.com/solid/solid-tutorial-rdflib.js).
 
 # Dependencies
 This library currently depends on
@@ -12,22 +19,32 @@ the `rdflib.js` script **before** loading `solid.js`.
 
 # Web operations
 
-Solid.js uses a mix of [LDP](http://www.w3.org/TR/ldp/) and Solid-specific functions to manipulate Web resources. Please see the [Solid spec](https://github.com/solid/solid-spec) for more details.
-
+Solid.js uses a mix of [LDP](http://www.w3.org/TR/ldp/) and Solid-specific
+functions to manipulate Web resources. Please see the [Solid
+spec](https://github.com/solid/solid-spec) for more details.
 
 ## Creating a container (folder)
 
 The `solid.js` library offers a function called `Solid.web.post()` (also aliased to `Solid.web.create()`), which is used to create containers. The function accepts the following parameters:
 
-* `parentDir` (string) - the URL of the parent container in which the new resource/container will be created.
-* `data` (string) - RDF data serialized as `text/turtle`; can also be an empty string if no data will be sent.
-* `slug` (string) (optional) - the value for the `Slug` header -- i.e. the name of the new resource to be created; this value is optional.
-* `isContainer` (boolean) (optional) - whether the new resource should be an LDP container or a regular LDP resource; defaults to LDP resource if the value is not set; this value is optional.
-* `mime` (string) (optional) - the mime type for this resource; this value is optional and defaults to `text/turtle`. This value is ignored when creating containers.
+* `parentDir` (string) - the URL of the parent container in which the new
+  resource/container will be created.
+* `data` (string) - RDF data serialized as `text/turtle`; can also be an empty
+  string if no data will be sent.
+* `slug` (string) (optional) - the value for the `Slug` header -- i.e. the name
+  of the new resource to be created; this value is optional.
+* `isContainer` (boolean) (optional) - whether the new resource should be an
+  LDP container or a regular LDP resource; defaults to LDP resource if the
+  value is not set; this value is optional.
+* `mime` (string) (optional) - the mime type for this resource; this value is
+  optional and defaults to `text/turtle`. This value is ignored when creating
+  containers.
 
 For example, a blog application may decide to store posts in a hierarchical
 manner -- i.e. `/blog/hello-world`. Here, `blog` is a container, while
-`hello-world` is a regular resource (file). In the example below  we are also sending some meta data (semantics) about the container, setting its type to `sioc:Blog`.
+`hello-world` is a regular resource (file). In the example below  we are also
+sending some meta data (semantics) about the container, setting its type to
+`sioc:Blog`.
 
 ```javascript
 var parentDir = 'https://example.org/';
@@ -78,11 +95,17 @@ Solid.web.post(parentDir, data, slug).then(
 ```
 
 ## Updating a resource
-Sometimes we need to update a resource after making a small change. For instance, we sometimes need to delete a triple, or update the value of an object (technically by replacing the triple with a new one). Luckily, Solid allows us to use the `HTTP PATCH` operation to do very small changes.
+Sometimes we need to update a resource after making a small change. For
+instance, we sometimes need to delete a triple, or update the value of an object
+(technically by replacing the triple with a new one). Luckily, Solid allows us
+to use the `HTTP PATCH` operation to do very small changes.
 
-Let's try to change the value of the title in our first post. To do so, we need to indicate which triple we want to replace, and then the triple that will replace it.
+Let's try to change the value of the title in our first post. To do so, we need
+to indicate which triple we want to replace, and then the triple that will
+replace it.
 
-Let's create the statements and serialize them to Turtle before patching the blog post resource:
+Let's create the statements and serialize them to Turtle before patching the
+blog post resource:
 
 ```javascript
 var url = 'https://example.org/blog/hello-world';
@@ -105,19 +128,23 @@ Solid.web.patch(url, toDel, toIns).then(function(meta){
     console.log(meta.xhr.status); // HTTP 200 (OK)
 }).catch(function(err) {
    console.log(err); // error object
-   ... 
+   ...
 });
 ```
 
 ## Replacing a resource
-We can also completele replace (overwrite) existing resources with new content, using the `Solid.web.put` function (also aliased to `Solid.web.replace()`). The function accepts the following parameters:
+We can also completely replace (overwrite) existing resources with new content,
+using the `Solid.web.put` function (also aliased to `Solid.web.replace()`). The
+function accepts the following parameters:
 
 * `url` (string) - the URL of the resource to be overwritten.
 * `data` (string) - RDF data serialized as `text/turtle`; can also be an empty
- string if no data will be sent.
-* `mime` (string) (optional) - the mime type for this resource; this value is optional and defaults to `text/turtle`.
+  string if no data will be sent.
+* `mime` (string) (optional) - the mime type for this resource; this value is
+  optional and defaults to `text/turtle`.
 
-Here is an example where we try to overwrite the existing resource `hello-world`, giving it a bogus type - `http://example.org/#Post`.
+Here is an example where we try to overwrite the existing resource
+`hello-world`, giving it a bogus type - `http://example.org/#Post`.
 
 ```javascript
 var url = 'https://example.org/blog/hello-world';
@@ -183,10 +210,14 @@ Solid.web.head(url).then(
 The `meta` object returned by `Solid.web.head` contains the following properties:
 
 * `meta.url` - the URL of the resource // https://example.org/blog/hellow-world
-* `meta.acl` - the URL of the corresponding acl resource  // https://example.org/blog/hellow-world.acl
-* `meta.meta` - the URL of the corresponding meta resource // https://example.org/blog/hellow-world.meta
-* `meta.user` - the WebID of the authenticated user (if authenticated) // https://user.example.org/profile#me
-* `meta.websocket` - the URI of the corresponding websocket instance // wss://example.org/blog/hellow-world
+* `meta.acl` - the URL of the corresponding acl resource  //
+  `https://example.org/blog/hellow-world.acl`
+* `meta.meta` - the URL of the corresponding meta resource //
+  `https://example.org/blog/hellow-world.meta`
+* `meta.user` - the WebID of the authenticated user (if authenticated) //
+  `https://user.example.org/profile#me`
+* `meta.websocket` - the URI of the corresponding websocket instance //
+  `wss://example.org/blog/hellow-world`
 * `meta.xhr` - the xhr object (e.g. xhr.status)
 
 ## Deleting a resource
