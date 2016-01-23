@@ -31,7 +31,11 @@ https://github.com/solid/
 */
 
 // WebID authentication and signup
+
 var Solid = Solid || {}
+if (typeof tabulator !== 'undefined') {
+    tabulator.solid = Solid;
+}
 Solid.auth = (function (window) {
   'use strict'
 
