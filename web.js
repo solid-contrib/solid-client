@@ -1,6 +1,6 @@
 // LDP operations
 var Solid = Solid || {}
-Solid.web = (function (window) {
+Solid.web = (function () {
   'use strict'
 
   // Init some defaults

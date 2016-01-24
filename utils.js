@@ -1,6 +1,6 @@
 // Helper functions
 var Solid = Solid || {}
-Solid.utils = (function (window) {
+Solid.utils = (function () {
   'use strict'
 
   // parse a Link header

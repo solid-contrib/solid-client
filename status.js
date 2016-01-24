@@ -1,6 +1,6 @@
 // Events
 var Solid = Solid || {}
-Solid.status = (function (window) {
+Solid.status = (function () {
   'use strict'
 
   // Get current online status

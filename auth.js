@@ -36,7 +36,7 @@ var Solid = Solid || {}
 if (typeof tabulator !== 'undefined') {
     tabulator.solid = Solid;
 }
-Solid.auth = (function (window) {
+Solid.auth = (function () {
   'use strict'
 
   // default (preferred) authentication endpoint

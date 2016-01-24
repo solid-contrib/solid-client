@@ -37,7 +37,7 @@ var Solid = Solid || {}
 if (typeof tabulator !== 'undefined') {
     tabulator.solid = Solid;
 }
-Solid.auth = (function (window) {
+Solid.auth = (function () {
   'use strict'
 
   // default (preferred) authentication endpoint
@@ -138,7 +138,7 @@ Solid.auth = (function (window) {
 }(this))
 // Identity / WebID
 var Solid = Solid || {}
-Solid.identity = (function (window) {
+Solid.identity = (function () {
   'use strict'
 
   // common vocabs
@@ -312,7 +312,7 @@ Solid.identity = (function (window) {
 }(this))
 // Events
 var Solid = Solid || {}
-Solid.status = (function (window) {
+Solid.status = (function () {
   'use strict'
 
   // Get current online status
@@ -338,7 +338,7 @@ Solid.status = (function (window) {
 }(this))
 // Helper functions
 var Solid = Solid || {}
-Solid.utils = (function (window) {
+Solid.utils = (function () {
   'use strict'
 
   // parse a Link header
@@ -379,7 +379,7 @@ Solid.utils = (function (window) {
 }(this))
 // LDP operations
 var Solid = Solid || {}
-Solid.web = (function (window) {
+Solid.web = (function () {
   'use strict'
 
   // Init some defaults

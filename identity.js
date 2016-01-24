@@ -1,6 +1,6 @@
 // Identity / WebID
 var Solid = Solid || {}
-Solid.identity = (function (window) {
+Solid.identity = (function () {
   'use strict'
 
   // common vocabs
