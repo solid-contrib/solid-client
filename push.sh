@@ -1,15 +1,16 @@
 #!/bin/sh
 
 # Build dist file
-sources="auth.js identity.js status.js utils.js web.js"
-target="dist/solid.js"
-
-echo > $target
-
-for src in "$sources"
-do
-  cat $src >> $target
-done
+# sources="auth.js identity.js status.js utils.js web.js"
+# target="dist/solid.js"
+#
+# echo > $target
+#
+# for src in "$sources"
+# do
+#   cat $src >> $target
+# done
+npm run build
 
 git commit ./dist/solid.js -m "Incorporating latest changes"
 echo "\nBuilt dist file in $dist\n"

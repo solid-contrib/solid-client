@@ -1,3 +1,7 @@
+Version 0.5.0:
+ - Converted to JS Standard coding format
+ - Converted structure to use Node.js require() and Browserify
+
 Version 0.4.0:
  - Incorporating latest changes
  - removed acl.js until it's ready
@@ -51,5 +55,3 @@ Version 0.1.1:
 
 
 Version 0.1.0:
-
-
