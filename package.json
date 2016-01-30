@@ -5,7 +5,7 @@
   "main": "dist/solid.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "browserify -r ./index.js:solid.js > dist/solid.js"
+    "build": "browserify -r ./index.js:solid.js -d -p [minifyify --map dist/solid.js.map.json --output dist/solid.js.map.json] > dist/solid.min.js"
   },
   "repository": {
     "type": "git",
@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "browserify": "*",
+    "minifyify": "*",
     "standard": "^5.4.1"
   },
   "standard": {
