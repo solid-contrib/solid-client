@@ -30,7 +30,10 @@ If you would like to know more about the solid Solid project, please see
 https://github.com/solid/
 */
 
-// WebID authentication and signup
+/**
+ * Provides Solid methods for WebID authentication and signup
+ * @module auth
+ */
 'use strict'
 var XMLHttpRequest = require('xhr2')
 
@@ -38,7 +41,12 @@ var XMLHttpRequest = require('xhr2')
 var authEndpoint = 'https://databox.me/'
 var signupEndpoint = 'https://solid.github.io/solid-idps/'
 
-// Listen to login messages from child window/iframe
+/**
+ * Sets up an event listener to monitor login messages from child window/iframe
+ * @method listen
+ * @static
+ * @return {Promise<String>} Event listener promise, resolves to user's WebID
+ */
 var listen = function listen () {
   var promise = new Promise(function (resolve, reject) {
     var eventMethod = window.addEventListener
@@ -64,9 +72,16 @@ var listen = function listen () {
   return promise
 }
 
-// attempt to find the current user's WebID from the User header
-// if authenticated
-// resolve(webid) - string
+/**
+ * Performs a Solid login() via an XHR HEAD operation.
+ * (Attempts to find the current user's WebID from the User header, if
+ *   already authenticated.)
+ * @method login
+ * @static
+ * @param url {String} Location of a Solid server or container at which the
+ *   user might be authenticated.
+ * @return {Promise<String>} XHR HEAD op promise, resolves to user's WebID
+ */
 var login = function login (url) {
   url = url || window.location.origin + window.location.pathname
   var promise = new Promise(function (resolve, reject) {
@@ -105,7 +120,14 @@ var login = function login (url) {
   return promise
 }
 
-// Open signup window
+/**
+ * Opens a signup popup window, sets up `listen()`.
+ * @method signup
+ * @static
+ * @param url {String} Location of a Solid server for user signup.
+ * @return {Promise<String>} Returns a listener promise, resolves with signed
+ *   up user's WebID.
+ */
 var signup = function signup (url) {
   url = url || signupEndpoint
   var leftPosition, topPosition
@@ -134,11 +156,14 @@ module.exports.listen = listen
 module.exports.login = login
 module.exports.signup = signup
 
-},{"xhr2":7}],2:[function(require,module,exports){
+},{"xhr2":6}],2:[function(require,module,exports){
 'use strict'
-// Identity / WebID
+/**
+ * Provides Solid helper functions involved with parsing a user's WebId profile.
+ * @module identity
+ */
+
 var solidClient = require('./web')
-var appendGraph = require('./utils').appendGraph
 
 // common vocabs
 // var RDF = $rdf.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
@@ -147,8 +172,29 @@ var PIM = $rdf.Namespace('http://www.w3.org/ns/pim/space#')
 var FOAF = $rdf.Namespace('http://xmlns.com/foaf/0.1/')
 var DCT = $rdf.Namespace('http://purl.org/dc/terms/')
 
-// fetch user profile (follow sameAs links) and return promise with a graph
-// resolve(graph)
+/**
+ * Appends RDF statements from one graph object to another
+ * @method appendGraph
+ * @param toGraph {Graph} $rdf.Graph object to append to
+ * @param fromGraph {Graph} $rdf.Graph object to append from
+ * @param docURI {String} Document URI to use as source
+ */
+var appendGraph = function appendGraph (toGraph, fromGraph, docURI) {
+  var source = (docURI) ? $rdf.sym(docURI) : undefined
+  fromGraph.statementsMatching(undefined, undefined, undefined, source)
+    .forEach(function (st) {
+      toGraph.add(st.subject, st.predicate, st.object, st.why)
+    })
+}
+
+/**
+ * Fetches a user's WebId profile, follows `sameAs` links,
+ *   and return a promise with a parsed RDF graph of the results.
+ * @method getProfile
+ * @static
+ * @param url {String} WebId or Location of a user's profile.
+ * @return {Promise<Graph>}
+ */
 var getProfile = function getProfile (url) {
   var promise = new Promise(function (resolve, reject) {
     // Load main profile
@@ -203,8 +249,15 @@ var getProfile = function getProfile (url) {
   return promise
 }
 
-// Find the user's workspaces
-// Return an object with the list of objects (workspaces)
+/**
+ * Finds the Workspaces linked from the user's WebId Profile.
+ * (Optionally fetches the profile, if it hasn't already been loaded.)
+ * @method getWorkspaces
+ * @static
+ * @param webid {String} WebId or Location of a user's profile.
+ * @param graph {Graph} Parsed graph of the user's profile.
+ * @return {Array<Object>} List of parsed Workspace triples.
+ */
 var getWorkspaces = function getWorkspaces (webid, graph) {
   var promise = new Promise(function (resolve, reject) {
     if (!graph) {
@@ -245,8 +298,14 @@ var getWorkspaces = function getWorkspaces (webid, graph) {
   return promise
 }
 
-// Find the user's writable profiles
-// Return an object with the list of profile URIs
+/**
+ * Finds writeable profiles linked from the user's WebId Profile.
+ * @method getWritableProfiles
+ * @static
+ * @param webid {String} WebId or Location of a user's profile.
+ * @param graph {Graph} Parsed graph of the user's profile.
+ * @return {Array<Object>} List of writeable profile triples
+ */
 var getWritableProfiles = function getWritableProfiles (webid, graph) {
   var promise = new Promise(function (resolve, reject) {
     if (!graph) {
@@ -318,50 +377,86 @@ module.exports.getProfile = getProfile
 module.exports.getWorkspaces = getWorkspaces
 module.exports.getWritableProfiles = getWritableProfiles
 
-},{"./utils":5,"./web":6}],3:[function(require,module,exports){
+},{"./web":5}],3:[function(require,module,exports){
 'use strict'
+/**
+ * Provides miscelaneous meta functions (such as library version)
+ * @module meta
+ */
+
 var lib = require('../package')
 
+/**
+ * Returns Solid.js library version (read from `package.json`)
+ * @return {String} Lib version
+ */
 module.exports.version = function version () {
   return lib.version
 }
 
-},{"../package":8}],4:[function(require,module,exports){
+},{"../package":7}],4:[function(require,module,exports){
 'use strict'
+/**
+ * Provides Web API helpers dealing with a user's online / offline status.
+ * @module status
+ */
 
-// Get current online status
+/**
+ * Returns a user's online status (true if user is on line)
+ * @method isOnline
+ * @static
+ * @return {Boolean}
+ */
 var isOnline = function isOnline () {
   return window.navigator.onLine
 }
 
-// Is offline
+/**
+ * Adds an even listener to trigger when the user goes offline.
+ * @method onOffline
+ * @static
+ * @param callback {Function} Callback to invoke when user goes offline.
+ */
 var onOffline = function onOffline (callback) {
   window.addEventListener('offline', callback, false)
 }
 
-// Trigger when user comes online
+/**
+ * Adds an even listener to trigger when the user comes online.
+ * @method onOnline
+ * @static
+ * @param callback {Function} Callback to invoke when user comes online
+ */
 var onOnline = function onOnline (callback) {
   window.addEventListener('online', callback, false)
 }
 
-// Events
 module.exports.isOnline = isOnline
 module.exports.onOffline = onOffline
 module.exports.onOnline = onOnline
 
 },{}],5:[function(require,module,exports){
 'use strict'
-// Helper functions
-// append statements from one graph object to another
-var appendGraph = function appendGraph (toGraph, fromGraph, docURI) {
-  var source = (docURI) ? $rdf.sym(docURI) : undefined
-  fromGraph.statementsMatching(undefined, undefined, undefined, source)
-    .forEach(function (st) {
-      toGraph.add(st.subject, st.predicate, st.object, st.why)
-    })
-}
+/**
+ * Provides a Solid web client class for performing LDP CRUD operations.
+ * @module web
+ */
 
-// parse a Link header
+var XMLHttpRequest = require('xhr2')
+// Init some defaults
+var PROXY = 'https://databox.me/,proxy?uri={uri}'
+var TIMEOUT = 5000
+
+$rdf.Fetcher.crossSiteProxyTemplate = PROXY
+// common vocabs
+var LDP = $rdf.Namespace('http://www.w3.org/ns/ldp#')
+
+/**
+ * Parses a Link header from an XHR HTTP Request.
+ * @method parseLinkHeader
+ * @param link {String} Contents of the Link response header
+ * @return {Object}
+ */
 var parseLinkHeader = function parseLinkHeader (link) {
   var linkexp = /<[^>]*>\s*(\s*;\s*[^\(\)<>@,;:"\/\[\]\?={} \t]+=(([^\(\)<>@,;:"\/\[\]\?={} \t]+)|("[^"]*")))*(,|$)/g
   var paramexp = /[^\(\)<>@,;:"\/\[\]\?={} \t]+=(([^\(\)<>@,;:"\/\[\]\?={} \t]+)|("[^"]*"))/g
@@ -384,23 +479,12 @@ var parseLinkHeader = function parseLinkHeader (link) {
   return rels
 }
 
-module.exports.appendGraph = appendGraph
-module.exports.parseLinkHeader = parseLinkHeader
-
-},{}],6:[function(require,module,exports){
-'use strict'
-var XMLHttpRequest = require('xhr2')
-var parseLinkHeader = require('./utils').parseLinkHeader
-
-// Init some defaults
-var PROXY = 'https://databox.me/,proxy?uri={uri}'
-var TIMEOUT = 5000
-
-$rdf.Fetcher.crossSiteProxyTemplate = PROXY
-// common vocabs
-var LDP = $rdf.Namespace('http://www.w3.org/ns/ldp#')
-
-// return metadata for a given request
+/**
+ * Parses an XHR response and composes a meta object
+ * @method parseResponseMeta
+ * @param resp {XMLHttpRequest} Result of an XHR
+ * @return {Object} Parsed response object
+ */
 function parseResponseMeta (resp) {
   var h = parseLinkHeader(resp.getResponseHeader('Link'))
   var meta = {}
@@ -439,11 +523,44 @@ function parseResponseMeta (resp) {
   return meta
 }
 
-// LDP operations
-var client = {
-  // check if a resource exists and return useful Solid info
-  // (acl, meta, type, etc)
-  // resolve(metaObj)
+/**
+ * Resolves a successful XHR (and returns a parsed meta object of the response),
+ *   or rejects a failed request.
+ * @method readyStateChange
+ * @param resolve {Function} Resolve callback
+ * @param reject {Function} Reject callback
+ * @param parseResponse {Boolean} Whether to parse a successful response
+ * @return {Object|XMLHttpRequest} If request is successful, returns a parsed
+ *   or unparsed response (depending on if `parseResponse` is set to true)
+ */
+var readyStateChange = function readyStateChange (xhr, resolve, reject,
+    parseResponse) {
+  if (xhr.readyState === xhr.DONE) {
+    if (xhr.status === 200 || xhr.status === 201) {
+      if (parseResponse) {
+        return resolve(parseResponseMeta(xhr))
+      } else {
+        return xhr
+      }
+    } else {
+      reject({status: xhr.status, xhr: xhr})
+    }
+  }
+}
+
+/**
+ * Providers a collection of Solid/LDP web operations (CRUD)
+ * @class SolidWebClient
+ * @static
+ */
+var SolidWebClient = {
+  /**
+   * Checks to see if a Solid resource exists, and returns useful resource
+   *   metadata info.
+   * @method head
+   * @param url {String} URL of a resource or container
+   * @return {Promise} Result of an HTTP HEAD operation (returns a meta object)
+   */
   head: function head (url) {
     var promise = new Promise(function (resolve) {
       var http = new XMLHttpRequest()
@@ -460,8 +577,12 @@ var client = {
     return promise
   },
 
-  // fetch an RDF resource
-  // resolve(graph) | reject(this)
+  /**
+   * Retrieves a resource or container by making an HTTP GET call.
+   * @method get
+   * @param url {String} URL of the resource or container to fetch
+   * @return {Promise|Object} Result of the HTTP GET operation
+   */
   get: function get (url) {
     var promise = new Promise(function (resolve, reject) {
       var g = $rdf.graph()
@@ -482,15 +603,26 @@ var client = {
     return promise
   },
 
-  // create new resource
-  // resolve(metaObj) | reject
+  /**
+   * Creates a new resource by performing
+   *   a Solid/LDP POST operation to a specified container.
+   * @param url {String} URL of the container to post to
+   * @param data {Object} Data/payload of the resource to be created
+   * @param slug {String} Suggested URL fragment for the new resource
+   * @param isContainer {Boolean} Is the object being created a Container
+   *            or Resource?
+   * @param mime {String} MIME Type
+   * @method post
+   * @return {Promise|Object} Result of XHR POST (returns parsed
+   *     response meta object) or an anonymous error object with status code
+   */
   post: function post (url, data, slug, isContainer, mime) {
     var resType = LDP('Resource').uri
     if (isContainer) {
       resType = LDP('BasicContainer').uri
       mime = 'text/turtle' // force right mime for containers only
     }
-    mime = (mime) ? mime : 'text/turtle'
+    mime = mime || 'text/turtle'
     var promise = new Promise(function (resolve, reject) {
       var http = new XMLHttpRequest()
       http.open('POST', url)
@@ -500,15 +632,7 @@ var client = {
         http.setRequestHeader('Slug', slug)
       }
       http.withCredentials = true
-      http.onreadystatechange = function () {
-        if (this.readyState === this.DONE) {
-          if (this.status === 200 || this.status === 201) {
-            resolve(parseResponseMeta(this))
-          } else {
-            reject({status: this.status, xhr: this})
-          }
-        }
-      }
+      http.onreadystatechange = readyStateChange(http, resolve, reject, true)
       if (data && data.length > 0) {
         http.send(data)
       } else {
@@ -519,11 +643,20 @@ var client = {
     return promise
   },
 
-  // update/create resource using HTTP PUT
-  // resolve(metaObj) | reject
+  /**
+   * Updates an existing resource or creates a new resource by performing
+   *   a Solid/LDP PUT operation to a specified container
+   * @method put
+   * @param url {String} URL of the resource to be updated/created
+   * @param data {Object} Data/payload of the resource to be created or updated
+   * @param mime {String} MIME Type of the resource to be created
+   * @return {Promise|Object} Result of PUT operation (returns parsed response
+   *     meta object if successful, rejects with an anonymous error status
+   *     object if not successful)
+   */
   put: function put (url, data, mime) {
     var promise = new Promise(function (resolve, reject) {
-      mime = (mime) ? mime : 'text/turtle'
+      mime = mime || 'text/turtle'
       var http = new XMLHttpRequest()
       http.open('PUT', url)
       http.setRequestHeader('Content-Type', mime)
@@ -537,6 +670,10 @@ var client = {
           }
         }
       }
+      // Handle network errors
+      http.onerror = function () {
+        reject(Error('Network Error'))
+      }
       if (data) {
         http.send(data)
       } else {
@@ -547,9 +684,19 @@ var client = {
     return promise
   },
 
-  // patch a resource
-  // accepts arrays of individual statements (turtle) as params
-  // e.g. [ '<a> <b> <c> .', '<d> <e> <f> .']
+  /**
+   * Partially edits an RDF-type resource by performing a PATCH operation.
+   *   Accepts arrays of individual statements (in Turtle format) as params.
+   *   For example:
+   *   [ '<a> <b> <c> .', '<d> <e> <f> .']
+   * @method patch
+   * @param url {String} URL of the resource to be edited
+   * @param toDel {Array<String>} Triples to remove from the resource
+   * @param toIns {Array<String>} Triples to insert into the resource
+   * @return {Promise|Object} Result of PATCH operation (returns parsed response
+   *     meta object if successful, rejects with an anonymous error status
+   *     object if not successful)
+   */
   patch: function patch (url, toDel, toIns) {
     var promise = new Promise(function (resolve, reject) {
       var data = ''
@@ -578,7 +725,7 @@ var client = {
       http.withCredentials = true
       http.onreadystatechange = function () {
         if (this.readyState === this.DONE) {
-          if (this.status === 200) {
+          if (this.status === 200 || this.status === 201) {
             return resolve(parseResponseMeta(this))
           } else {
             reject({status: this.status, xhr: this})
@@ -595,8 +742,13 @@ var client = {
     return promise
   },
 
-  // delete a resource
-  // resolve(true) | reject
+  /**
+   * Deletes an existing resource or container.
+   * @method del
+   * @param url {String} URL of the resource or container to be deleted
+   * @return {Promise|Object} Result of the HTTP Delete operation (returns true
+   *   on success, or an anonymous error object on failure)
+   */
   del: function del (url) {
     var promise = new Promise(function (resolve, reject) {
       var http = new XMLHttpRequest()
@@ -604,7 +756,7 @@ var client = {
       http.withCredentials = true
       http.onreadystatechange = function () {
         if (this.readyState === this.DONE) {
-          if (this.status === 200) {
+          if (this.status === 200 || this.status === 201) {
             return resolve(true)
           } else {
             reject({status: this.status, xhr: this})
@@ -618,25 +770,27 @@ var client = {
   }
 }
 
-// Alias some methods
-client.create = client.post
-client.replace = client.put
-client.update = client.patch
+// Alias some extra Solid web client methods
+SolidWebClient.create = SolidWebClient.post
+SolidWebClient.replace = SolidWebClient.put
+SolidWebClient.update = SolidWebClient.patch
 
-module.exports = client
+module.exports = SolidWebClient
 
-},{"./utils":5,"xhr2":7}],7:[function(require,module,exports){
+},{"xhr2":6}],6:[function(require,module,exports){
 module.exports = XMLHttpRequest;
 
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 module.exports={
   "name": "solid.js",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Common library for writing Solid applications",
   "main": "dist/solid.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "browserify -r ./index.js:solid.js > dist/solid.js"
+    "build-browserified": "browserify -r ./index.js:solid.js > dist/solid.js",
+    "build-minified": "browserify -r ./index.js:solid.js -d -p [minifyify --map dist/solid.js.map.json --output dist/solid.js.map.json] > dist/solid.min.js",
+    "build": "npm run build-browserified && npm run build-minified"
   },
   "repository": {
     "type": "git",
@@ -663,6 +817,7 @@ module.exports={
   },
   "devDependencies": {
     "browserify": "*",
+    "minifyify": "*",
     "standard": "^5.4.1"
   },
   "standard": {
@@ -671,12 +826,22 @@ module.exports={
 }
 
 },{}],"solid.js":[function(require,module,exports){
+'use strict'
+/**
+ * Provides a Solid client helper object (which exposes various static modules).
+ * @module solid.js
+ * @main solid.js
+ */
+
+/**
+ * @class Solid
+ * @static
+ */
 var Solid = {
   auth: require('./lib/auth'),
   identity: require('./lib/identity'),
   meta: require('./lib/meta'),
   status: require('./lib/status'),
-  utils: require('./lib/utils'),
   web: require('./lib/web')
 }
 
@@ -686,4 +851,4 @@ if (typeof tabulator !== 'undefined') {
 
 module.exports = Solid
 
-},{"./lib/auth":1,"./lib/identity":2,"./lib/meta":3,"./lib/status":4,"./lib/utils":5,"./lib/web":6}]},{},[]);
+},{"./lib/auth":1,"./lib/identity":2,"./lib/meta":3,"./lib/status":4,"./lib/web":5}]},{},[]);

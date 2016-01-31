@@ -1,6 +1,6 @@
 {
   "name": "solid.js",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Common library for writing Solid applications",
   "main": "dist/solid.js",
   "scripts": {
