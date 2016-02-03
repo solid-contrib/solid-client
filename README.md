@@ -35,6 +35,9 @@ In your `index.html`:
 </script>
 ```
 
+Note: A copy of `rdflib.js` is provided in this repo's `vendor/` directory
+(this is the version used by QUnit tests).
+
 ## Developing Solid.js
 
 Install dev dependencies:
@@ -43,11 +46,21 @@ Install dev dependencies:
 npm install
 ```
 
-Building (uses Browserify, builds to `dist/solid.js`):
+Building (uses Browserify, builds to `dist/solid.js` and `dist/solid.min.js`):
 
 ```
 npm run build
 ```
+
+## Testing
+
+To run the QUnit tests:
+
+```
+npm test
+```
+
+This opens a web browser on `test/index.html` and runs the QUnit test suite.
 
 ## Web operations
 

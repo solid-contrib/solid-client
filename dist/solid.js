@@ -757,6 +757,7 @@ var SolidWebClient = {
 SolidWebClient.create = SolidWebClient.post
 SolidWebClient.replace = SolidWebClient.put
 SolidWebClient.update = SolidWebClient.patch
+SolidWebClient.parseLinkHeader = parseLinkHeader
 
 module.exports = SolidWebClient
 
@@ -770,10 +771,12 @@ module.exports={
   "description": "Common library for writing Solid applications",
   "main": "dist/solid.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "build-browserified": "browserify -r ./index.js:solid.js > dist/solid.js",
     "build-minified": "browserify -r ./index.js:solid.js -d -p [minifyify --map dist/solid.js.map.json --output dist/solid.js.map.json] > dist/solid.min.js",
-    "build": "npm run build-browserified && npm run build-minified"
+    "build": "npm run build-browserified && npm run build-minified",
+    "standard": "standard lib/*",
+    "tape": "tape test/**/*.js",
+    "test": "npm run standard && npm run build-browserified && open test/index.html"
   },
   "repository": {
     "type": "git",
@@ -795,16 +798,19 @@ module.exports={
   },
   "homepage": "https://github.com/solid/solid.js",
   "dependencies": {
-    "rdflib": "^0.2.10",
-    "xhr2": "*"
+    "xhr2": "^0.1.3"
   },
   "devDependencies": {
-    "browserify": "*",
-    "minifyify": "*",
+    "browserify": "^13.0.0",
+    "minifyify": "^7.2.1",
     "standard": "^5.4.1"
   },
   "standard": {
-    "globals": [ "$rdf", "tabulator" ]
+    "globals": [
+      "$rdf",
+      "tabulator",
+      "QUnit"
+    ]
   }
 }
 
