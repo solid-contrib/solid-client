@@ -1,12 +1,13 @@
 {
-  "name": "solid.js",
+  "name": "solid",
   "version": "0.5.1",
   "description": "Common library for writing Solid applications",
   "main": "dist/solid.js",
   "scripts": {
-    "build-browserified": "browserify -r ./index.js:solid.js > dist/solid.js",
-    "build-minified": "browserify -r ./index.js:solid.js -d -p [minifyify --map dist/solid.js.map.json --output dist/solid.js.map.json] > dist/solid.min.js",
-    "build": "npm run build-browserified && npm run build-minified",
+    "build-browserified": "browserify -r ./index.js:solid --exclude 'xhr2' --exclude 'rdflib' > dist/solid.js",
+    "build-minified": "browserify -r ./index.js:solid --exclude 'xhr2' --exclude 'rdflib' -d -p [minifyify --no-map] > dist/solid.min.js",
+    "build": "npm run clean && npm run build-browserified && npm run build-minified",
+    "clean": "rm -rf dist/*",
     "standard": "standard lib/*",
     "tape": "tape test/**/*.js",
     "test": "npm run standard && npm run build-browserified && open test/index.html"

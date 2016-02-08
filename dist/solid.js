@@ -35,7 +35,7 @@ https://github.com/solid/
  * @module auth
  */
 'use strict'
-var XMLHttpRequest = require('xhr2')
+var XMLHttpRequest = require('./xhr.js')
 
 // default (preferred) authentication endpoint
 var authEndpoint = 'https://databox.me/'
@@ -156,7 +156,7 @@ module.exports.listen = listen
 module.exports.login = login
 module.exports.signup = signup
 
-},{"xhr2":6}],2:[function(require,module,exports){
+},{"./xhr.js":6}],2:[function(require,module,exports){
 'use strict'
 /**
  * Provides Solid helper functions involved with parsing a user's WebId profile.
@@ -442,8 +442,8 @@ module.exports.onOnline = onOnline
  * Provides a Solid web client class for performing LDP CRUD operations.
  * @module web
  */
+var XMLHttpRequest = require('./xhr.js')
 
-var XMLHttpRequest = require('xhr2')
 // Init some defaults
 var PROXY = 'https://databox.me/,proxy?uri={uri}'
 var TIMEOUT = 5000
@@ -525,11 +525,56 @@ function parseResponseMeta (resp) {
 }
 
 /**
- * Providers a collection of Solid/LDP web operations (CRUD)
+ * Provides a collection of Solid/LDP web operations (CRUD)
  * @class SolidWebClient
  * @static
  */
 var SolidWebClient = {
+  /**
+   * Sends a generic XHR request with the appropriate Solid headers,
+   * and returns a promise that resolves to a parsed response.
+   * @method solidRequest
+   * @param url {String} URL of the request
+   * @param method {String} HTTP Verb ('GET', 'PUT', etc)
+   * @param mimeType {String} Optional MimeType of the data
+   * @param data {Object} Optional data / payload
+   * @param headers {Object} Optional hashmap of additional HTTP headers to
+   *                         send along with request
+   */
+  solidRequest: function solidRequest (url, method, mimeType, data, headers) {
+    return new Promise(function (resolve, reject) {
+      headers = headers || {}
+      var http = new XMLHttpRequest()
+      http.open(method, url)
+      http.withCredentials = true
+      if (!!mimeType) {  // Set Content Type if applicable
+        http.setRequestHeader('Content-Type', mimeType)
+      }
+      for (var header in headers) {  // Add in optional headers
+        http.setRequestHeader(header, headers[header])
+      }
+      http.onload = function () {
+        if (this.status >= 200 && this.status < 300) {
+          resolve(parseResponseMeta(this))
+        } else {
+          reject({
+            status: this.status,
+            statusText: this.statusText,
+            xhr: this
+          })
+        }
+      }
+      http.onerror = function () {
+        reject({
+          status: this.status,
+          statusText: this.statusText,
+          xhr: this
+        })
+      }
+      http.send()
+    })
+  },
+
   /**
    * Checks to see if a Solid resource exists, and returns useful resource
    *   metadata info.
@@ -538,19 +583,7 @@ var SolidWebClient = {
    * @return {Promise} Result of an HTTP HEAD operation (returns a meta object)
    */
   head: function head (url) {
-    var promise = new Promise(function (resolve) {
-      var http = new XMLHttpRequest()
-      http.open('HEAD', url)
-      http.withCredentials = true
-      http.onreadystatechange = function () {
-        if (this.readyState === this.DONE) {
-          resolve(parseResponseMeta(this))
-        }
-      }
-      http.send()
-    })
-
-    return promise
+    return this.solidRequest(url, 'HEAD')
   },
 
   /**
@@ -587,44 +620,26 @@ var SolidWebClient = {
    * @param slug {String} Suggested URL fragment for the new resource
    * @param isContainer {Boolean} Is the object being created a Container
    *            or Resource?
-   * @param mime {String} MIME Type
+   * @param mimeType {String} MIME Type
    * @method post
    * @return {Promise|Object} Result of XHR POST (returns parsed
    *     response meta object) or an anonymous error object with status code
    */
-  post: function post (url, data, slug, isContainer, mime) {
-    var resType = LDP('Resource').uri
+  post: function post (url, data, slug, isContainer, mimeType) {
+    var resourceType
     if (isContainer) {
-      resType = LDP('BasicContainer').uri
-      mime = 'text/turtle' // force right mime for containers only
+      resourceType = LDP('BasicContainer').uri
+      mimeType = 'text/turtle' // Force the right mime type for containers only
+    } else {
+      resourceType = LDP('Resource').uri
+      mimeType = mimeType || 'text/turtle'  // default to Turtle
     }
-    mime = mime || 'text/turtle'
-    var promise = new Promise(function (resolve, reject) {
-      var http = new XMLHttpRequest()
-      http.open('POST', url)
-      http.setRequestHeader('Content-Type', mime)
-      http.setRequestHeader('Link', '<' + resType + '>; rel="type"')
-      if (slug && slug.length > 0) {
-        http.setRequestHeader('Slug', slug)
-      }
-      http.withCredentials = true
-      http.onreadystatechange = function () {
-        if (this.readyState === this.DONE) {
-          if (this.status === 200 || this.status === 201) {
-            return resolve(parseResponseMeta(this))
-          } else {
-            reject({status: this.status, xhr: this})
-          }
-        }
-      }
-      if (data && data.length > 0) {
-        http.send(data)
-      } else {
-        http.send()
-      }
-    })
-
-    return promise
+    var headers = {}
+    headers['Link'] = '<' + resourceType + '>; rel="type"'
+    if (slug && slug.length > 0) {
+      headers['Slug'] = slug
+    }
+    return this.solidRequest(url, 'POST', mimeType, data, headers)
   },
 
   /**
@@ -638,34 +653,8 @@ var SolidWebClient = {
    *     meta object if successful, rejects with an anonymous error status
    *     object if not successful)
    */
-  put: function put (url, data, mime) {
-    var promise = new Promise(function (resolve, reject) {
-      mime = mime || 'text/turtle'
-      var http = new XMLHttpRequest()
-      http.open('PUT', url)
-      http.setRequestHeader('Content-Type', mime)
-      http.withCredentials = true
-      http.onreadystatechange = function () {
-        if (this.readyState === this.DONE) {
-          if (this.status === 200 || this.status === 201) {
-            return resolve(parseResponseMeta(this))
-          } else {
-            reject({status: this.status, xhr: this})
-          }
-        }
-      }
-      // Handle network errors
-      http.onerror = function () {
-        reject(Error('Network Error'))
-      }
-      if (data) {
-        http.send(data)
-      } else {
-        http.send()
-      }
-    })
-
-    return promise
+  put: function put (url, data, mimeType) {
+    return this.solidRequest(url, 'PUT', mimeType, data)
   },
 
   /**
@@ -682,48 +671,26 @@ var SolidWebClient = {
    *     object if not successful)
    */
   patch: function patch (url, toDel, toIns) {
-    var promise = new Promise(function (resolve, reject) {
-      var data = ''
-      var i
-
-      if (toDel && toDel.length > 0) {
-        for (i = 0; i < toDel.length; i++) {
-          if (i > 0) {
-            data += ' ;\n'
-          }
-          data += 'DELETE DATA { ' + toDel[i] + ' }'
+    var data = ''
+    var i
+    if (toDel && toDel.length > 0) {
+      for (i = 0; i < toDel.length; i++) {
+        if (i > 0) {
+          data += ' ;\n'
         }
+        data += 'DELETE DATA { ' + toDel[i] + ' }'
       }
-      if (toIns && toIns.length > 0) {
-        for (i = 0; i < toIns.length; i++) {
-          if (i > 0 || (toDel && toDel.length > 0)) {
-            data += ' ;\n'
-          }
-          data += 'INSERT DATA { ' + toIns[i] + ' }'
+    }
+    if (toIns && toIns.length > 0) {
+      for (i = 0; i < toIns.length; i++) {
+        if (i > 0 || (toDel && toDel.length > 0)) {
+          data += ' ;\n'
         }
+        data += 'INSERT DATA { ' + toIns[i] + ' }'
       }
-
-      var http = new XMLHttpRequest()
-      http.open('PATCH', url)
-      http.setRequestHeader('Content-Type', 'application/sparql-update')
-      http.withCredentials = true
-      http.onreadystatechange = function () {
-        if (this.readyState === this.DONE) {
-          if (this.status === 200 || this.status === 201) {
-            return resolve(parseResponseMeta(this))
-          } else {
-            reject({status: this.status, xhr: this})
-          }
-        }
-      }
-      if (data && data.length > 0) {
-        http.send(data)
-      } else {
-        http.send()
-      }
-    })
-
-    return promise
+    }
+    var mimeType = 'application/sparql-update'
+    return this.solidRequest(url, 'PATCH', mimeType, data)
   },
 
   /**
@@ -734,23 +701,7 @@ var SolidWebClient = {
    *   on success, or an anonymous error object on failure)
    */
   del: function del (url) {
-    var promise = new Promise(function (resolve, reject) {
-      var http = new XMLHttpRequest()
-      http.open('DELETE', url)
-      http.withCredentials = true
-      http.onreadystatechange = function () {
-        if (this.readyState === this.DONE) {
-          if (this.status === 200 || this.status === 201) {
-            return resolve(true)
-          } else {
-            reject({status: this.status, xhr: this})
-          }
-        }
-      }
-      http.send()
-    })
-
-    return promise
+    return this.solidRequest(url, 'DELETE')
   }
 }
 
@@ -762,19 +713,35 @@ SolidWebClient.parseLinkHeader = parseLinkHeader
 
 module.exports = SolidWebClient
 
-},{"xhr2":6}],6:[function(require,module,exports){
-module.exports = XMLHttpRequest;
+},{"./xhr.js":6}],6:[function(require,module,exports){
+'use strict'
+/**
+ * Provides a generic wrapper around the XMLHttpRequest object, to make it
+ * usable both in the browser and in Node.js
+ * @module xhr
+ */
+var XMLHttpRequest
+if (window !== undefined && 'XMLHttpRequest' in window) {
+  // Running inside the browser
+  XMLHttpRequest = window.XMLHttpRequest
+} else {
+  // in Node.js
+  XMLHttpRequest = require('xhr2')
+}
 
-},{}],7:[function(require,module,exports){
+module.exports = XMLHttpRequest
+
+},{"xhr2":undefined}],7:[function(require,module,exports){
 module.exports={
-  "name": "solid.js",
+  "name": "solid",
   "version": "0.5.1",
   "description": "Common library for writing Solid applications",
   "main": "dist/solid.js",
   "scripts": {
-    "build-browserified": "browserify -r ./index.js:solid.js > dist/solid.js",
-    "build-minified": "browserify -r ./index.js:solid.js -d -p [minifyify --map dist/solid.js.map.json --output dist/solid.js.map.json] > dist/solid.min.js",
-    "build": "npm run build-browserified && npm run build-minified",
+    "build-browserified": "browserify -r ./index.js:solid --exclude 'xhr2' --exclude 'rdflib' > dist/solid.js",
+    "build-minified": "browserify -r ./index.js:solid --exclude 'xhr2' --exclude 'rdflib' -d -p [minifyify --no-map] > dist/solid.min.js",
+    "build": "npm run clean && npm run build-browserified && npm run build-minified",
+    "clean": "rm -rf dist/*",
     "standard": "standard lib/*",
     "tape": "tape test/**/*.js",
     "test": "npm run standard && npm run build-browserified && open test/index.html"
@@ -815,7 +782,7 @@ module.exports={
   }
 }
 
-},{}],"solid.js":[function(require,module,exports){
+},{}],"solid":[function(require,module,exports){
 'use strict'
 /**
  * Provides a Solid client helper object (which exposes various static modules).
