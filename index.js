@@ -11,6 +11,7 @@
  */
 var Solid = {
   auth: require('./lib/auth'),
+  config: require('./config'),
   identity: require('./lib/identity'),
   meta: require('./lib/meta'),
   status: require('./lib/status'),

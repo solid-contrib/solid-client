@@ -14,6 +14,9 @@ please see the
 as well as the
 [tutorial for using rdflib.js](https://github.com/solid/solid-tutorial-rdflib.js).
 
+See also:
+
+* [solid.js Changelog](CHANGELOG.md)
 
 ## Dependencies
 

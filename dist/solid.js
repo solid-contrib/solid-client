@@ -1,4 +1,28 @@
 require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+'use strict'
+/**
+ * Provides a simple configuration object for Solid web client and other
+ * modules.
+ * @module config
+ */
+module.exports = {
+  /**
+   * Default RDF parser library
+   */
+  parser: 'rdflib',
+
+  /**
+   * Default proxy URL for servicing CORS requests
+   */
+  proxyUrl: 'https://databox.me/,proxy?uri={uri}',
+
+  /**
+   * Timeout for web/ajax operations, in milliseconds
+   */
+  timeout: 50000
+}
+
+},{}],2:[function(require,module,exports){
 /*
 The MIT License (MIT)
 
@@ -156,7 +180,7 @@ module.exports.listen = listen
 module.exports.login = login
 module.exports.signup = signup
 
-},{"./xhr.js":6}],2:[function(require,module,exports){
+},{"./xhr.js":8}],3:[function(require,module,exports){
 'use strict'
 /**
  * Provides Solid helper functions involved with parsing a user's WebId profile.
@@ -378,7 +402,7 @@ module.exports.getProfile = getProfile
 module.exports.getWorkspaces = getWorkspaces
 module.exports.getWritableProfiles = getWritableProfiles
 
-},{"./web":5}],3:[function(require,module,exports){
+},{"./web":7}],4:[function(require,module,exports){
 'use strict'
 /**
  * Provides miscelaneous meta functions (such as library version)
@@ -395,7 +419,7 @@ module.exports.version = function version () {
   return lib.version
 }
 
-},{"../package":7}],4:[function(require,module,exports){
+},{"../package":9}],5:[function(require,module,exports){
 'use strict'
 /**
  * Provides Web API helpers dealing with a user's online / offline status.
@@ -436,19 +460,58 @@ module.exports.isOnline = isOnline
 module.exports.onOffline = onOffline
 module.exports.onOnline = onOnline
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
+'use strict'
+/**
+ * Provides a wrapper for rdflib's web operations (`$rdf.Fetcher` based)
+ * @module web-rdflib
+ */
+var config = require('../config')
+$rdf.Fetcher.crossSiteProxyTemplate = config.proxyUrl
+
+/**
+ * @class rdflibWebClient
+ * @static
+ */
+var rdflibWebClient = {
+  /**
+   * Retrieves a resource or container by making an HTTP GET call.
+   * @method get
+   * @param url {String} URL of the resource or container to fetch
+   * @return {Promise|Object} Result of the HTTP GET operation
+   */
+  getParsedGraph: function getParsedGraph (url) {
+    var promise = new Promise(function (resolve, reject) {
+      var g = $rdf.graph()
+      var f = new $rdf.Fetcher(g, config.timeout)
+
+      var docURI = (url.indexOf('#') >= 0)
+        ? url.slice(0, url.indexOf('#'))
+        : url
+      f.nowOrWhenFetched(docURI, undefined, function (ok, body, xhr) {
+        if (!ok) {
+          reject({status: xhr.status, xhr: xhr})
+        } else {
+          resolve(g)
+        }
+      })
+    })
+
+    return promise
+  }
+}
+
+module.exports = rdflibWebClient
+
+},{"../config":1}],7:[function(require,module,exports){
 'use strict'
 /**
  * Provides a Solid web client class for performing LDP CRUD operations.
  * @module web
  */
+var config = require('../config')
 var XMLHttpRequest = require('./xhr.js')
 
-// Init some defaults
-var PROXY = 'https://databox.me/,proxy?uri={uri}'
-var TIMEOUT = 5000
-
-$rdf.Fetcher.crossSiteProxyTemplate = PROXY
 // common vocabs
 var LDP = $rdf.Namespace('http://www.w3.org/ns/ldp#')
 
@@ -595,7 +658,7 @@ var SolidWebClient = {
   get: function get (url) {
     var promise = new Promise(function (resolve, reject) {
       var g = $rdf.graph()
-      var f = new $rdf.Fetcher(g, TIMEOUT)
+      var f = new $rdf.Fetcher(g, config.timeout)
 
       var docURI = (url.indexOf('#') >= 0)
         ? url.slice(0, url.indexOf('#'))
@@ -610,6 +673,15 @@ var SolidWebClient = {
     })
 
     return promise
+  },
+
+  getParsedGraph: function getParsedGraph (url) {
+    if(config.parser === 'rdflib') {
+      var getParsedGraph = require('./web-rdflib').getParsedGraph
+    } else {
+      throw Error("Parser library not supported: " + config.parser)
+    }
+    return getParsedGraph(url)
   },
 
   /**
@@ -713,7 +785,7 @@ SolidWebClient.parseLinkHeader = parseLinkHeader
 
 module.exports = SolidWebClient
 
-},{"./xhr.js":6}],6:[function(require,module,exports){
+},{"../config":1,"./web-rdflib":6,"./xhr.js":8}],8:[function(require,module,exports){
 'use strict'
 /**
  * Provides a generic wrapper around the XMLHttpRequest object, to make it
@@ -731,7 +803,7 @@ if (window !== undefined && 'XMLHttpRequest' in window) {
 
 module.exports = XMLHttpRequest
 
-},{"xhr2":undefined}],7:[function(require,module,exports){
+},{"xhr2":undefined}],9:[function(require,module,exports){
 module.exports={
   "name": "solid",
   "version": "0.5.1",
@@ -766,6 +838,7 @@ module.exports={
   },
   "homepage": "https://github.com/solid/solid.js",
   "dependencies": {
+    "rdflib": "^0.3.2",
     "xhr2": "^0.1.3"
   },
   "devDependencies": {
@@ -796,6 +869,7 @@ module.exports={
  */
 var Solid = {
   auth: require('./lib/auth'),
+  config: require('./config'),
   identity: require('./lib/identity'),
   meta: require('./lib/meta'),
   status: require('./lib/status'),
@@ -808,4 +882,4 @@ if (typeof tabulator !== 'undefined') {
 
 module.exports = Solid
 
-},{"./lib/auth":1,"./lib/identity":2,"./lib/meta":3,"./lib/status":4,"./lib/web":5}]},{},[]);
+},{"./config":1,"./lib/auth":2,"./lib/identity":3,"./lib/meta":4,"./lib/status":5,"./lib/web":7}]},{},[]);
