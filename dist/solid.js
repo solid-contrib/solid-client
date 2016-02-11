@@ -186,6 +186,7 @@ module.exports.signup = signup
 'use strict'
 /**
  * Provides Solid helper functions involved with parsing a user's WebId profile.
+ * Currently depends on RDFLib.js
  * @module identity
  */
 
@@ -282,26 +283,26 @@ function loadGraphs (resources, proxyUrl, timeout) {
  *   and return a promise with a parsed RDF graph of the results.
  * @method getProfile
  * @static
- * @param url {String} WebId or Location of a user's profile.
+ * @param profileUrl {String} WebId or Location of a user's profile.
  * @param [ignoreExtended=false] {Boolean} Does not fetch external resources
  *   related to the profile, if true.
  * @return {Promise<Graph>}
  */
-function getProfile (url, ignoreExtended) {
+function getProfile (profileUrl, ignoreExtended) {
   var config = require('../config')
   var proxyUrl = config.proxyUrl
   var timeout = config.timeout
 
   // Load main profile
-  return solidClient.getParsedGraph(url)
+  return solidClient.getParsedGraph(profileUrl, proxyUrl, timeout)
     .then(function (parsedProfile) {
       if (ignoreExtended) {
         return parsedProfile
       }
       // Set base profile url (drop any hash fragments)
-      var baseProfileUrl = (url.indexOf('#') >= 0)
-        ? url.slice(0, url.indexOf('#'))
-        : url
+      var baseProfileUrl = (profileUrl.indexOf('#') >= 0)
+        ? profileUrl.slice(0, profileUrl.indexOf('#'))
+        : profileUrl
       var webId = extractWebId(baseProfileUrl, parsedProfile)
       // find additional external resources to load
       var relatedResources = extractProfileResources(webId, baseProfileUrl,
@@ -1023,15 +1024,16 @@ module.exports={
   "name": "solid",
   "version": "0.5.1",
   "description": "Common library for writing Solid applications",
-  "main": "dist/solid.js",
+  "main": "./index.js",
   "scripts": {
     "build-browserified": "browserify -r ./index.js:solid --exclude 'xhr2' --exclude 'rdflib' > dist/solid.js",
     "build-minified": "browserify -r ./index.js:solid --exclude 'xhr2' --exclude 'rdflib' -d -p [minifyify --no-map] > dist/solid.min.js",
     "build": "npm run clean && npm run standard && npm run build-browserified && npm run build-minified",
     "clean": "rm -rf dist/*",
     "standard": "standard lib/*",
-    "tape": "tape test/**/*.js",
-    "test": "npm run standard && npm run build-browserified && open test/index.html"
+    "tape": "tape test/unit/*.js",
+    "test": "npm run standard && npm run tape",
+    "qunit": "npm run standard && npm run build-browserified && open test/index.html"
   },
   "repository": {
     "type": "git",
@@ -1059,7 +1061,8 @@ module.exports={
   "devDependencies": {
     "browserify": "^13.0.0",
     "minifyify": "^7.2.1",
-    "standard": "^5.4.1"
+    "standard": "^5.4.1",
+    "tape": "^4.4.0"
   },
   "standard": {
     "globals": [
