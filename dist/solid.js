@@ -7,6 +7,11 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
  */
 module.exports = {
   /**
+   * Default authentication endpoint
+   */
+  authEndpoint: 'https://databox.me/',
+
+  /**
    * Default RDF parser library
    */
   parser: 'rdflib',
@@ -15,6 +20,21 @@ module.exports = {
    * Default proxy URL for servicing CORS requests
    */
   proxyUrl: 'https://databox.me/,proxy?uri={uri}',
+
+  /**
+   * Default signup endpoints (list of identity providers)
+   */
+  signupEndpoint: 'https://solid.github.io/solid-idps/',
+
+  /**
+   * Default height of the Signup popup window, in pixels
+   */
+  signupWindowHeight: 600,
+
+  /**
+   * Default width of the Signup popup window, in pixels
+   */
+  signupWindowWidth: 1024,
 
   /**
    * Timeout for web/ajax operations, in milliseconds
@@ -59,11 +79,7 @@ https://github.com/solid/
  * @module auth
  */
 'use strict'
-var XMLHttpRequest = require('./xhr.js')
-
-// default (preferred) authentication endpoint
-var authEndpoint = 'https://databox.me/'
-var signupEndpoint = 'https://solid.github.io/solid-idps/'
+var webClient = require('./web')
 
 /**
  * Sets up an event listener to monitor login messages from child window/iframe
@@ -71,7 +87,7 @@ var signupEndpoint = 'https://solid.github.io/solid-idps/'
  * @static
  * @return {Promise<String>} Event listener promise, resolves to user's WebID
  */
-var listen = function listen () {
+function listen () {
   var promise = new Promise(function (resolve, reject) {
     var eventMethod = window.addEventListener
       ? 'addEventListener'
@@ -102,85 +118,71 @@ var listen = function listen () {
  *   already authenticated.)
  * @method login
  * @static
- * @param url {String} Location of a Solid server or container at which the
+ * @param [url] {String} Location of a Solid server or container at which the
  *   user might be authenticated.
- * @return {Promise<String>} XHR HEAD op promise, resolves to user's WebID
+ *   Defaults to: current page location
+ * @param [alternateAuthUrl] {String} URL of an alternate/default auth endpoint.
+ *   Defaults to `config.authEndpoint`
+ * @return {Promise<String>} XHR HEAD operation promise, resolves to user's WebID
  */
-var login = function login (url) {
+function login (url, alternateAuthUrl) {
+  var defaultAuthEndpoint = require('../config').authEndpoint
   url = url || window.location.origin + window.location.pathname
-  var promise = new Promise(function (resolve, reject) {
-    var http = new XMLHttpRequest()
-    http.open('HEAD', url)
-    http.withCredentials = true
-    http.onreadystatechange = function () {
-      if (this.readyState === this.DONE) {
-        if (this.status === 200) {
-          var user = this.getResponseHeader('User')
-          if (user && user.length > 0 && user.slice(0, 4) === 'http') {
-            return resolve(user)
-          }
-        }
-        // authenticate to a known endpoint
-        var http = new XMLHttpRequest()
-        http.open('HEAD', authEndpoint)
-        http.withCredentials = true
-        http.onreadystatechange = function () {
-          if (this.readyState === this.DONE) {
-            if (this.status === 200) {
-              var user = this.getResponseHeader('User')
-              if (user && user.length > 0 && user.slice(0, 4) === 'http') {
-                return resolve(user)
-              }
-            }
-            return reject({status: this.status, xhr: this})
-          }
-        }
-        http.send()
+  alternateAuthUrl = alternateAuthUrl || defaultAuthEndpoint
+  // First, see if user is already logged in (do a quick HEAD request)
+  return webClient.head(url)
+    .then(function (solidResponse) {
+      if (solidResponse.isLoggedIn()) {
+        return solidResponse.user
+      } else {
+        // If not logged in, try logging in at an alternate endpoint
+        return webClient.head(alternateAuthUrl)
+          .then(function (solidResponse) {
+            // Will return an empty string is this login also fails
+            return solidResponse.user
+          })
       }
-    }
-    http.send()
-  })
-
-  return promise
+    })
 }
 
 /**
  * Opens a signup popup window, sets up `listen()`.
  * @method signup
  * @static
- * @param url {String} Location of a Solid server for user signup.
+ * @param signupUrl {String} Location of a Solid server for user signup.
  * @return {Promise<String>} Returns a listener promise, resolves with signed
  *   up user's WebID.
  */
-var signup = function signup (url) {
-  url = url || signupEndpoint
-  var leftPosition, topPosition
-  var width = 1024
-  var height = 600
+function signup (signupUrl) {
+  var config = require('../config')
+  signupUrl = signupUrl || config.signupEndpoint
+  var width = config.signupWindowWidth
+  var height = config.signupWindowHeight
   // set borders
-  leftPosition = (window.screen.width / 2) - ((width / 2) + 10)
+  var leftPosition = (window.screen.width / 2) - ((width / 2) + 10)
   // set title and status bars
-  topPosition = (window.screen.height / 2) - ((height / 2) + 50)
-  window.open(url + '?origin=' + encodeURIComponent(window.location.origin),
-   'Solid signup', 'resizable,scrollbars,status,width=' + width + ',height=' +
-   height + ',left=' + leftPosition + ',top=' + topPosition)
+  var topPosition = (window.screen.height / 2) - ((height / 2) + 50)
+  var windowTitle = 'Solid signup'
+  var windowUrl = signupUrl + '?origin=' +
+    encodeURIComponent(window.location.origin)
+  var windowSpecs = 'resizable,scrollbars,status,width=' + width + ',height=' +
+    height + ',left=' + leftPosition + ',top=' + topPosition
+  window.open(windowUrl, windowTitle, windowSpecs)
 
-  var promise = new Promise(function (resolve, reject) {
+  return new Promise(function (resolve, reject) {
     listen().then(function (webid) {
       return resolve(webid)
     }).catch(function (err) {
       return reject(err)
     })
   })
-
-  return promise
 }
 
 module.exports.listen = listen
 module.exports.login = login
 module.exports.signup = signup
 
-},{"./xhr.js":11}],3:[function(require,module,exports){
+},{"../config":1,"./web":10}],3:[function(require,module,exports){
 'use strict'
 /**
  * Provides Solid helper functions involved with parsing a user's WebId profile.
@@ -191,7 +193,7 @@ var solidClient = require('./web')
 
 // common vocabs
 // var RDF = $rdf.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
-var RDFS = $rdf.Namespace("http://www.w3.org/2000/01/rdf-schema#")
+var RDFS = $rdf.Namespace('http://www.w3.org/2000/01/rdf-schema#')
 var OWL = $rdf.Namespace('http://www.w3.org/2002/07/owl#')
 var PIM = $rdf.Namespace('http://www.w3.org/ns/pim/space#')
 var FOAF = $rdf.Namespace('http://xmlns.com/foaf/0.1/')
@@ -204,7 +206,7 @@ var DCT = $rdf.Namespace('http://purl.org/dc/terms/')
  * @param fromGraph {Graph} $rdf.Graph object to append from
  * @param docURI {String} Document URI to use as source
  */
-var appendGraph = function appendGraph (toGraph, fromGraph, docURI) {
+function appendGraph (toGraph, fromGraph, docURI) {
   var source = (docURI) ? $rdf.sym(docURI) : undefined
   fromGraph.statementsMatching(undefined, undefined, undefined, source)
     .forEach(function (st) {
@@ -213,66 +215,112 @@ var appendGraph = function appendGraph (toGraph, fromGraph, docURI) {
 }
 
 /**
+ * Extracts the WebID symbol from a parsed profile graph.
+ * @method extractWebId
+ * @param baseProfileUrl {String} Profile URL, with no hash fragment
+ * @param parsedProfile {$rdf.IndexedFormula} RDFLib-parsed user profile
+ * @return {$rdf.Symbol} WebID symbol
+ */
+function extractWebId (baseProfileUrl, parsedProfile) {
+  return parsedProfile.any($rdf.sym(baseProfileUrl), FOAF('primaryTopic'))
+}
+
+/**
+ * Extracts related external resources (sameAs, etc) from a parsed WebID profile
+ * @method extractProfileResources
+ * @param profileWebId {$rdf.Symbol} WebID of the profile
+ * @param baseProfileUrl {String} Profile URL, with no hash fragment
+ * @param parsedProfile {$rdf.IndexedFormula} RDFLib-parsed user profile
+ * @return {Array<$rdf.IndexedFormula>} List of RDF graphs representing
+ *   external resources related to the profile
+ */
+function extractProfileResources (profileWebId, baseProfileUrl, parsedProfile) {
+  var relatedStatements = []
+  var resourcePredicates = [
+    OWL('sameAs'), RDFS('seeAlso'), PIM('preferencesFile')
+  ]
+  resourcePredicates.forEach(function (predicate) {
+    var matches = parsedProfile.statementsMatching(profileWebId, predicate,
+      undefined, $rdf.sym(baseProfileUrl))
+    if (matches.length > 0) {
+      relatedStatements = relatedStatements.concat(matches)
+    }
+  })
+  return relatedStatements
+}
+
+/**
+ * Creates a list of `getParsedGraph()` promises from a
+ * Converts a list of RDF graphs to a
+ * Loads a list of given RDF graphs via an async `Promise.all()`,
+ * which resolves to an array of uri/parsed-graph hashes.
+ * @method loadRelated
+ * @param resources {Array<$rdf.IndexedFormula>} Array of parsed RDF graphs
+ * @param proxyUrl {String} URL template of the proxy to use for CORS
+ *                          requests.
+ * @param timeout {Number} Request timeout in milliseconds.
+ * @return {Promise<Array<Object>>}
+ */
+function loadGraphs (resources, proxyUrl, timeout) {
+  var suppressError = true
+  // convert the resource RDF statements to "will load" promises
+  var loadPromises = resources.map(function (resource) {
+    return solidClient
+      .getParsedGraph(resource.object.uri, proxyUrl, timeout, suppressError)
+        .then(function (loadedGraph) {
+          return {
+            uri: resource.object.uri,
+            value: loadedGraph
+          }
+        })
+  })
+  return Promise.all(loadPromises)
+}
+
+/**
  * Fetches a user's WebId profile, follows `sameAs` links,
  *   and return a promise with a parsed RDF graph of the results.
  * @method getProfile
  * @static
  * @param url {String} WebId or Location of a user's profile.
+ * @param [ignoreExtended=false] {Boolean} Does not fetch external resources
+ *   related to the profile, if true.
  * @return {Promise<Graph>}
  */
-var getProfile = function getProfile (url) {
-  var promise = new Promise(function (resolve, reject) {
-    // Load main profile
-    solidClient.getParsedGraph(url).then(
-      function (graph) {
-        // set WebID
-        url = (url.indexOf('#') >= 0) ? url.slice(0, url.indexOf('#')) : url
-        var webid = graph.any($rdf.sym(url), FOAF('primaryTopic'))
-        // find additional resources to load
-        var toLoad = []
-        toLoad = toLoad
-          .concat(graph.statementsMatching(webid,
-            OWL('sameAs'), undefined, $rdf.sym(url)))
-          .concat(graph.statementsMatching(webid,
-            RDFS('seeAlso'), undefined, $rdf.sym(url)))
-          .concat(graph.statementsMatching(webid,
-            PIM('preferencesFile'), undefined, $rdf.sym(url)))
-        var total = toLoad.length
-        // sync promises externally instead of using Promise.all()
-        // which fails if one GET fails
-        var syncAll = function () {
-          if (total === 0) {
-            return resolve(graph)
-          }
-        }
-        if (total === 0) {
-          return resolve(graph)
-        }
-        // Load other files
-        toLoad.forEach(function (prof) {
-          solidClient.getParsedGraph(prof.object.uri).then(
-            function (g) {
-              appendGraph(graph, g, prof.object.uri)
-              total--
-              syncAll()
-            }
-          ).catch(
-            function (err) {
-              if (err) throw err
-              total--
-              syncAll()
-            })
-        })
-      }
-    )
-    .catch(
-      function (err) {
-        reject(err)
-      }
-    )
-  })
+function getProfile (url, ignoreExtended) {
+  var config = require('../config')
+  var proxyUrl = config.proxyUrl
+  var timeout = config.timeout
 
-  return promise
+  // Load main profile
+  return solidClient.getParsedGraph(url)
+    .then(function (parsedProfile) {
+      if (ignoreExtended) {
+        return parsedProfile
+      }
+      // Set base profile url (drop any hash fragments)
+      var baseProfileUrl = (url.indexOf('#') >= 0)
+        ? url.slice(0, url.indexOf('#'))
+        : url
+      var webId = extractWebId(baseProfileUrl, parsedProfile)
+      // find additional external resources to load
+      var relatedResources = extractProfileResources(webId, baseProfileUrl,
+        parsedProfile)
+      if (relatedResources.length === 0) {
+        return parsedProfile  // No additional profile resources to load
+      } else {
+        // Load all related resources, and append them to the parsed profile
+        return loadGraphs(relatedResources, proxyUrl, timeout)
+          .then(function (loadedGraphs) {
+            loadedGraphs.forEach(function (graph) {
+              if (graph) {
+                appendGraph(parsedProfile, graph.value, graph.uri)
+              }
+            })
+            return parsedProfile
+          })
+      }
+    })
 }
 
 /**
@@ -280,16 +328,16 @@ var getProfile = function getProfile (url) {
  * (Optionally fetches the profile, if it hasn't already been loaded.)
  * @method getWorkspaces
  * @static
- * @param webid {String} WebId or Location of a user's profile.
+ * @param webId {String} WebId or Location of a user's profile.
  * @param graph {Graph} Parsed graph of the user's profile.
  * @return {Array<Object>} List of parsed Workspace triples.
  */
-var getWorkspaces = function getWorkspaces (webid, graph) {
+function getWorkspaces (webId, graph) {
   var promise = new Promise(function (resolve, reject) {
     if (!graph) {
       // fetch profile and call function again
-      getProfile(webid).then(function (g) {
-        getWorkspaces(webid, g).then(function (ws) {
+      getProfile(webId).then(function (g) {
+        getWorkspaces(webId, g).then(function (ws) {
           return resolve(ws)
         }).catch(function (err) {
           return reject(err)
@@ -300,7 +348,7 @@ var getWorkspaces = function getWorkspaces (webid, graph) {
     } else {
       // find workspaces
       var workspaces = []
-      var ws = graph.statementsMatching($rdf.sym(webid), PIM('workspace'),
+      var ws = graph.statementsMatching($rdf.sym(webId), PIM('workspace'),
         undefined)
       if (ws.length === 0) {
         return resolve(workspaces)
@@ -328,16 +376,16 @@ var getWorkspaces = function getWorkspaces (webid, graph) {
  * Finds writeable profiles linked from the user's WebId Profile.
  * @method getWritableProfiles
  * @static
- * @param webid {String} WebId or Location of a user's profile.
+ * @param webId {String} WebId or Location of a user's profile.
  * @param graph {Graph} Parsed graph of the user's profile.
  * @return {Array<Object>} List of writeable profile triples
  */
-var getWritableProfiles = function getWritableProfiles (webid, graph) {
+function getWritableProfiles (webId, graph) {
   var promise = new Promise(function (resolve, reject) {
     if (!graph) {
       // fetch profile and call function again
-      getProfile(webid).then(function (g) {
-        getWritableProfiles(webid, g).then(function (list) {
+      getProfile(webId).then(function (g) {
+        getWritableProfiles(webId, g).then(function (list) {
           return resolve(list)
         }).catch(function (err) {
           return reject(err)
@@ -349,20 +397,20 @@ var getWritableProfiles = function getWritableProfiles (webid, graph) {
       // find profiles
       var profiles = []
 
-      webid = (webid.indexOf('#') >= 0)
-        ? webid.slice(0, webid.indexOf('#'))
-        : webid
-      var user = graph.any($rdf.sym(webid), FOAF('primaryTopic'))
+      webId = (webId.indexOf('#') >= 0)
+        ? webId.slice(0, webId.indexOf('#'))
+        : webId
+      var user = graph.any($rdf.sym(webId), FOAF('primaryTopic'))
       // find additional resources to load
       var toLoad = []
       toLoad = toLoad.concat(graph.statementsMatching(user,
-        OWL('sameAs'), undefined, $rdf.sym(webid)))
+        OWL('sameAs'), undefined, $rdf.sym(webId)))
       toLoad = toLoad.concat(graph.statementsMatching(user,
-        RDFS('seeAlso'), undefined, $rdf.sym(webid)))
+        RDFS('seeAlso'), undefined, $rdf.sym(webId)))
       toLoad = toLoad.concat(graph.statementsMatching(user,
-        PIM('preferencesFile'), undefined, $rdf.sym(webid)))
+        PIM('preferencesFile'), undefined, $rdf.sym(webId)))
       // also check this (main) profile doc
-      toLoad = toLoad.concat({object: {uri: webid}})
+      toLoad = toLoad.concat({object: {uri: webId}})
       var total = toLoad.length
       // sync promises externally instead of using Promise.all()
       // which fails if one GET fails
@@ -402,8 +450,9 @@ var getWritableProfiles = function getWritableProfiles (webid, graph) {
 module.exports.getProfile = getProfile
 module.exports.getWorkspaces = getWorkspaces
 module.exports.getWritableProfiles = getWritableProfiles
+module.exports.extractProfileResources = extractProfileResources
 
-},{"./web":10}],4:[function(require,module,exports){
+},{"../config":1,"./web":10}],4:[function(require,module,exports){
 'use strict'
 /**
  * Provides miscelaneous meta functions (such as library version)
@@ -436,11 +485,11 @@ var parseAllowedMethods = require('./web-util').parseAllowedMethods
 * @constructor
 */
 function SolidResponse (xhrResponse) {
-  if(!xhrResponse) {
+  if (!xhrResponse) {
     this.xhr = null
+    this.user = ''
     return
   }
-
   /**
    * Hashmap of parsed `Link:` headers. Example:
    *
@@ -455,14 +504,12 @@ function SolidResponse (xhrResponse) {
    * @type Object
    */
   this.linkHeaders = parseLinkHeader(xhrResponse.getResponseHeader('Link')) || {}
-
   /**
    * Name of the corresponding `.acl` resource
    * @property acl
    * @type String
    */
   this.acl = this.linkHeaders['acl']
-
   /**
    * Hashmap of HTTP methods/verbs allowed by the server.
    * (If a verb is not allowed, it's not included.)
@@ -479,34 +526,29 @@ function SolidResponse (xhrResponse) {
   this.allowedMethods =
     parseAllowedMethods(xhrResponse.getResponseHeader('Allow'),
       xhrResponse.getResponseHeader('Accept-Patch'))
-
   /**
    * Name of the corresponding `.meta` resource
    * @property meta
    * @type String
    */
   this.meta = this.linkHeaders['meta'] || this.linkHeaders['describedBy']
-
   /**
    * LDP Type for the resource.
    * Example: 'http://www.w3.org/ns/ldp#Resource'
    */
   this.type = this.linkHeaders.type
-
   /**
   * URL of the resource created or retrieved
   * @property url
   * @type String
   */
   this.url = xhrResponse.getResponseHeader('Location') || xhrResponse.responseURL
-
   /**
    * WebID URL of the currently authenticated user (empty string if none)
    * @property user
    * @type String
    */
   this.user = xhrResponse.getResponseHeader('User') || ''
-
   /**
    * URL of the corresponding websocket instance, for this resource
    * Example: `wss://example.org/blog/hellow-world`
@@ -514,7 +556,6 @@ function SolidResponse (xhrResponse) {
    * @type String
    */
   this.websocket = xhrResponse.getResponseHeader('Updates-Via') || ''
-
   /**
    * Raw XHR response object
    * @property xhr
@@ -530,6 +571,10 @@ function SolidResponse (xhrResponse) {
  */
 SolidResponse.prototype.exists = function exists () {
   return this.xhr.status >= 200 && this.xhr.status < 400
+}
+
+SolidResponse.prototype.isLoggedIn = function isLoggedIn () {
+  return this.user && this.user.slice(0, 4) === 'http'
 }
 
 module.exports = SolidResponse
@@ -598,7 +643,7 @@ module.exports = Vocab
  * Provides a wrapper for rdflib's web operations (`$rdf.Fetcher` based)
  * @module web-rdflib
  */
-var $rdf = require('rdflib')
+// var $rdf = require('rdflib')
 
 /**
  * @class rdflibWebClient
@@ -609,9 +654,15 @@ var rdflibWebClient = {
    * Retrieves a resource via HTTP, parses it, and returns the result.
    * @method getParsedGraph
    * @param url {String} URL of the resource or container to fetch
+   * @param proxyUrl {String} URL template of the proxy to use for CORS
+   *                          requests.
+   * @param timeout {Number} Request timeout in milliseconds.
+   * @param [suppressError=false] {Boolean} Resolve with a null graph on error
+   *   if true, reject otherwise. Set to true when using `Promise.all()`
    * @return {Promise<Object>|Object}
    */
-  getParsedGraph: function getParsedGraph (url, proxyUrl, timeout) {
+  getParsedGraph: function getParsedGraph (url, proxyUrl, timeout,
+      suppressError) {
     $rdf.Fetcher.crossSiteProxyTemplate = proxyUrl
     var promise = new Promise(function (resolve, reject) {
       var graph = $rdf.graph()
@@ -622,11 +673,17 @@ var rdflibWebClient = {
         : url
       fetcher.nowOrWhenFetched(docURI, undefined, function (ok, body, xhr) {
         if (!ok) {
-          reject({status: xhr.status, xhr: xhr})
+          if (suppressError) {
+            resolve(null)
+          } else {
+            reject({status: xhr.status, xhr: xhr})
+          }
         } else {
           resolve(graph)
         }
       })
+    }, function (error) {
+      console.log('Error in getParsedGraph: %o', error)
     })
 
     return promise
@@ -635,7 +692,7 @@ var rdflibWebClient = {
 
 module.exports = rdflibWebClient
 
-},{"rdflib":undefined}],9:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 'use strict'
 /**
  * Provides misc utility functions for the web client
@@ -769,7 +826,7 @@ var SolidWebClient = {
       for (var header in options.headers) {  // Add in optional headers
         http.setRequestHeader(header, options.headers[header])
       }
-      if(!!options.timeout) {
+      if (options.timeout) {
         http.timeout = options.timeout
       }
       http.onload = function () {
@@ -795,7 +852,6 @@ var SolidWebClient = {
       } else {
         http.send(data)
       }
-
     })
   },
 
@@ -815,9 +871,8 @@ var SolidWebClient = {
    * @method get
    * @param url {String} URL of the resource or container to fetch
    * @param [proxyUrl] {String} URL template of the proxy to use for CORS
-   *                          requests. Defaults to `config.proxyUrl`.
+   *                          requests.
    * @param [timeout] {Number} Request timeout in milliseconds.
-   *                         Defaults to `config.timeout`.
    * @return {Promise|Object} Result of the HTTP GET operation
    */
   get: function get (url, proxyUrl, timeout) {
@@ -839,15 +894,16 @@ var SolidWebClient = {
    *                         Defaults to `config.timeout`.
    * @return {Promise<Object>|Object}
    */
-  getParsedGraph: function getParsedGraph (url, proxyUrl, timeout) {
+  getParsedGraph: function getParsedGraph (url, proxyUrl, timeout,
+      suppressError) {
     proxyUrl = proxyUrl || config.proxyUrl
     timeout = timeout || config.timeout
-    if(config.parser === 'rdflib') {
+    if (config.parser === 'rdflib') {
       var getParsedGraph = require('./web-rdflib').getParsedGraph
     } else {
-      throw Error("Parser library not supported: " + config.parser)
+      throw Error('Parser library not supported: ' + config.parser)
     }
-    return getParsedGraph(url, proxyUrl, timeout)
+    return getParsedGraph(url, proxyUrl, timeout, suppressError)
   },
 
   /**
@@ -918,6 +974,7 @@ var SolidWebClient = {
     var composePatchQuery = require('./web-util').composePatchQuery
     var data = composePatchQuery(toDel, toIns)
     var mimeType = 'application/sparql-update'
+    var options = {}
     options.headers = {}
     // options.headers['Link'] = '<' + resourceType + '>; rel="type"'
     options.headers['Content-Type'] = mimeType
@@ -970,7 +1027,7 @@ module.exports={
   "scripts": {
     "build-browserified": "browserify -r ./index.js:solid --exclude 'xhr2' --exclude 'rdflib' > dist/solid.js",
     "build-minified": "browserify -r ./index.js:solid --exclude 'xhr2' --exclude 'rdflib' -d -p [minifyify --no-map] > dist/solid.min.js",
-    "build": "npm run clean && npm run build-browserified && npm run build-minified",
+    "build": "npm run clean && npm run standard && npm run build-browserified && npm run build-minified",
     "clean": "rm -rf dist/*",
     "standard": "standard lib/*",
     "tape": "tape test/**/*.js",
@@ -1014,6 +1071,36 @@ module.exports={
 }
 
 },{}],"solid":[function(require,module,exports){
+/*
+The MIT License (MIT)
+
+Copyright (c) 2015-2016 Solid
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Solid.js is a Javascript library for Solid applications. This library currently
+depends on rdflib.js. Please make sure to load the rdflib.js script before
+loading solid.js.
+
+If you would like to know more about the solid Solid project, please see
+https://github.com/solid/solid
+*/
 'use strict'
 /**
  * Provides a Solid client helper object (which exposes various static modules).
@@ -1031,13 +1118,10 @@ var Solid = {
   identity: require('./lib/identity'),
   meta: require('./lib/meta'),
   status: require('./lib/status'),
-  web: require('./lib/web')
-}
-
-if (typeof tabulator !== 'undefined') {
-  tabulator.solid = Solid
+  web: require('./lib/web'),
+  webUtil: require('./lib/web-util')
 }
 
 module.exports = Solid
 
-},{"./config":1,"./lib/auth":2,"./lib/identity":3,"./lib/meta":4,"./lib/status":6,"./lib/web":10}]},{},[]);
+},{"./config":1,"./lib/auth":2,"./lib/identity":3,"./lib/meta":4,"./lib/status":6,"./lib/web":10,"./lib/web-util":9}]},{},[]);
