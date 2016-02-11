@@ -1,7 +1,26 @@
+##### Version 0.6.0:
+
+- (**breaking change**) Rename export module name from `solid.js` to `solid`.
+  Now usage is: `var Solid = require('solid')`
+- (**breaking change**) Rename rdflib-based `get()` to `getParsedGraph()`,
+  extract it to `./web-rdflib.js`
+- (**breaking change**) `response.exists` is now `response.exists()`
+- Extract XMLHttpRequest to its own module, `lib/xhr.js`
+- Exclude `xhr2` from browserify build (since it's not needed in browser)
+- Exclude `rdflib` from browserify build, explicitly
+- Extract common XMLHttpRequest logic to `solidRequest()`
+- Use XMLHttpRequest Level 2 semantics (`onload` instead of
+  `onreadystatechange`) since they have been merged into XMLHttpRequest
+  standard, and supported by all browsers
+- Add a `config.js` (for things like proxy url, timeout, etc)
+- Extract `web.js`/`parseResponseMeta()` to `solid-response.js`/`SolidResponse`
+- Created `lib/vocab.js` to do rdflib-agnostic namespacing
+
 ##### Version 0.5.0:
 
  - Converted to JS Standard coding format
- - Converted structure to use Node.js require() and Browserify
+ - (**breaking change**) Converted structure to use Node.js require()
+  and Browserify
 
 ##### Version 0.4.0:
 
