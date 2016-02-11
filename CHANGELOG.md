@@ -15,6 +15,7 @@
 - Add a `config.js` (for things like proxy url, timeout, etc)
 - Extract `web.js`/`parseResponseMeta()` to `solid-response.js`/`SolidResponse`
 - Created `lib/vocab.js` to do rdflib-agnostic namespacing
+- Refactored `lib/auth.js`, moved defaults to `config.js`
 
 ##### Version 0.5.0:
 
