@@ -1,3 +1,12 @@
+##### Version 0.7.0:
+
+- (**breaking change**) Removed `Solid.identity.getWorkspaces` (no longer
+  relevant) and `getWritableProfiles` (duplicate code to `getProfile`)
+- Added TravisCI integration
+- Add `Solid.web.options()` method
+- Add support to `webUtil.parseAllowedMethods()` for
+  `Access-Control-Allow-Methods` headers
+
 ##### Version 0.6.0:
 
 - (**breaking change**) Rename export module name from `solid.js` to `solid`.
