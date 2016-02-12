@@ -1,5 +1,6 @@
 # solid.js
 [![](https://img.shields.io/badge/project-Solid-7C4DFF.svg?style=flat-square)](https://github.com/solid/solid)
+[![Build Status](https://travis-ci.org/solid/solid.js.svg?branch=master)](https://travis-ci.org/solid/solid.js)
 
 Javascript library for writing [Solid](https://github.com/solid/solid-spec)
 applications.
