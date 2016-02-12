@@ -14,29 +14,28 @@ please see the
 as well as the
 [tutorial for using rdflib.js](https://github.com/solid/solid-tutorial-rdflib.js).
 
+See also:
+
+* [solid.js Changelog](CHANGELOG.md)
 
 ## Dependencies
 
 This library currently depends on
-[rdflib.js](https://github.com/linkeddata/rdflib.js/). Since `rdflib.js`
-currently does not work with [Browserify](http://browserify.org/), please make
-sure to load the `rdflib.js` script **before** loading `solid.js`:
+[rdflib.js](https://github.com/linkeddata/rdflib.js/). Please make sure to load
+the `rdflib.js` script **before** loading `solid.js`:
 
 In your `index.html`:
 
 ```html
-<script src="rdflib.js"></script>
-<script src="solid.js"></script>
+<script src="./rdflib.js"></script>
+<script src="./solid.js"></script>
 <script>
-  var Solid = require('solid.js');
+  var Solid = require('solid')
 
   // Use Solid client here ...
-  console.log('solid.js version: ' + Solid.meta.version());
+  console.log('solid version: ' + Solid.meta.version())
 </script>
 ```
-
-Note: A copy of `rdflib.js` is provided in this repo's `vendor/` directory
-(this is the version used by QUnit tests).
 
 ## Developing Solid.js
 
@@ -54,7 +53,7 @@ npm run build
 
 ## Testing
 
-To run the QUnit tests:
+To run the unit tests:
 
 ```
 npm test
@@ -89,31 +88,32 @@ function accepts the following parameters:
 
 For example, a blog application may decide to store posts in a hierarchical
 manner -- i.e. `/blog/hello-world`. Here, `blog` is a container, while
-`hello-world` is a regular resource (file). In the example below  we are also
+`hello-world` is a regular resource (file). In the example below we are also
 sending some meta data (semantics) about the container, setting its type to
 `sioc:Blog`.
 
 ```javascript
 // Assumes you've loaded rdflib.js and solid.js, see Dependences above
-var Solid = require('solid.js');
-var parentDir = 'https://example.org/';
-var slug = 'blog';
-var data = '<#this> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/sioc/ns#Blog> .';
-var isContainer = true;
+var Solid = require('solid')
+var parentDir = 'https://example.org/'
+var slug = 'blog'
+var data = '<#this> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/sioc/ns#Blog> .'
+var isContainer = true
 
 Solid.web.post(parentDir, data, slug, isContainer).then(
-  function(meta) {
-    console.log(meta);
-    // The resulting object has several useful properties. Refer to the solid.js docs for more information/examples
-    // meta.url - value of the Location header
-    // meta.acl - url of acl resource
-    // meta.meta - url of meta resource
+  function(solidResponse) {
+    console.log(solidResponse)
+    // The resulting object has several useful properties.
+    // See lib/solid-response.js for details
+    // solidResponse.url - value of the Location header
+    // solidResponse.acl - url of acl resource
+    // solidResponse.meta - url of meta resource
   }
 ).catch(function(err){
-  console.log(err); // error object
-  console.log(err.status); // contains the error status
-  console.log(err.xhr); // contains the xhr object
-});
+  console.log(err) // error object
+  console.log(err.status) // contains the error status
+  console.log(err.xhr) // contains the xhr object
+})
 ```
 
 ### Creating a resource
@@ -125,26 +125,27 @@ In this example we will create the resource `hello-world` under the newly
 created `blog/` container.
 
 ```javascript
-var Solid = require('solid.js');
-var parentDir = 'https://example.org/blog/';
-var slug = 'hello-world';
+var Solid = require('solid')
+var parentDir = 'https://example.org/blog/'
+var slug = 'hello-world'
 var data = `
 <> a <http://rdfs.org/sioc/ns#Post> ;
     <http://purl.org/dc/terms/title> "First post" ;
     <http://rdfs.org/sioc/ns#content> "Hello world! This is my first post" .
-`;
+`
 
 Solid.web.post(parentDir, data, slug).then(
   function(meta) {
-    console.log(meta.url); // URL of the newly created resource
+    console.log(meta.url) // URL of the newly created resource
   }
 ).catch(function(err){
-  console.log(err); // error object
+  console.log(err) // error object
   // ...
-});
+})
 ```
 
 ### Updating a resource
+
 Sometimes we need to update a resource after making a small change. For
 instance, we sometimes need to delete a triple, or update the value of an object
 (technically by replacing the triple with a new one). Luckily, Solid allows us
@@ -158,11 +159,12 @@ Let's create the statements and serialize them to Turtle before patching the
 blog post resource:
 
 ```javascript
-var url = 'https://example.org/blog/hello-world';
+// $rdf is a global exposed by loading 'rdflib.js'
+var url = 'https://example.org/blog/hello-world'
 
-var oldTitle = $rdf.st($rdf.sym(url), $rdf.sym('http://purl.org/dc/terms/title'), "First post").toNT();
+var oldTitle = $rdf.st($rdf.sym(url), $rdf.sym('http://purl.org/dc/terms/title'), "First post").toNT()
 
-var newTitle = $rdf.st($rdf.sym(url), $rdf.sym('http://purl.org/dc/terms/title'), "Hello").toNT();
+var newTitle = $rdf.st($rdf.sym(url), $rdf.sym('http://purl.org/dc/terms/title'), "Hello").toNT()
 ```
 
 Now we can actually patch the resource. The `Solid.web.patch()` function (also
@@ -173,18 +175,19 @@ aliased to `Solid.web.update()`) takes three arguments:
 * `toIns` (array) - an array of statements to be inserted, serialized as Turtle.
 
 ```javascript
-var Solid = require('solid.js');
-var toDel = [ oldTtitle ];
-var toIns = [ newTitle ];
+var Solid = require('solid')
+var toDel = [ oldTtitle ]
+var toIns = [ newTitle ]
 Solid.web.patch(url, toDel, toIns).then(function (meta){
-  console.log(meta.xhr.status); // HTTP 200 (OK)
+  console.log(meta.xhr.status) // HTTP 200 (OK)
 }).catch(function(err) {
-  console.log(err); // error object
+  console.log(err) // error object
   // ...
-});
+})
 ```
 
 ### Replacing a resource
+
 We can also completely replace (overwrite) existing resources with new content,
 using the client's `Solid.web.put()` function (also aliased to `replace()`). The
 function accepts the following parameters:
@@ -199,40 +202,63 @@ Here is an example where we try to overwrite the existing resource
 `hello-world`, giving it a bogus type - `http://example.org/#Post`.
 
 ```javascript
-var Solid = require('solid.js');
-var url = 'https://example.org/blog/hello-world';
-var data = '<> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/#Post> .';
+var Solid = require('solid')
+var url = 'https://example.org/blog/hello-world'
+var data = '<> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/#Post> .'
 
 Solid.web.put(url, data).then(
   function (meta) {
-    console.log(meta.xhr.status); // HTTP 200 (OK)
+    console.log(meta.xhr.status) // HTTP 200 (OK)
   }
 ).catch(function(err){
-  console.log(err); // error object
+  console.log(err) // error object
   // ...
-});
+})
 ```
 
 ### Reading a resource
-We can now read the updated RDF resource, using the function `Solid.web.get()`.
-This function returns a graph object, which can then be queried. The graph
-object is created by `rdflib.js` and it inherits all its methods.
+
+We can now retrieve the created resource in its raw (unparsed form).
 
 ```javascript
-var Solid = require('solid.js');
-var url = 'https://example.org/blog/hello-world';
-
+var url = 'https://example.org/blog/hello-world'
 Solid.web.get(url).then(
-  function(g) {
-    // Print all statements matching resources of type foaf:Post
-    console.log(g.statementsMatching(undefined, RDF('type'), SIOC('Post')));
+  function(rawRDF) {
+    console.log('Raw resource: %s', rawRDF)
   }
 ).catch(
   function(err) {
-    console.log(err); // error object
+    console.log(err) // error object
     // ...
   }
-);
+)
+```
+
+Alternatively, we can retrieve it already parsed (here, by `rdflib.js`), using
+the function  `Solid.web.getParsedGraph()`.
+This function returns a graph object, which can then be queried.
+
+```javascript
+var Solid = require('solid')
+// $rdf is a global exposed by loading 'rdflib.js'
+Solid.config.parser = 'rdflib'  // 'rdflib' is the default parser
+var RDF = $rdf.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
+var SIOC = $rdf.Namespace('http://rdfs.org/sioc/ns#')
+
+var url = 'https://example.org/blog/hello-world'
+
+Solid.web.getParsedGraph(url).then(
+  function(graphed) {
+    // Print all statements matching resources of type foaf:Post
+    console.log(graphed.statementsMatching(undefined, RDF('type'),
+      SIOC('Post')))
+  }
+).catch(
+  function(err) {
+    console.log(err) // error object
+    // ...
+  }
+)
 ```
 
 ### Getting information about a resource
@@ -242,38 +268,40 @@ For instance, it may want to find out where the ACL resource is. Clients should
 take notice to the fact that the `Solid.web.head()` function will always
 successfully complete, even for resources that don't exists, since that is
 considered useful information. For instance, clients can use the
-`meta.xhr.status` value will indicate whether the resource exists or not.
+`solidResponse.xhr.status` value will indicate whether the resource exists or
+not.
 
 Here, for example, we can find out where the corresponding ACL resource is for
 our new blog post `hellow-world`.
 
 ```javascript
-var Solid = require('solid.js');
-var url = 'https://example.org/blog/hellow-world';
+var Solid = require('solid')
+var url = 'https://example.org/blog/hellow-world'
 Solid.web.head(url).then(
-  function(meta) {
-    console.log(meta.acl); // the ACL uri
-    if (meta.xhr.status === 403) {
-      console.log("You don't have access to the resource");
-    } else if (meta.xhr.status === 404) {
-      console.log("This resource doesn't exist");
+  function(solidResponse) {
+    console.log(solidResponse.acl) // the ACL uri
+    if (solidResponse.xhr.status === 403) {
+      console.log("You don't have access to the resource")
+    } else if (solidResponse.xhr.status === 404) {
+      console.log("This resource doesn't exist")
     }
   }
-);
+)
 ```
 
-The `meta` object returned by `head()` contains the following properties:
+The `solidResponse` object returned by most Solid.web calls, including
+`head()`, contains the following properties:
 
-* `meta.url` - the URL of the resource // https://example.org/blog/hellow-world
-* `meta.acl` - the URL of the corresponding acl resource  //
+* `url` - the URL of the resource // https://example.org/blog/hellow-world
+* `acl` - the URL of the corresponding acl resource  //
   `https://example.org/blog/hellow-world.acl`
-* `meta.meta` - the URL of the corresponding meta resource //
+* `meta` - the URL of the corresponding meta resource //
   `https://example.org/blog/hellow-world.meta`
-* `meta.user` - the WebID of the authenticated user (if authenticated) //
+* `user` - the WebID of the authenticated user (if authenticated) //
   `https://user.example.org/profile#me`
-* `meta.websocket` - the URI of the corresponding websocket instance //
+* `websocket` - the URI of the corresponding websocket instance //
   `wss://example.org/blog/hellow-world`
-* `meta.xhr` - the xhr object (e.g. xhr.status)
+* `xhr` - the raw XMLHttpRequest object (e.g. xhr.status)
 
 ### Deleting a resource
 
@@ -285,19 +313,19 @@ only work for empty containers. For now, app developers should make sure to
 empty a container by recursively calling calling this function on its contents.
 
 ```javascript
-var Solid = require('solid.js');
-var url = 'https://example.org/blog/hello-world';
+var Solid = require('solid')
+var url = 'https://example.org/blog/hello-world'
 
 Solid.web.del(url).then(
   function(success) {
-    console.log(success); // true/false
+    console.log(success) // true/false
   }
 ).catch(
   function(err) {
-    console.log(err); // error object
+    console.log(err) // error object
     // ...
   }
-);
+)
 ```
 
 ### See also
@@ -341,17 +369,17 @@ HTML:
 Javascript:
 
 ```javascript
-var Solid = require('solid.js');
+var Solid = require('solid')
 var login = function() {
   // Get the current user
   Solid.auth.login().then(function(webid){
     // authentication succeeded; do something with the WebID string
-    console.log(webid);
+    console.log(webid)
   }).catch(function(err) {
     // authentication failed; display some error message
-    console.log(err);
-  });
-};
+    console.log(err)
+  })
+}
 ```
 
 ### Signup example
@@ -369,17 +397,17 @@ HTML:
 Javascript:
 
 ```javascript
-var Solid = require('solid.js');
+var Solid = require('solid')
 // Signup for a WebID
 var signup = function() {
   Solid.auth.signup().then(function(webid) {
     // authentication succeeded; do something with the WebID string
-    console.log(webid);
+    console.log(webid)
   }).catch(function(err) {
     // authentication failed; display some error message
-    console.log(err);
-  });
-};
+    console.log(err)
+  })
+}
 ```
 
 ### See also
