@@ -198,7 +198,7 @@ var RDFS = $rdf.Namespace('http://www.w3.org/2000/01/rdf-schema#')
 var OWL = $rdf.Namespace('http://www.w3.org/2002/07/owl#')
 var PIM = $rdf.Namespace('http://www.w3.org/ns/pim/space#')
 var FOAF = $rdf.Namespace('http://xmlns.com/foaf/0.1/')
-var DCT = $rdf.Namespace('http://purl.org/dc/terms/')
+// var DCT = $rdf.Namespace('http://purl.org/dc/terms/')
 
 /**
  * Appends RDF statements from one graph object to another
@@ -324,133 +324,7 @@ function getProfile (profileUrl, ignoreExtended) {
     })
 }
 
-/**
- * Finds the Workspaces linked from the user's WebId Profile.
- * (Optionally fetches the profile, if it hasn't already been loaded.)
- * @method getWorkspaces
- * @static
- * @param webId {String} WebId or Location of a user's profile.
- * @param graph {Graph} Parsed graph of the user's profile.
- * @return {Array<Object>} List of parsed Workspace triples.
- */
-function getWorkspaces (webId, graph) {
-  var promise = new Promise(function (resolve, reject) {
-    if (!graph) {
-      // fetch profile and call function again
-      getProfile(webId).then(function (g) {
-        getWorkspaces(webId, g).then(function (ws) {
-          return resolve(ws)
-        }).catch(function (err) {
-          return reject(err)
-        })
-      }).catch(function (err) {
-        return reject(err)
-      })
-    } else {
-      // find workspaces
-      var workspaces = []
-      var ws = graph.statementsMatching($rdf.sym(webId), PIM('workspace'),
-        undefined)
-      if (ws.length === 0) {
-        return resolve(workspaces)
-      }
-      ws.forEach(function (w) {
-        // try to get some additional info - i.e. desc/title
-        var workspace = {}
-        var title = graph.any(w.object, DCT('title'))
-        if (title && title.value) {
-          workspace.title = title.value
-        }
-        workspace.url = w.object.uri
-        workspace.statements = graph.statementsMatching(w.object, undefined,
-          undefined)
-        workspaces.push(workspace)
-      })
-      return resolve(workspaces)
-    }
-  })
-
-  return promise
-}
-
-/**
- * Finds writeable profiles linked from the user's WebId Profile.
- * @method getWritableProfiles
- * @static
- * @param webId {String} WebId or Location of a user's profile.
- * @param graph {Graph} Parsed graph of the user's profile.
- * @return {Array<Object>} List of writeable profile triples
- */
-function getWritableProfiles (webId, graph) {
-  var promise = new Promise(function (resolve, reject) {
-    if (!graph) {
-      // fetch profile and call function again
-      getProfile(webId).then(function (g) {
-        getWritableProfiles(webId, g).then(function (list) {
-          return resolve(list)
-        }).catch(function (err) {
-          return reject(err)
-        })
-      }).catch(function (err) {
-        return reject(err)
-      })
-    } else {
-      // find profiles
-      var profiles = []
-
-      webId = (webId.indexOf('#') >= 0)
-        ? webId.slice(0, webId.indexOf('#'))
-        : webId
-      var user = graph.any($rdf.sym(webId), FOAF('primaryTopic'))
-      // find additional resources to load
-      var toLoad = []
-      toLoad = toLoad.concat(graph.statementsMatching(user,
-        OWL('sameAs'), undefined, $rdf.sym(webId)))
-      toLoad = toLoad.concat(graph.statementsMatching(user,
-        RDFS('seeAlso'), undefined, $rdf.sym(webId)))
-      toLoad = toLoad.concat(graph.statementsMatching(user,
-        PIM('preferencesFile'), undefined, $rdf.sym(webId)))
-      // also check this (main) profile doc
-      toLoad = toLoad.concat({object: {uri: webId}})
-      var total = toLoad.length
-      // sync promises externally instead of using Promise.all()
-      // which fails if one GET fails
-      var syncAll = function () {
-        if (total === 0) {
-          return resolve(profiles)
-        }
-      }
-      if (total === 0) {
-        return resolve(profiles)
-      }
-
-      // Load sameAs files
-      toLoad.forEach(function (prof) {
-        var url = prof.object.uri
-        solidClient.head(url).then(
-          function (meta) {
-            if (meta.editable.length > 0 && profiles.indexOf(url) < 0) {
-              profiles.push({url: url, editable: meta.editable})
-            }
-            total--
-            syncAll()
-          }
-        ).catch(
-          function (err) {
-            if (err) throw err
-            total--
-            syncAll()
-          })
-      })
-    }
-  })
-
-  return promise
-}
-
 module.exports.getProfile = getProfile
-module.exports.getWorkspaces = getWorkspaces
-module.exports.getWritableProfiles = getWritableProfiles
 module.exports.extractProfileResources = extractProfileResources
 
 },{"../config":1,"./web":10}],4:[function(require,module,exports){
@@ -571,11 +445,11 @@ function SolidResponse (xhrResponse) {
  * @return {Boolean}
  */
 SolidResponse.prototype.exists = function exists () {
-  return this.xhr.status >= 200 && this.xhr.status < 400
+  return this.xhr && this.xhr.status >= 200 && this.xhr.status < 400
 }
 
 SolidResponse.prototype.isLoggedIn = function isLoggedIn () {
-  return this.user && this.user.slice(0, 4) === 'http'
+  return this.user // && this.user.slice(0, 4) === 'http'
 }
 
 module.exports = SolidResponse
@@ -1061,6 +935,7 @@ module.exports={
   "devDependencies": {
     "browserify": "^13.0.0",
     "minifyify": "^7.2.1",
+    "sinon": "^1.17.3",
     "standard": "^5.4.1",
     "tape": "^4.4.0"
   },
