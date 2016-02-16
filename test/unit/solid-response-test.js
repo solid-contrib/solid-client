@@ -16,5 +16,5 @@ test('SolidResponse user.isLoggedIn test', function (t) {
   t.plan(1)
   let response = new SolidResponse()
   response.user = 'https://localhost/profile/card#me'
-  t.ok(response.isLoggedIn(), 'User should be logged in')
+  t.ok(response.isLoggedIn(), 'User should be logged in if they have the user string set')
 })

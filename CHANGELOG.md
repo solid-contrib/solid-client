@@ -1,3 +1,7 @@
+##### Version 0.7.1:
+
+- Extract profile logic to its own class
+
 ##### Version 0.7.0:
 
 - (**breaking change**) Removed `Solid.identity.getWorkspaces` (no longer
