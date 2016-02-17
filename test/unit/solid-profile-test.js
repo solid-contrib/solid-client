@@ -13,10 +13,10 @@ test('SolidProfile empty profile test', function (t) {
   t.plan(6)
   let profile = new SolidProfile()
   t.notOk(profile.webId, 'Empty profile should not have webId set')
-  t.notOk(profile.externalResources.inbox, 'Empty profile - no inbox')
-  t.deepEqual(profile.externalResources.preferences, [],
+  t.notOk(profile.inbox(), 'Empty profile - no inbox')
+  t.deepEqual(profile.preferences(), [],
     'Empty profile - no preferences')
-  t.deepEqual(profile.externalResources.storage, [],
+  t.deepEqual(profile.storage(), [],
     'Empty profile - no storage')
   t.deepEqual(profile.relatedProfiles.sameAs, [],
     'Empty profile - no sameAs')
@@ -42,20 +42,20 @@ test('SolidProfile webId test', function (t) {
 test('SolidProfile preferences list test', function (t) {
   let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
   let expectedPreferences = ['https://localhost:8443/settings/prefs.ttl']
-  t.deepEqual(profile.externalResources.preferences, expectedPreferences)
+  t.deepEqual(profile.preferences(), expectedPreferences)
   t.end()
 })
 
 test('SolidProfile inbox test', function (t) {
   let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
   let expectedInboxLink = 'https://localhost:8443/inbox/'
-  t.equal(profile.externalResources.inbox, expectedInboxLink)
+  t.equal(profile.inbox(), expectedInboxLink)
   t.end()
 })
 
 test('SolidProfile storage test', function (t) {
   let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
   let expectedStorageLinks = ['https://localhost:8443/']
-  t.deepEqual(profile.externalResources.storage, expectedStorageLinks)
+  t.deepEqual(profile.storage(), expectedStorageLinks)
   t.end()
 })

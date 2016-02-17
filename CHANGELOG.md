@@ -7,6 +7,7 @@
 - `getProfile()` now uses `Solid.web.get()` instead of RDFLib's Fetcher
 - Apps can now load the extended profile (sameAs, seeAlso, etc) asynchronously,
   using `Solid.identity.loadExtendedProfile()`
+- Add `profile.inbox()`, `.storage()`, `.preferences()` convenience methods
 
 ##### Version 0.7.0:
 
