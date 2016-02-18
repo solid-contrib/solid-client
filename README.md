@@ -60,13 +60,65 @@ To run the unit tests:
 npm test
 ```
 
-This opens a web browser on `test/index.html` and runs the QUnit test suite.
+This runs the [Tape](https://github.com/substack/tape) unit test suite.
 
 ## Web operations
 
 Solid.js uses a mix of [LDP](http://www.w3.org/TR/ldp/) and Solid-specific
 functions to manipulate Web resources. Please see the
 [Solid spec](https://github.com/solid/solid-spec) for more details.
+
+### Getting information about a resource
+
+Sometimes an application may need to get some useful meta data about a resource.
+For instance, it may want to find out where the ACL resource is. Clients should
+take notice to the fact that the `Solid.web.head()` function will always
+successfully complete, even for resources that don't exists, since that is
+considered useful information. For instance, clients can use the
+`solidResponse.xhr.status` value will indicate whether the resource exists or
+not.
+
+Here, for example, we can find out where the corresponding ACL resource is for
+our new blog post `hellow-world`.
+
+```javascript
+var Solid = require('solid')
+var url = 'https://example.org/blog/hellow-world'
+Solid.web.head(url).then(
+  function(solidResponse) {
+    console.log(solidResponse.acl) // the ACL uri
+    if (!solidResponse.exists()) {
+      console.log("This resource doesn't exist")
+    } else if (solidResponse.xhr.status === 403) {
+      if (solidResponse.isLoggedIn()) {
+        console.log("You don't have access to the resource")
+      } else {
+        console.log("Please authenticate")
+      }
+    }
+  }
+)
+```
+
+The `SolidResponse` object returned by most `Solid.web` calls, including
+`head()`, contains the following properties:
+
+* `url` - the URL of the resource // https://example.org/blog/hellow-world
+* `acl` - the URL of the corresponding acl resource  //
+  `https://example.org/blog/hellow-world.acl`
+* `meta` - the URL of the corresponding meta resource //
+  `https://example.org/blog/hellow-world.meta`
+* `type` - LDP type for the resource, if applicable. For example:
+  `http://www.w3.org/ns/ldp#Resource`
+* `user` - the WebID of the authenticated user (if authenticated) //
+  `https://user.example.org/profile#me`
+* `websocket` - the URI of the corresponding websocket instance //
+  `wss://example.org/blog/hellow-world`
+* `method` - the HTTP verb (`get`, `put`, etc) of the original request that
+  resulted in this response.
+* `xhr` - the raw XMLHttpRequest object (e.g. xhr.status)
+
+The `SolidResponse` object also has
 
 ### Creating a Solid Container
 
@@ -224,8 +276,8 @@ We can now retrieve the created resource in its raw (unparsed form).
 ```javascript
 var url = 'https://example.org/blog/hello-world'
 Solid.web.get(url).then(
-  function(rawRDF) {
-    console.log('Raw resource: %s', rawRDF)
+  function(response) {
+    console.log('Raw resource: %s', response.raw())
   }
 ).catch(
   function(err) {
@@ -261,48 +313,6 @@ Solid.web.getParsedGraph(url).then(
   }
 )
 ```
-
-### Getting information about a resource
-
-Sometimes an application may need to get some useful meta data about a resource.
-For instance, it may want to find out where the ACL resource is. Clients should
-take notice to the fact that the `Solid.web.head()` function will always
-successfully complete, even for resources that don't exists, since that is
-considered useful information. For instance, clients can use the
-`solidResponse.xhr.status` value will indicate whether the resource exists or
-not.
-
-Here, for example, we can find out where the corresponding ACL resource is for
-our new blog post `hellow-world`.
-
-```javascript
-var Solid = require('solid')
-var url = 'https://example.org/blog/hellow-world'
-Solid.web.head(url).then(
-  function(solidResponse) {
-    console.log(solidResponse.acl) // the ACL uri
-    if (solidResponse.xhr.status === 403) {
-      console.log("You don't have access to the resource")
-    } else if (solidResponse.xhr.status === 404) {
-      console.log("This resource doesn't exist")
-    }
-  }
-)
-```
-
-The `solidResponse` object returned by most Solid.web calls, including
-`head()`, contains the following properties:
-
-* `url` - the URL of the resource // https://example.org/blog/hellow-world
-* `acl` - the URL of the corresponding acl resource  //
-  `https://example.org/blog/hellow-world.acl`
-* `meta` - the URL of the corresponding meta resource //
-  `https://example.org/blog/hellow-world.meta`
-* `user` - the WebID of the authenticated user (if authenticated) //
-  `https://user.example.org/profile#me`
-* `websocket` - the URI of the corresponding websocket instance //
-  `wss://example.org/blog/hellow-world`
-* `xhr` - the raw XMLHttpRequest object (e.g. xhr.status)
 
 ### Deleting a resource
 
