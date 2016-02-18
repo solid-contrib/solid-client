@@ -263,9 +263,7 @@ function getProfile (profileUrl, ignoreExtended, proxyUrl, timeout) {
     .then(function (response) {
       var contentType = response.contentType()
       if (!contentType) {
-        // Force contentType if absent (until LDNode proxy is fixed)
-        contentType = 'text/turtle'
-        // throw new Error('Cannot parse profile without a Content-Type: header')
+        throw new Error('Cannot parse profile without a Content-Type: header')
       }
       return graphUtil.parseGraph(profileUrl, response.raw(), contentType)
     })
@@ -286,11 +284,11 @@ function getProfile (profileUrl, ignoreExtended, proxyUrl, timeout) {
  * Usage:
  *
  *   ```
- *   var profile = Solid.identity.getProfile(url, true)  // ignore extended
- *     .then(function (profile) {
- *       // optionally load the extended profile too
- *       return Solid.identity.loadExtendedProfile(profile)
- *     })
+ * var profile = Solid.identity.getProfile(url, true)
+ *   .then(function (profile) {
+ *     console.log('getProfile results: %o, loading extended..', profile)
+ *     return Solid.identity.loadExtendedProfile(profile)
+ *   })
  *   ```
  * @method loadExtendedProfile
  * @param profile {SolidProfile}
@@ -607,8 +605,8 @@ function SolidResponse (xhrResponse, method) {
    * Example:
    *   ```
    *   {
-   *     'GET': true,
-   *     'PUT': true
+   *     'get': true,
+   *     'put': true
    *   }
    *   ```
    * @property allowedMethods
@@ -1106,8 +1104,6 @@ var SolidWebClient = {
   },
 
   /**
-   * Creates a list of `getParsedGraph()` promises from a
-   * Converts a list of RDF graphs to a
    * Loads a list of given RDF graphs via an async `Promise.all()`,
    * which resolves to an array of uri/parsed-graph hashes.
    * @method loadParsedGraphs
@@ -1123,15 +1119,11 @@ var SolidWebClient = {
    * @return {Promise<Array<Object>>}
    */
   loadParsedGraphs: function loadParsedGraphs (locations, options) {
-    // var suppressError = true
     var web = this
     var loadPromises = locations.map(function (location) {
       return web.get(location, options)
         .then(function (response) {
           var contentType = response.contentType()
-          if (!contentType) {
-            contentType = 'text/turtle'
-          }
           return graphUtil.parseGraph(location, response.raw(), contentType)
         })
         .catch(function (reason) {
