@@ -1,3 +1,14 @@
+##### Version 0.8.0:
+
+- Extract profile logic to its own class
+- (**breaking change**) `Solid.identity.getProfile()` now returns a
+  `SolidProfile` instance instead of a parsed graph. (The parsed graph can
+  still be accessed at `profile.parsedGraph`).
+- `getProfile()` now uses `Solid.web.get()` instead of RDFLib's Fetcher
+- Apps can now load the extended profile (sameAs, seeAlso, etc) asynchronously,
+  using `Solid.identity.loadExtendedProfile()`
+- Add `profile.inbox()`, `.storage()`, `.preferences()` convenience methods
+
 ##### Version 0.7.0:
 
 - (**breaking change**) Removed `Solid.identity.getWorkspaces` (no longer

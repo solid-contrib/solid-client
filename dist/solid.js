@@ -73,12 +73,15 @@ loading solid.js.
 If you would like to know more about the solid Solid project, please see
 https://github.com/solid/
 */
-
+'use strict'
 /**
  * Provides Solid methods for WebID authentication and signup
  * @module auth
  */
-'use strict'
+module.exports.listen = listen
+module.exports.login = login
+module.exports.signup = signup
+
 var webClient = require('./web')
 
 /**
@@ -178,37 +181,27 @@ function signup (signupUrl) {
   })
 }
 
-module.exports.listen = listen
-module.exports.login = login
-module.exports.signup = signup
-
-},{"../config":1,"./web":10}],3:[function(require,module,exports){
+},{"../config":1,"./web":13}],3:[function(require,module,exports){
 'use strict'
 /**
- * Provides Solid helper functions involved with parsing a user's WebId profile.
- * Currently depends on RDFLib.js
- * @module identity
+ * Provides convenience methods for graph manipulation.
+ * Currently depends on RDFLib
+ * @module graph-util
  */
+module.exports.appendGraph = appendGraph
+module.exports.parseGraph = parseGraph
 
-var solidClient = require('./web')
-
-// common vocabs
-// var RDF = $rdf.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
-var RDFS = $rdf.Namespace('http://www.w3.org/2000/01/rdf-schema#')
-var OWL = $rdf.Namespace('http://www.w3.org/2002/07/owl#')
-var PIM = $rdf.Namespace('http://www.w3.org/ns/pim/space#')
-var FOAF = $rdf.Namespace('http://xmlns.com/foaf/0.1/')
-// var DCT = $rdf.Namespace('http://purl.org/dc/terms/')
+var rdf = require('./rdf-parser').rdflib
 
 /**
  * Appends RDF statements from one graph object to another
  * @method appendGraph
- * @param toGraph {Graph} $rdf.Graph object to append to
- * @param fromGraph {Graph} $rdf.Graph object to append from
+ * @param toGraph {Graph} rdf.Graph object to append to
+ * @param fromGraph {Graph} rdf.Graph object to append from
  * @param docURI {String} Document URI to use as source
  */
 function appendGraph (toGraph, fromGraph, docURI) {
-  var source = (docURI) ? $rdf.sym(docURI) : undefined
+  var source = (docURI) ? rdf.sym(docURI) : undefined
   fromGraph.statementsMatching(undefined, undefined, undefined, source)
     .forEach(function (st) {
       toGraph.add(st.subject, st.predicate, st.object, st.why)
@@ -216,124 +209,116 @@ function appendGraph (toGraph, fromGraph, docURI) {
 }
 
 /**
- * Extracts the WebID symbol from a parsed profile graph.
- * @method extractWebId
- * @param baseProfileUrl {String} Profile URL, with no hash fragment
- * @param parsedProfile {$rdf.IndexedFormula} RDFLib-parsed user profile
- * @return {$rdf.Symbol} WebID symbol
+ * Parses a given graph, from text rdfSource, as a given content type.
+ * Returns parsed graph.
+ * @method parseGraph
+ * @param baseUrl {String}
+ * @param rdfSource {String} Text source code
+ * @param contentType {String} Mime Type (determines which parser to use)
+ * @return {rdf.Graph}
  */
-function extractWebId (baseProfileUrl, parsedProfile) {
-  return parsedProfile.any($rdf.sym(baseProfileUrl), FOAF('primaryTopic'))
+function parseGraph (baseUrl, rdfSource, contentType) {
+  var parsedGraph = rdf.graph()
+  rdf.parse(rdfSource, parsedGraph, baseUrl, contentType)
+  return parsedGraph
 }
 
+},{"./rdf-parser":6}],4:[function(require,module,exports){
+'use strict'
 /**
- * Extracts related external resources (sameAs, etc) from a parsed WebID profile
- * @method extractProfileResources
- * @param profileWebId {$rdf.Symbol} WebID of the profile
- * @param baseProfileUrl {String} Profile URL, with no hash fragment
- * @param parsedProfile {$rdf.IndexedFormula} RDFLib-parsed user profile
- * @return {Array<$rdf.IndexedFormula>} List of RDF graphs representing
- *   external resources related to the profile
+ * Provides Solid helper functions involved with parsing a user's WebId profile.
+ * @module identity
  */
-function extractProfileResources (profileWebId, baseProfileUrl, parsedProfile) {
-  var relatedStatements = []
-  var resourcePredicates = [
-    OWL('sameAs'), RDFS('seeAlso'), PIM('preferencesFile')
-  ]
-  resourcePredicates.forEach(function (predicate) {
-    var matches = parsedProfile.statementsMatching(profileWebId, predicate,
-      undefined, $rdf.sym(baseProfileUrl))
-    if (matches.length > 0) {
-      relatedStatements = relatedStatements.concat(matches)
-    }
-  })
-  return relatedStatements
-}
+module.exports.getProfile = getProfile
+module.exports.loadExtendedProfile = loadExtendedProfile
+var graphUtil = require('./graph-util')
+var webClient = require('./web')
+var SolidProfile = require('./solid-profile')
 
 /**
- * Creates a list of `getParsedGraph()` promises from a
- * Converts a list of RDF graphs to a
- * Loads a list of given RDF graphs via an async `Promise.all()`,
- * which resolves to an array of uri/parsed-graph hashes.
- * @method loadRelated
- * @param resources {Array<$rdf.IndexedFormula>} Array of parsed RDF graphs
- * @param proxyUrl {String} URL template of the proxy to use for CORS
- *                          requests.
- * @param timeout {Number} Request timeout in milliseconds.
- * @return {Promise<Array<Object>>}
- */
-function loadGraphs (resources, proxyUrl, timeout) {
-  var suppressError = true
-  // convert the resource RDF statements to "will load" promises
-  var loadPromises = resources.map(function (resource) {
-    return solidClient
-      .getParsedGraph(resource.object.uri, proxyUrl, timeout, suppressError)
-        .then(function (loadedGraph) {
-          return {
-            uri: resource.object.uri,
-            value: loadedGraph
-          }
-        })
-  })
-  return Promise.all(loadPromises)
-}
-
-/**
- * Fetches a user's WebId profile, follows `sameAs` links,
- *   and return a promise with a parsed RDF graph of the results.
+ * Fetches a user's WebId profile, optionally follows `sameAs` etc links,
+ *   and return a promise with a parsed SolidProfile instance.
  * @method getProfile
- * @static
  * @param profileUrl {String} WebId or Location of a user's profile.
  * @param [ignoreExtended=false] {Boolean} Does not fetch external resources
  *   related to the profile, if true.
- * @return {Promise<Graph>}
+ * @param proxyUrl {String} URL template of the proxy to use for CORS
+ *                          requests.
+ * @param timeout {Number} Request timeout in milliseconds.
+ * @return {Promise<SolidProfile>}
  */
-function getProfile (profileUrl, ignoreExtended) {
+function getProfile (profileUrl, ignoreExtended, proxyUrl, timeout) {
   var config = require('../config')
-  var proxyUrl = config.proxyUrl
-  var timeout = config.timeout
-
+  proxyUrl = proxyUrl || config.proxyUrl
+  timeout = timeout || config.timeout
+  var options = {
+    headers: {
+      'Accept': 'text/turtle'
+    },
+    proxyUrl: proxyUrl,
+    timeout: timeout
+  }
   // Load main profile
-  return solidClient.getParsedGraph(profileUrl, proxyUrl, timeout)
-    .then(function (parsedProfile) {
-      if (ignoreExtended) {
-        return parsedProfile
+  return webClient.get(profileUrl, options)
+    .then(function (response) {
+      var contentType = response.contentType()
+      if (!contentType) {
+        throw new Error('Cannot parse profile without a Content-Type: header')
       }
-      // Set base profile url (drop any hash fragments)
-      var baseProfileUrl = (profileUrl.indexOf('#') >= 0)
-        ? profileUrl.slice(0, profileUrl.indexOf('#'))
-        : profileUrl
-      var webId = extractWebId(baseProfileUrl, parsedProfile)
-      // find additional external resources to load
-      var relatedResources = extractProfileResources(webId, baseProfileUrl,
-        parsedProfile)
-      if (relatedResources.length === 0) {
-        return parsedProfile  // No additional profile resources to load
+      return graphUtil.parseGraph(profileUrl, response.raw(), contentType)
+    })
+    .then(function (parsedProfile) {
+      var profile = new SolidProfile(profileUrl, parsedProfile)
+      if (ignoreExtended) {
+        return profile
       } else {
-        // Load all related resources, and append them to the parsed profile
-        return loadGraphs(relatedResources, proxyUrl, timeout)
-          .then(function (loadedGraphs) {
-            loadedGraphs.forEach(function (graph) {
-              if (graph) {
-                appendGraph(parsedProfile, graph.value, graph.uri)
-              }
-            })
-            return parsedProfile
-          })
+        return loadExtendedProfile(profile, options)
       }
     })
 }
 
-module.exports.getProfile = getProfile
-module.exports.extractProfileResources = extractProfileResources
+/**
+ * Loads the related external profile resources (all the `sameAs` and `seeAlso`
+ * links), and appends them to the profile's `parsedGraph`.
+ * Returns the profile instance.
+ * Usage:
+ *
+ *   ```
+ * var profile = Solid.identity.getProfile(url, true)
+ *   .then(function (profile) {
+ *     console.log('getProfile results: %o, loading extended..', profile)
+ *     return Solid.identity.loadExtendedProfile(profile)
+ *   })
+ *   ```
+ * @method loadExtendedProfile
+ * @param profile {SolidProfile}
+ * @param [options] Options hashmap (see Solid.web.solidRequest() function docs)
+ * @return {Promise<SolidProfile>}
+ */
+function loadExtendedProfile (profile, options) {
+  options = options || {}
+  // Politely ask for Turtle formatted profiles
+  options.headers = options.headers || {
+    'Accept': 'text/turtle'
+  }
+  var links = profile.relatedProfilesLinks()
+  return webClient.loadParsedGraphs(links, options)
+    .then(function (loadedGraphs) {
+      loadedGraphs.forEach(function (graph) {
+        if (graph && graph.value) {
+          graphUtil.appendGraph(profile.parsedGraph, graph.value, graph.uri)
+        }
+      })
+      return profile
+    })
+}
 
-},{"../config":1,"./web":10}],4:[function(require,module,exports){
+},{"../config":1,"./graph-util":3,"./solid-profile":7,"./web":13}],5:[function(require,module,exports){
 'use strict'
 /**
  * Provides miscelaneous meta functions (such as library version)
  * @module meta
  */
-
 var lib = require('../package')
 
 /**
@@ -344,25 +329,240 @@ module.exports.version = function version () {
   return lib.version
 }
 
-},{"../package":12}],5:[function(require,module,exports){
+},{"../package":15}],6:[function(require,module,exports){
+'use strict'
+/**
+ * Provides a generic wrapper around an RDF Parser library
+ * (currently only RDFLib)
+ * @module rdf-parser
+ */
+var RDFParser = {}
+if (typeof window !== 'undefined') {
+  // Running inside the browser
+  RDFParser.rdflib = window.$rdf
+} else {
+  // in Node.js
+  RDFParser.rdflib = require('rdflib')
+}
+module.exports = RDFParser
+
+},{"rdflib":undefined}],7:[function(require,module,exports){
+'use strict'
+/**
+ * @module solid-profile
+ */
+module.exports = SolidProfile
+var rdf = require('./rdf-parser').rdflib
+var Vocab = require('./vocab')
+
+/**
+ * Provides convenience methods for a WebID Profile.
+ * Used by `identity.getProfile()`
+ * @class SolidProfile
+ * @constructor
+ */
+function SolidProfile (profileUrl, parsedProfile) {
+  /**
+   * Links to profile-related external resources such as Preferences,
+   * Inbox location, storage locations, etc.
+   * @property externalResources
+   * @type Object
+   */
+  this.externalResources = {
+    inbox: null,
+    preferences: [],
+    storage: []
+  }
+
+  /**
+   * Parsed graph of the WebID Profile document
+   * @property parsedGraph
+   * @type Object
+   */
+  this.parsedGraph = parsedProfile
+
+  /**
+   * Links to "see also" profile documents. Typically loaded immediately
+   * after retrieving the initial WebID Profile document.
+   * @property relatedProfiles
+   * @type Object
+   */
+  this.relatedProfiles = {
+    sameAs: [],
+    seeAlso: []
+  }
+
+  /**
+   * WebId URL (the `foaf:primaryTopic` of the profile document)
+   * @property webId
+   * @type String
+   */
+  this.webId = null
+
+  if (!profileUrl) {
+    return
+  }
+  /**
+   * Location of the base WebID Profile document (minus the hash fragment).
+   * @property baseProfileUrl
+   * @type String
+   */
+  this.baseProfileUrl = (profileUrl.indexOf('#') >= 0)
+    ? profileUrl.slice(0, profileUrl.indexOf('#'))
+    : profileUrl
+
+  if (parsedProfile) {
+    this.initFromGraph(parsedProfile)
+  }
+}
+
+/**
+ * Initializes a profile from a parsed profile RDF graph
+ * @method initFromGraph
+ * @param parsedProfile {rdf.IndexedFormula} RDFLib-parsed user profile
+ */
+SolidProfile.prototype.initFromGraph = function initFromGraph (parsedProfile) {
+  if (!parsedProfile) {
+    return
+  }
+  try {
+    this.webId = extractWebId(this.baseProfileUrl, parsedProfile).uri
+  } catch (e) {
+    throw new Error('Unable to parse WebID from profile')
+  }
+  var webId = rdf.sym(this.webId)
+
+  // Init sameAs and seeAlso
+  this.relatedProfiles.sameAs = parseLinks(parsedProfile, webId,
+    rdf.sym(Vocab.OWL.sameAs))
+  this.relatedProfiles.seeAlso = parseLinks(parsedProfile, webId,
+    rdf.sym(Vocab.RDFS.seeAlso))
+
+  // Init preferencesFile links
+  this.externalResources.preferences = parseLinks(parsedProfile, webId,
+    rdf.sym(Vocab.PIM.preferencesFile))
+
+  // Init inbox (singular)
+  this.externalResources.inbox = parseLink(parsedProfile, webId,
+    rdf.sym(Vocab.SOLID.inbox))
+
+  // Init storage
+  this.externalResources.storage = parseLinks(parsedProfile, webId,
+    rdf.sym(Vocab.PIM.storage))
+}
+
+/**
+ * Returns an array of related external profile links (sameAs and seeAlso)
+ * @method relatedProfilesLinks
+ * @return {Array<String>}
+ */
+SolidProfile.prototype.relatedProfilesLinks = function relatedProfilesLinks () {
+  return this.relatedProfiles.sameAs
+    .concat(this.relatedProfiles.seeAlso)
+}
+
+/**
+ * Convenience method, returns a URIs for a user's Inbox
+ * @method inbox
+ * @return {String}
+ */
+SolidProfile.prototype.inbox = function inbox () {
+  return this.externalResources.inbox
+}
+
+/**
+ * Convenience method, returns an array of URIs for a user's preferences docs
+ * @method preferences
+ * @return {Array<String>}
+ */
+SolidProfile.prototype.preferences = function preferences () {
+  return this.externalResources.preferences
+}
+
+/**
+ * Convenience method, returns an array of root storage URIs for a user profile
+ * @method storage
+ * @return {Array<String>}
+ */
+SolidProfile.prototype.storage = function storage () {
+  return this.externalResources.storage
+}
+
+/**
+ * Extracts the WebID symbol from a parsed profile graph.
+ * @method extractWebId
+ * @param baseProfileUrl {String} Profile URL, with no hash fragment
+ * @param parsedProfile {rdf.IndexedFormula} RDFLib-parsed user profile
+ * @return {rdf.Symbol} WebID symbol
+ */
+function extractWebId (baseProfileUrl, parsedProfile) {
+  var subj = rdf.sym(baseProfileUrl)
+  var pred = rdf.sym(Vocab.FOAF.primaryTopic)
+  var match = parsedProfile.any(subj, pred)
+  return match
+}
+
+/**
+ * Extracts the first URI from a parsed graph that matches parameters
+ * @method parseLinks
+ * @param graph {rdf.IndexedFormula}
+ * @param subject {rdf.Symbol}
+ * @param predicate {rdf.Symbol}
+ * @param object {rdf.Symbol}
+ * @param source {rdf.Symbol}
+ * @return {String} URI that matches the parameters
+ */
+function parseLink (graph, subject, predicate, object, source) {
+  var first = graph.any(subject, predicate, object, source)
+  if (first) {
+    return first.uri
+  } else {
+    return null
+  }
+}
+
+/**
+ * Extracts the URIs from a parsed graph that match parameters
+ * @method parseLinks
+ * @param graph {rdf.IndexedFormula}
+ * @param subject {rdf.Symbol}
+ * @param predicate {rdf.Symbol}
+ * @param object {rdf.Symbol}
+ * @param source {rdf.Symbol}
+ * @return {Array<String>} Array of link URIs that match the parameters
+ */
+function parseLinks (graph, subject, predicate, object, source) {
+  var links = []
+  var matches = graph.statementsMatching(subject,
+    predicate, object, source)
+  matches.forEach(function (match) {
+    links.push(match.object.uri)
+  })
+  return links
+}
+
+},{"./rdf-parser":6,"./vocab":10}],8:[function(require,module,exports){
 'use strict'
 /**
 * @module solid-response
 */
+module.exports = SolidResponse
 
-var parseLinkHeader = require('./web-util').parseLinkHeader
-var parseAllowedMethods = require('./web-util').parseAllowedMethods
+var webUtil = require('./web-util')
 
 /**
 * Provides a wrapper around an XHR response object, and adds several
 * Solid-specific parsed fields (link headers, allowed verbs, etc)
 * @class SolidResponse
 * @constructor
+* @param xhrResponse {XMLHttpRequest} Result of XHR operation
+* @param method {String} HTTP verb for the original request
 */
-function SolidResponse (xhrResponse) {
+function SolidResponse (xhrResponse, method) {
   if (!xhrResponse) {
     this.xhr = null
     this.user = ''
+    this.method = null
     return
   }
   /**
@@ -378,7 +578,21 @@ function SolidResponse (xhrResponse) {
    * @property linkHeaders
    * @type Object
    */
-  this.linkHeaders = parseLinkHeader(xhrResponse.getResponseHeader('Link')) || {}
+  var linkHeader = xhrResponse.getResponseHeader('Link')
+  this.linkHeaders = webUtil.parseLinkHeader(linkHeader) || {}
+
+  if (method) {
+    method = method.toLowerCase()
+  } else {
+    method = ''
+  }
+  /**
+   * HTTP verb for the original request (GET, PUT, etc)
+   * @property method
+   * @type String
+   */
+  this.method = method
+
   /**
    * Name of the corresponding `.acl` resource
    * @property acl
@@ -391,16 +605,15 @@ function SolidResponse (xhrResponse) {
    * Example:
    *   ```
    *   {
-   *     'GET': true,
-   *     'PUT': true
+   *     'get': true,
+   *     'put': true
    *   }
    *   ```
    * @property allowedMethods
    * @type Object
    */
-  this.allowedMethods =
-    parseAllowedMethods(xhrResponse.getResponseHeader('Allow'),
-      xhrResponse.getResponseHeader('Accept-Patch'))
+  this.allowedMethods = this.parseAllowedMethods(xhrResponse, method)
+
   /**
    * Name of the corresponding `.meta` resource
    * @property meta
@@ -440,6 +653,20 @@ function SolidResponse (xhrResponse) {
 }
 
 /**
+ * Returns the Content-Type of the response (or null if no response
+ * is present)
+ * @method contentType
+ * @return {String|Null}
+ */
+SolidResponse.prototype.contentType = function contentType () {
+  if (this.xhr) {
+    return this.xhr.getResponseHeader('Content-Type')
+  } else {
+    return null
+  }
+}
+
+/**
  * Returns true if the resource exists (not a 404)
  * @method exists
  * @return {Boolean}
@@ -448,18 +675,59 @@ SolidResponse.prototype.exists = function exists () {
   return this.xhr && this.xhr.status >= 200 && this.xhr.status < 400
 }
 
+/**
+ * Returns true if the user is logged in with the server
+ * @method isLoggedIn
+ * @return {Boolean}
+ */
 SolidResponse.prototype.isLoggedIn = function isLoggedIn () {
   return this.user // && this.user.slice(0, 4) === 'http'
 }
 
-module.exports = SolidResponse
+/**
+ * In case that this was preflight-type request (OPTIONS or POST, for example),
+ * parses and returns the allowed methods for the resource (for the current
+ * user).
+ * @method parseAllowedMethods
+ * @param xhrResponse {XMLHttpRequest}
+ * @param method {String} HTTP verb for the original request
+ * @return {Object} Hashmap of the allowed methods
+ */
+SolidResponse.prototype.parseAllowedMethods =
+  function parseAllowedMethods (xhrResponse, method) {
+    if (method === 'get') {
+      // Not a preflight request
+      return {}
+    } else {
+      return webUtil.parseAllowedMethods(
+        xhrResponse.getResponseHeader('Access-Control-Allow-Methods'),
+        xhrResponse.getResponseHeader('Accept-Patch')
+      )
+    }
+  }
 
-},{"./web-util":9}],6:[function(require,module,exports){
+/**
+ * Returns the raw XHR response (or null if absent)
+ * @method raw
+ * @return {Object|Null}
+ */
+SolidResponse.prototype.raw = function raw () {
+  if (this.xhr) {
+    return this.xhr.response
+  } else {
+    return null
+  }
+}
+
+},{"./web-util":12}],9:[function(require,module,exports){
 'use strict'
 /**
  * Provides Web API helpers dealing with a user's online / offline status.
  * @module status
  */
+module.exports.isOnline = isOnline
+module.exports.onOffline = onOffline
+module.exports.onOnline = onOnline
 
 /**
  * Returns a user's online status (true if user is on line)
@@ -467,7 +735,7 @@ module.exports = SolidResponse
  * @static
  * @return {Boolean}
  */
-var isOnline = function isOnline () {
+function isOnline () {
   return window.navigator.onLine
 }
 
@@ -477,7 +745,7 @@ var isOnline = function isOnline () {
  * @static
  * @param callback {Function} Callback to invoke when user goes offline.
  */
-var onOffline = function onOffline (callback) {
+function onOffline (callback) {
   window.addEventListener('offline', callback, false)
 }
 
@@ -487,38 +755,52 @@ var onOffline = function onOffline (callback) {
  * @static
  * @param callback {Function} Callback to invoke when user comes online
  */
-var onOnline = function onOnline (callback) {
+function onOnline (callback) {
   window.addEventListener('online', callback, false)
 }
 
-module.exports.isOnline = isOnline
-module.exports.onOffline = onOffline
-module.exports.onOnline = onOnline
-
-},{}],7:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 'use strict'
 /**
  * Provides a hashmap of relevant vocabs / namespaces
  * @module vocab
  */
 var Vocab = {
+  'DCT': 'http://purl.org/dc/terms/',
+  'FOAF': {
+    'primaryTopic': 'http://xmlns.com/foaf/0.1/primaryTopic'
+  },
   'LDP': {
     'BasicContainer': 'http://www.w3.org/ns/ldp#BasicContainer',
     'NonRDFSource': 'http://www.w3.org/ns/ldp#NonRDFSource',
     'RDFSource': 'http://www.w3.org/ns/ldp#RDFSource',
     'Resource': 'http://www.w3.org/ns/ldp#Resource'
+  },
+  'OWL': {
+    'sameAs': 'http://www.w3.org/2002/07/owl#sameAs'
+  },
+  'PIM': {
+    'preferencesFile': 'http://www.w3.org/ns/pim/space#preferencesFile',
+    'storage': 'http://www.w3.org/ns/pim/space#storage'
+  },
+  'RDF': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+  'RDFS': {
+    'seeAlso': 'http://www.w3.org/2000/01/rdf-schema#seeAlso'
+  },
+  'SOLID': {
+    'inbox': 'http://www.w3.org/ns/solid/terms#inbox'
   }
 }
 
 module.exports = Vocab
 
-},{}],8:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict'
 /**
- * Provides a wrapper for rdflib's web operations (`$rdf.Fetcher` based)
+ * Provides a wrapper for rdflib's web operations (`rdf.Fetcher` based)
  * @module web-rdflib
  */
-// var $rdf = require('rdflib')
+var rdf = require('./rdf-parser').rdflib
 
 /**
  * @class rdflibWebClient
@@ -538,10 +820,10 @@ var rdflibWebClient = {
    */
   getParsedGraph: function getParsedGraph (url, proxyUrl, timeout,
       suppressError) {
-    $rdf.Fetcher.crossSiteProxyTemplate = proxyUrl
+    rdf.Fetcher.crossSiteProxyTemplate = proxyUrl
     var promise = new Promise(function (resolve, reject) {
-      var graph = $rdf.graph()
-      var fetcher = new $rdf.Fetcher(graph, timeout)
+      var graph = rdf.graph()
+      var fetcher = new rdf.Fetcher(graph, timeout)
 
       var docURI = (url.indexOf('#') >= 0)
         ? url.slice(0, url.indexOf('#'))
@@ -567,40 +849,45 @@ var rdflibWebClient = {
 
 module.exports = rdflibWebClient
 
-},{}],9:[function(require,module,exports){
+},{"./rdf-parser":6}],12:[function(require,module,exports){
 'use strict'
 /**
  * Provides misc utility functions for the web client
  * @module web-util
  */
+module.exports.composePatchQuery = composePatchQuery
+module.exports.parseAllowedMethods = parseAllowedMethods
+module.exports.parseLinkHeader = parseLinkHeader
 
 /**
  * Extracts the allowed HTTP methods from the 'Allow' and 'Accept-Patch'
  * headers, and returns a hashmap of verbs allowed by the server
  * @method parseAllowedMethods
- * @param allowHeader {String} `Allow:` response header
+ * @param allowMethodsHeader {String} `Access-Control-Allow-Methods` response
+ *   header
  * @param acceptPatchHeader {String} `Accept-Patch` response header
- * @return {Object} Hashmap of verbs allowed by the server. Example:
+ * @return {Object} Hashmap of verbs (in lowercase) allowed by the server for
+ *   the current user. Example:
  *   ```
  *   {
- *     'GET': true,
- *     'PUT': true
+ *     'get': true,
+ *     'put': true
  *   }
  *   ```
  */
-function parseAllowedMethods (allowHeader, acceptPatchHeader) {
+function parseAllowedMethods (allowMethodsHeader, acceptPatchHeader) {
   var allowedMethods = {}
-  if (allowHeader) {
-    var verbs = ['HEAD', 'GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+  if (allowMethodsHeader) {
+    var verbs = allowMethodsHeader.split(',')
     verbs.forEach(function (methodName) {
-      if (allowHeader.indexOf(methodName) >= 0) {
-        allowedMethods[methodName] = true
+      if (methodName && allowMethodsHeader.indexOf(methodName) >= 0) {
+        allowedMethods[methodName.trim().toLowerCase()] = true
       }
     })
   }
   if (acceptPatchHeader &&
       acceptPatchHeader.indexOf('application/sparql-update') >= 0) {
-    this.allowedMethods.patch = true
+    allowedMethods.patch = true
   }
   return allowedMethods
 }
@@ -612,6 +899,9 @@ function parseAllowedMethods (allowHeader, acceptPatchHeader) {
 * @return {Object}
 */
 function parseLinkHeader (link) {
+  if (!link) {
+    return {}
+  }
   var linkexp = /<[^>]*>\s*(\s*;\s*[^\(\)<>@,;:"\/\[\]\?={} \t]+=(([^\(\)<>@,;:"\/\[\]\?={} \t]+)|("[^"]*")))*(,|$)/g
   var paramexp = /[^\(\)<>@,;:"\/\[\]\?={} \t]+=(([^\(\)<>@,;:"\/\[\]\?={} \t]+)|("[^"]*"))/g
   var matches = link.match(linkexp)
@@ -632,6 +922,13 @@ function parseLinkHeader (link) {
   return rels
 }
 
+/**
+ * Composes and returns a PATCH SPARQL query (for use with `web.patch()`)
+ * @method composePatchQuery
+ * @param toDel {Array<String>} List of triples to delete
+ * @param toIns {Array<String>} List of triples to insert
+ * @return {String} SPARQL query for use with PATCH
+ */
 function composePatchQuery (toDel, toIns) {
   var data = ''
   var i
@@ -654,17 +951,14 @@ function composePatchQuery (toDel, toIns) {
   return data
 }
 
-module.exports.composePatchQuery = composePatchQuery
-module.exports.parseAllowedMethods = parseAllowedMethods
-module.exports.parseLinkHeader = parseLinkHeader
-
-},{}],10:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 'use strict'
 /**
  * Provides a Solid web client class for performing LDP CRUD operations.
  * @module web
  */
 var config = require('../config')
+var graphUtil = require('./graph-util')
 var SolidResponse = require('./solid-response')
 var Vocab = require('./vocab')
 var XMLHttpRequest = require('./xhr')
@@ -676,13 +970,59 @@ var XMLHttpRequest = require('./xhr')
  */
 var SolidWebClient = {
   /**
+   * Returns the current window's location (for use with `needsProxy()`)
+   * if used in browser, or `null` if used from Node.
+   * @method currentUrl
+   * @return {String|Null}
+   */
+  currentUrl: function currentUrl () {
+    if (typeof window !== 'undefined') {
+      return window.location.href
+    } else {
+      return null
+    }
+  },
+
+  /**
+   * Determines whether the web client needs to fall back onto a Proxy url,
+   * to avoid being blocked by CORS
+   * @method needsProxy
+   * @param url {String}
+   * @return {Boolean}
+   */
+  needsProxy: function needsProxy (url) {
+    var currentUrl = this.currentUrl()
+    var currentIsHttps = currentUrl && currentUrl.slice(0, 6) === 'https:'
+    var targetIsHttp = url && url.slice(0, 5) === 'http:'
+    if (currentIsHttps && targetIsHttp) {
+      return true
+    } else {
+      return false
+    }
+  },
+
+  /**
+   * Turns a given URL into a proxied version, using a proxy template
+   * @method proxyUrl
+   * @param url {String} Intended URL
+   * @param proxyUrlTemplate {String}
+   * @return {String}
+   */
+  proxyUrl: function proxyUrl (url, proxyUrlTemplate) {
+    proxyUrlTemplate = proxyUrlTemplate || config.proxyUrl
+    return proxyUrlTemplate.replace('{uri}', encodeURIComponent(url))
+  },
+
+  /**
    * Sends a generic XHR request with the appropriate Solid headers,
    * and returns a promise that resolves to a parsed response.
    * @method solidRequest
    * @param url {String} URL of the request
    * @param method {String} HTTP Verb ('GET', 'PUT', etc)
    * @param [options] Options hashmap
-   * @param [options.headers] {Object} HTTP headers to send along with request
+   * @param [options.forceProxy=false] {Boolean} Enforce using proxy URL if true
+   * @param [options.headers={}] {Object} HTTP headers to send along
+   *          with request
    * @param [options.proxyUrl=config.proxyUrl] {String} Proxy URL to use for
    *          CORS Requests.
    * @param [options.timeout=config.timeout] {Number} Request timeout in
@@ -694,6 +1034,9 @@ var SolidWebClient = {
     options.headers = options.headers || {}
     options.proxyUrl = options.proxyUrl || config.proxyUrl
     options.timeout = options.timeout || config.timeout
+    if (this.needsProxy(url) || options.forceProxy) {
+      url = this.proxyUrl(url)
+    }
     return new Promise(function (resolve, reject) {
       var http = new XMLHttpRequest()
       http.open(method, url)
@@ -706,7 +1049,7 @@ var SolidWebClient = {
       }
       http.onload = function () {
         if (this.status >= 200 && this.status < 300) {
-          resolve(new SolidResponse(this))
+          resolve(new SolidResponse(this, method))
         } else {
           reject({
             status: this.status,
@@ -748,14 +1091,64 @@ var SolidWebClient = {
    * @param [proxyUrl] {String} URL template of the proxy to use for CORS
    *                          requests.
    * @param [timeout] {Number} Request timeout in milliseconds.
-   * @return {Promise|Object} Result of the HTTP GET operation
+   * @param [options] Options hashmap
+   * @param [options.headers] {Object} HTTP headers to send along with request
+   * @param [options.proxyUrl=config.proxyUrl] {String} Proxy URL to use for
+   *          CORS Requests.
+   * @param [options.timeout=config.timeout] {Number} Request timeout in
+   *          milliseconds.
+   * @return {Promise<SolidResponse>|Object} Result of the HTTP GET operation
    */
-  get: function get (url, proxyUrl, timeout) {
-    var options = {
-      proxyUrl: proxyUrl,
-      timeout: timeout
-    }
+  get: function get (url, options) {
     return this.solidRequest(url, 'GET', options)
+  },
+
+  /**
+   * Loads a list of given RDF graphs via an async `Promise.all()`,
+   * which resolves to an array of uri/parsed-graph hashes.
+   * @method loadParsedGraphs
+   * @param locations {Array<String>} Array of graph URLs to load
+   * @param [options] Options hashmap
+   * @param [options.forceProxy=false] {Boolean} Enforce using proxy URL if true
+   * @param [options.headers={}] {Object} HTTP headers to send along
+   *          with request
+   * @param [options.proxyUrl=config.proxyUrl] {String} Proxy URL to use for
+   *          CORS Requests.
+   * @param [options.timeout=config.timeout] {Number} Request timeout in
+   *          milliseconds.
+   * @return {Promise<Array<Object>>}
+   */
+  loadParsedGraphs: function loadParsedGraphs (locations, options) {
+    var web = this
+    var loadPromises = locations.map(function (location) {
+      return web.get(location, options)
+        .then(function (response) {
+          var contentType = response.contentType()
+          return graphUtil.parseGraph(location, response.raw(), contentType)
+        })
+        .catch(function (reason) {
+          // Suppress the error, no need to reject, just return null graph
+          return null
+        })
+        .then(function (parsedGraph) {
+          return {
+            uri: location,
+            value: parsedGraph
+          }
+        })
+    })
+    return Promise.all(loadPromises)
+  },
+
+  /**
+   * Issues an HTTP OPTIONS request. Useful for discovering server capabilities
+   * (`Accept-Patch:`, `Updates-Via:` for websockets, etc).
+   * @method head
+   * @param url {String} URL of a resource or container
+   * @return {Promise} Result of an HTTP HEAD operation (returns a meta object)
+   */
+  options: function options (url) {
+    return this.solidRequest(url, 'OPTIONS')
   },
 
   /**
@@ -872,10 +1265,9 @@ var SolidWebClient = {
 SolidWebClient.create = SolidWebClient.post
 SolidWebClient.replace = SolidWebClient.put
 SolidWebClient.update = SolidWebClient.patch
-
 module.exports = SolidWebClient
 
-},{"../config":1,"./solid-response":5,"./vocab":7,"./web-rdflib":8,"./web-util":9,"./xhr":11}],11:[function(require,module,exports){
+},{"../config":1,"./graph-util":3,"./solid-response":8,"./vocab":10,"./web-rdflib":11,"./web-util":12,"./xhr":14}],14:[function(require,module,exports){
 'use strict'
 /**
  * Provides a generic wrapper around the XMLHttpRequest object, to make it
@@ -883,20 +1275,19 @@ module.exports = SolidWebClient
  * @module xhr
  */
 var XMLHttpRequest
-if (window !== undefined && 'XMLHttpRequest' in window) {
+if (typeof window !== 'undefined' && 'XMLHttpRequest' in window) {
   // Running inside the browser
   XMLHttpRequest = window.XMLHttpRequest
 } else {
   // in Node.js
   XMLHttpRequest = require('xhr2')
 }
-
 module.exports = XMLHttpRequest
 
-},{"xhr2":undefined}],12:[function(require,module,exports){
+},{"xhr2":undefined}],15:[function(require,module,exports){
 module.exports={
   "name": "solid",
-  "version": "0.5.1",
+  "version": "0.7.0",
   "description": "Common library for writing Solid applications",
   "main": "./index.js",
   "scripts": {
@@ -935,7 +1326,6 @@ module.exports={
   "devDependencies": {
     "browserify": "^13.0.0",
     "minifyify": "^7.2.1",
-    "sinon": "^1.17.3",
     "standard": "^5.4.1",
     "tape": "^4.4.0"
   },
@@ -1002,4 +1392,4 @@ var Solid = {
 
 module.exports = Solid
 
-},{"./config":1,"./lib/auth":2,"./lib/identity":3,"./lib/meta":4,"./lib/status":6,"./lib/web":10,"./lib/web-util":9}]},{},[]);
+},{"./config":1,"./lib/auth":2,"./lib/identity":4,"./lib/meta":5,"./lib/status":9,"./lib/web":13,"./lib/web-util":12}]},{},[]);
