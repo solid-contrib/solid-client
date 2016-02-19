@@ -1,3 +1,8 @@
+##### Version 0.8.1:
+
+- Added a `SolidProfile.response` property (contains the original
+  `SolidResponse` instance from which the profile was parsed).
+
 ##### Version 0.8.0:
 
 - Extract profile logic to its own class
