@@ -18,7 +18,7 @@ Example `index.html`:
 
 ```html
 <script src="https://linkeddata.github.io/rdflib.js/dist/rdflib-0.3.3.min.js"></script>
-<script src="https://solid.github.io/solid.js/dist/solid-0.8.0.js"></script>
+<script src="https://solid.github.io/solid.js/dist/solid-0.8.1.js"></script>
 <script>
   // $rdf is exported as a global when you load RDFLib, above
   var Solid = require('solid')
