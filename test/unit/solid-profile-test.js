@@ -10,9 +10,10 @@ var parsedProfileGraph = parseGraph(sampleProfileUrl,
   rawProfileSource, 'text/turtle')
 
 test('SolidProfile empty profile test', function (t) {
-  t.plan(6)
+  t.plan(7)
   let profile = new SolidProfile()
   t.notOk(profile.webId, 'Empty profile should not have webId set')
+  t.notOk(profile.response, 'Empty profile - no response object')
   t.notOk(profile.inbox(), 'Empty profile - no inbox')
   t.deepEqual(profile.preferences(), [],
     'Empty profile - no preferences')
