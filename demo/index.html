@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Solid.js Test Page</title>
+    <!-- Bootstrap CSS and Theme for demo purposes -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css">
+    <!-- Solid Demo template/stylesheet -->
+    <link rel="stylesheet" href="./demo.css">
+    <!-- Import RDFLib dependency. Creates a $rdf global variable -->
+    <script src="https://linkeddata.github.io/rdflib.js/dist/rdflib-0.3.3.min.js"></script>
+    <!-- Import Solid.js itself -->
+    <script src="https://solid.github.io/solid.js/dist/solid-0.8.1.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div>
+        <h1>Solid.js Demo Page</h1>
+        <p>Note: Open up your browser's Developer Tools, as the demo makes use
+          of <tt>console.log()</tt> events.</p>
+      </div>
+      <div class="demo-section">
+        <h3>Login</h3>
+          <form>
+            <div class="form-group">
+              <label>Current User:</label>
+              <span id="currentWebId">none</span>
+            </div>
+            <p>Log in using WebID+TLS:</p>
+            <div class="form-group">
+              <label for="webIdUri">WebID URI:</label>
+              <input type="text" class="form-control" id="webIdUri" placeholder="https://test.databox.me/profile/card#me">
+            </div>
+            <!-- See the loginTest() function below -->
+            <button type="button" class="btn btn-primary"
+              id="login">Log In</button>
+          </form>
+      </div> <!-- / Login Test section -->
+      <div class="demo-section">
+        <h3>Load Profile</h3>
+        <p>Enter the WebID Profile URI (yours or someone else's).</p>
+        <div class="row">
+          <div class="col-md-12">
+            <form>
+              <div class="form-group">
+                <label for="profileUri">Profile URI:</label>
+                <input type="text" class="form-control" id="profileUri"
+                  placeholder="https://test.databox.me/profile/card#me">
+              </div>
+              <button type="button" class="btn btn-primary"
+                id="loadProfile">Load Profile</button>
+            </form>
+          </div>
+        </div>
+        <div class="row" style="margin-top: 1em;">
+          <div class="col-md-2">
+            <label>Parsed Profile WebId:</label>
+          </div>
+          <div class="col-md-10">
+            <div id="parsedProfileWebId"></div>
+          </div>
+        </div> <!-- /row -->
+        <div class="row" style="margin-top: 1em;">
+          <div class="col-md-2">
+            <label>Storage Links:</label>
+          </div>
+          <div class="col-md-10">
+            <div id="storageLinks"></div>
+          </div>
+        </div> <!-- /row -->
+        <div class="row" style="margin-top: 1em;">
+          <div class="col-md-2">
+            <label>Preferences Links:</label>
+          </div>
+          <div class="col-md-10">
+            <div id="preferencesLinks"></div>
+          </div>
+        </div> <!-- /row -->
+        <div class="row" style="margin-top: 1em;">
+          <div class="col-md-2">
+            <label>Inbox Link:</label>
+          </div>
+          <div class="col-md-10">
+            <div id="inboxLink"></div>
+          </div>
+        </div> <!-- /row -->
+        <div class="row">
+          <div class="col-md-12">
+            <label>Profile Raw Contents (500 chars):</label>
+            <pre id="profileContents"></pre>
+          </div>
+        </div>
+
+      </div> <!-- / Load Profile Test section -->
+    </div><!-- / page's .container -->
+    <script>
+      var Solid = require('solid')
+      // Configure Solid (optinal step)
+      Solid.config.proxyUrl = 'https://databox.me/,proxy?uri={uri}'
+      Solid.config.timeout = 30000
+
+      document.addEventListener('DOMContentLoaded', function () { init() })
+
+      function init () {
+        // Init the Log In button
+        document.getElementById('login').addEventListener('click', function() {
+          var webId = document.getElementById('webIdUri').value
+          if (webId) {
+            loginTest(webId)
+          }
+        })
+        // Init the Load Profile button
+        document.getElementById('loadProfile').addEventListener('click',
+          function() {
+            var profileUri = document.getElementById('profileUri').value
+            if (profileUri) {
+              loadProfileTest(profileUri)
+            }
+          })
+      }
+
+      function loginTest (webId) {
+        console.log('Logging in to %s', webId)
+        Solid.auth.login(webId).then(function (loggedInWebId) {
+          console.log('Welcome user: %s', loggedInWebId)
+          document.getElementById('currentWebId').innerHTML = loggedInWebId
+        }).catch(function (reason) {
+          console.log('Unable to make a HEAD request for login: %s', reason)
+        })
+      }
+
+      function loadProfileTest (profileUri) {
+        console.log('Loading profile %s', profileUri)
+        Solid.identity.getProfile(profileUri, true)
+          .then(function (profile) {
+            console.log('Fetched profile: %o', profile)
+            console.log('Now loading extended/related profile resources.')
+            displayProfile(profile)
+            return Solid.identity.loadExtendedProfile(profile)
+          })
+          .then(function (extendedProfile) {
+            console.log('Loaded extended profile: %o', extendedProfile)
+            displayProfile(extendedProfile)
+          })
+      }
+
+      function displayProfile (profile) {
+        document.getElementById('parsedProfileWebId').textContent =
+          profile.webId
+        document.getElementById('storageLinks').innerHTML =
+          profile.storage().join('<br />')
+        document.getElementById('preferencesLinks').innerHTML =
+          profile.preferences().join('<br />')
+        document.getElementById('inboxLink').textContent =
+          profile.inbox()
+        document.getElementById('profileContents').textContent =
+          profile.response.raw().slice(0,500) + '\n...'
+      }
+    </script>
+  </body>
+</html>

@@ -265,10 +265,9 @@ function getProfile (profileUrl, ignoreExtended, proxyUrl, timeout) {
       if (!contentType) {
         throw new Error('Cannot parse profile without a Content-Type: header')
       }
-      return graphUtil.parseGraph(profileUrl, response.raw(), contentType)
-    })
-    .then(function (parsedProfile) {
-      var profile = new SolidProfile(profileUrl, parsedProfile)
+      var parsedProfile = graphUtil.parseGraph(profileUrl, response.raw(),
+        contentType)
+      var profile = new SolidProfile(profileUrl, parsedProfile, response)
       if (ignoreExtended) {
         return profile
       } else {
@@ -361,7 +360,7 @@ var Vocab = require('./vocab')
  * @class SolidProfile
  * @constructor
  */
-function SolidProfile (profileUrl, parsedProfile) {
+function SolidProfile (profileUrl, parsedProfile, response) {
   /**
    * Links to profile-related external resources such as Preferences,
    * Inbox location, storage locations, etc.
@@ -380,6 +379,14 @@ function SolidProfile (profileUrl, parsedProfile) {
    * @type Object
    */
   this.parsedGraph = parsedProfile
+
+  /**
+   * SolidResponse instance from which this profile object was created.
+   * Contains the raw profile source, the XHR object, etc.
+   * @property response
+   * @type SolidResponse
+   */
+  this.response = response
 
   /**
    * Links to "see also" profile documents. Typically loaded immediately
@@ -1287,7 +1294,7 @@ module.exports = XMLHttpRequest
 },{"xhr2":undefined}],15:[function(require,module,exports){
 module.exports={
   "name": "solid",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Common library for writing Solid applications",
   "main": "./index.js",
   "scripts": {
