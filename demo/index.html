@@ -6,7 +6,6 @@
     <title>Solid.js Test Page</title>
     <!-- Bootstrap CSS and Theme for demo purposes -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css">
     <!-- Solid Demo template/stylesheet -->
     <link rel="stylesheet" href="./demo.css">
     <!-- Import RDFLib dependency. Creates a $rdf global variable -->
@@ -49,6 +48,7 @@
                 <input type="text" class="form-control" id="profileUri"
                   placeholder="https://test.databox.me/profile/card#me">
               </div>
+              <!-- See the loadProfileTest() function below -->
               <button type="button" class="btn btn-primary"
                 id="loadProfile">Load Profile</button>
             </form>
@@ -61,7 +61,7 @@
           <div class="col-md-10">
             <div id="parsedProfileWebId"></div>
           </div>
-        </div> <!-- /row -->
+        </div>
         <div class="row" style="margin-top: 1em;">
           <div class="col-md-2">
             <label>Storage Links:</label>
@@ -69,7 +69,7 @@
           <div class="col-md-10">
             <div id="storageLinks"></div>
           </div>
-        </div> <!-- /row -->
+        </div>
         <div class="row" style="margin-top: 1em;">
           <div class="col-md-2">
             <label>Preferences Links:</label>
@@ -77,7 +77,7 @@
           <div class="col-md-10">
             <div id="preferencesLinks"></div>
           </div>
-        </div> <!-- /row -->
+        </div>
         <div class="row" style="margin-top: 1em;">
           <div class="col-md-2">
             <label>Inbox Link:</label>
@@ -85,24 +85,24 @@
           <div class="col-md-10">
             <div id="inboxLink"></div>
           </div>
-        </div> <!-- /row -->
+        </div>
         <div class="row">
           <div class="col-md-12">
             <label>Profile Raw Contents (500 chars):</label>
             <pre id="profileContents"></pre>
           </div>
         </div>
-
       </div> <!-- / Load Profile Test section -->
     </div><!-- / page's .container -->
     <script>
+      // RDFLib is already loaded, exported as a global var $rdf
       var Solid = require('solid')
-      // Configure Solid (optinal step)
+      // Configure Solid (optional step)
       Solid.config.proxyUrl = 'https://databox.me/,proxy?uri={uri}'
       Solid.config.timeout = 30000
 
+      // Calls the init() function when the page loads
       document.addEventListener('DOMContentLoaded', function () { init() })
-
       function init () {
         // Init the Log In button
         document.getElementById('login').addEventListener('click', function() {
@@ -120,7 +120,7 @@
             }
           })
       }
-
+      // Gets called when a user presses the 'Log In' button
       function loginTest (webId) {
         console.log('Logging in to %s', webId)
         Solid.auth.login(webId).then(function (loggedInWebId) {
@@ -130,7 +130,7 @@
           console.log('Unable to make a HEAD request for login: %s', reason)
         })
       }
-
+      // Gets called when a user presses the 'Load Profile' button
       function loadProfileTest (profileUri) {
         console.log('Loading profile %s', profileUri)
         Solid.identity.getProfile(profileUri, true)
@@ -145,7 +145,7 @@
             displayProfile(extendedProfile)
           })
       }
-
+      // Used by loadProfileTest() function
       function displayProfile (profile) {
         document.getElementById('parsedProfileWebId').textContent =
           profile.webId
