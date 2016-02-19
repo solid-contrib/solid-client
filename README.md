@@ -3,40 +3,35 @@
 [![Build Status](https://travis-ci.org/solid/solid.js.svg?branch=master)](https://travis-ci.org/solid/solid.js)
 
 Javascript library for writing [Solid](https://github.com/solid/solid-spec)
-applications.
+applications. (See **[Changelog](CHANGELOG.md)** for version history.)
 
-Solid.js is currently for client-side use only (inside a web browser).
+## Usage
 
-**PLEASE NOTE** This document describes what functionality is offered by
-the Solid.js library and should not be mistaken for a tutorial on how to write
-Solid apps. If you would like to learn how to build Solid apps using Solid.js,
-please see the
-[pastebin example tutorial](https://github.com/solid/solid-tutorial-pastebin),
-as well as the
-[tutorial for using rdflib.js](https://github.com/solid/solid-tutorial-rdflib.js).
+Solid.js is currently intended for client-side use only (inside a web browser):
 
-See also:
+1. Load dependencies from a local copy (currently,
+  [rdflib.js](https://github.com/linkeddata/rdflib.js/)).
+2. Load `solid.js` from a local copy (or directly from Github Pages).
+3. Use the `require('solid')` function provided by Browserify to import.
 
-* [solid.js Changelog](CHANGELOG.md)
-
-## Dependencies
-
-This library currently depends on
-[rdflib.js](https://github.com/linkeddata/rdflib.js/). Please make sure to load
-the `rdflib.js` script **before** loading `solid.js`:
-
-In your `index.html`:
+Example `index.html`:
 
 ```html
-<script src="./rdflib.js"></script>
-<script src="./solid.js"></script>
+<script src="./rdflib-0.3.2.js"></script>
+<script src="https://solid.github.io/solid.js/dist/solid-0.8.0.js"></script>
 <script>
   var Solid = require('solid')
-
   // Use Solid client here ...
-  console.log('solid version: ' + Solid.meta.version())
+  console.log('solid.js version: ' + Solid.meta.version())
 </script>
 ```
+
+## Tutorials
+
+If you would like to learn how to build Solid apps using Solid.js, please see:
+
+* [pastebin example tutorial](https://github.com/solid/solid-tutorial-pastebin)
+* [using rdflib.js tutorial](https://github.com/solid/solid-tutorial-rdflib.js)
 
 ## Developing Solid.js
 
