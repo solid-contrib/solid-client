@@ -12,7 +12,7 @@
     <!-- Import RDFLib dependency. Creates a $rdf global variable -->
     <script src="https://linkeddata.github.io/rdflib.js/dist/rdflib-0.3.3.min.js"></script>
     <!-- Import Solid.js itself -->
-    <script src="https://solid.github.io/solid.js/dist/solid-0.8.0.js"></script>
+    <script src="https://solid.github.io/solid.js/dist/solid-0.8.1.js"></script>
   </head>
   <body>
     <div class="container">
@@ -40,20 +40,67 @@
       </div> <!-- / Login Test section -->
       <div class="demo-section">
         <h3>Load Profile</h3>
-          <form>
-            <p>Enter the WebID Profile URI (yours or someone else's).</p>
-            <div class="form-group">
-              <label>WebID Profile URI:</label>
-              <input type="text" class="form-control" id="profileUri" placeholder="https://test.databox.me/profile/card#me">
-            </div>
-            <!-- See the loadProfileTest() function below -->
-            <button type="button" class="btn btn-primary"
-              id="loadProfile">Load Profile</button>
-          </form>
+        <p>Enter the WebID Profile URI (yours or someone else's).</p>
+        <div class="row">
+          <div class="col-md-12">
+            <form>
+              <div class="form-group">
+                <label for="profileUri">Profile URI:</label>
+                <input type="text" class="form-control" id="profileUri"
+                  placeholder="https://test.databox.me/profile/card#me">
+              </div>
+              <button type="button" class="btn btn-primary"
+                id="loadProfile">Load Profile</button>
+            </form>
+          </div>
+        </div>
+        <div class="row" style="margin-top: 1em;">
+          <div class="col-md-2">
+            <label>Parsed Profile WebId:</label>
+          </div>
+          <div class="col-md-10">
+            <div id="parsedProfileWebId"></div>
+          </div>
+        </div> <!-- /row -->
+        <div class="row" style="margin-top: 1em;">
+          <div class="col-md-2">
+            <label>Storage Links:</label>
+          </div>
+          <div class="col-md-10">
+            <div id="storageLinks"></div>
+          </div>
+        </div> <!-- /row -->
+        <div class="row" style="margin-top: 1em;">
+          <div class="col-md-2">
+            <label>Preferences Links:</label>
+          </div>
+          <div class="col-md-10">
+            <div id="preferencesLinks"></div>
+          </div>
+        </div> <!-- /row -->
+        <div class="row" style="margin-top: 1em;">
+          <div class="col-md-2">
+            <label>Inbox Link:</label>
+          </div>
+          <div class="col-md-10">
+            <div id="inboxLink"></div>
+          </div>
+        </div> <!-- /row -->
+        <div class="row">
+          <div class="col-md-12">
+            <label>Profile Raw Contents (500 chars):</label>
+            <pre id="profileContents"></pre>
+          </div>
+        </div>
+
       </div> <!-- / Load Profile Test section -->
     </div><!-- / page's .container -->
     <script>
       var Solid = require('solid')
+      // Configure Solid (optinal step)
+      Solid.config.proxyUrl = 'https://databox.me/,proxy?uri={uri}'
+      Solid.config.timeout = 30000
+
       document.addEventListener('DOMContentLoaded', function () { init() })
 
       function init () {
@@ -86,16 +133,30 @@
 
       function loadProfileTest (profileUri) {
         console.log('Loading profile %s', profileUri)
-        var extendedProfile = Solid.identity.getProfile(profileUri, true)
+        Solid.identity.getProfile(profileUri, true)
           .then(function (profile) {
             console.log('Fetched profile: %o', profile)
             console.log('Now loading extended/related profile resources.')
+            displayProfile(profile)
             return Solid.identity.loadExtendedProfile(profile)
           })
           .then(function (extendedProfile) {
             console.log('Loaded extended profile: %o', extendedProfile)
-            return extendedProfile
+            displayProfile(extendedProfile)
           })
+      }
+
+      function displayProfile (profile) {
+        document.getElementById('parsedProfileWebId').textContent =
+          profile.webId
+        document.getElementById('storageLinks').innerHTML =
+          profile.storage().join('<br />')
+        document.getElementById('preferencesLinks').innerHTML =
+          profile.preferences().join('<br />')
+        document.getElementById('inboxLink').textContent =
+          profile.inbox()
+        document.getElementById('profileContents').textContent =
+          profile.response.raw().slice(0,500) + '\n...'
       }
     </script>
   </body>
