@@ -22,7 +22,7 @@
           of <tt>console.log()</tt> events.</p>
       </div>
       <div class="demo-section">
-        <h3>Login Test</h3>
+        <h3>Login</h3>
           <form>
             <div class="form-group">
               <label>Current User:</label>
@@ -30,14 +30,27 @@
             </div>
             <p>Log in using WebID+TLS:</p>
             <div class="form-group">
-              <label>WebID URI:</label>
-              <input type="text" class="form-control" id="webIdUri" placeholder="https://test.databox.me/">
+              <label for="webIdUri">WebID URI:</label>
+              <input type="text" class="form-control" id="webIdUri" placeholder="https://test.databox.me/profile/card#me">
             </div>
             <!-- See the loginTest() function below -->
             <button type="button" class="btn btn-primary"
               id="login">Log In</button>
           </form>
       </div> <!-- / Login Test section -->
+      <div class="demo-section">
+        <h3>Load Profile</h3>
+          <form>
+            <p>Enter the WebID Profile URI (yours or someone else's).</p>
+            <div class="form-group">
+              <label>WebID Profile URI:</label>
+              <input type="text" class="form-control" id="profileUri" placeholder="https://test.databox.me/profile/card#me">
+            </div>
+            <!-- See the loadProfileTest() function below -->
+            <button type="button" class="btn btn-primary"
+              id="loadProfile">Load Profile</button>
+          </form>
+      </div> <!-- / Load Profile Test section -->
     </div><!-- / page's .container -->
     <script>
       var Solid = require('solid')
@@ -51,9 +64,17 @@
             loginTest(webId)
           }
         })
+        // Init the Load Profile button
+        document.getElementById('loadProfile').addEventListener('click',
+          function() {
+            var profileUri = document.getElementById('profileUri').value
+            if (profileUri) {
+              loadProfileTest(profileUri)
+            }
+          })
       }
 
-      function loginTest(webId) {
+      function loginTest (webId) {
         console.log('Logging in to %s', webId)
         Solid.auth.login(webId).then(function (loggedInWebId) {
           console.log('Welcome user: %s', loggedInWebId)
@@ -61,6 +82,20 @@
         }).catch(function (reason) {
           console.log('Unable to make a HEAD request for login: %s', reason)
         })
+      }
+
+      function loadProfileTest (profileUri) {
+        console.log('Loading profile %s', profileUri)
+        var extendedProfile = Solid.identity.getProfile(profileUri, true)
+          .then(function (profile) {
+            console.log('Fetched profile: %o', profile)
+            console.log('Now loading extended/related profile resources.')
+            return Solid.identity.loadExtendedProfile(profile)
+          })
+          .then(function (extendedProfile) {
+            console.log('Loaded extended profile: %o', extendedProfile)
+            return extendedProfile
+          })
       }
     </script>
   </body>
