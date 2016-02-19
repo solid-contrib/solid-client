@@ -9,7 +9,7 @@ applications. (See **[Changelog](CHANGELOG.md)** for version history.)
 
 Solid.js is currently intended for client-side use only (inside a web browser):
 
-1. Load dependencies from a local copy (currently,
+1. Load dependencies (currently,
   [rdflib.js](https://github.com/linkeddata/rdflib.js/)).
 2. Load `solid.js` from a local copy (or directly from Github Pages).
 3. Use the `require('solid')` function provided by Browserify to import.
@@ -17,9 +17,10 @@ Solid.js is currently intended for client-side use only (inside a web browser):
 Example `index.html`:
 
 ```html
-<script src="./rdflib-0.3.2.js"></script>
+<script src="https://linkeddata.github.io/rdflib.js/dist/rdflib-0.3.3.min.js"></script>
 <script src="https://solid.github.io/solid.js/dist/solid-0.8.0.js"></script>
 <script>
+  // $rdf is exported as a global when you load RDFLib, above
   var Solid = require('solid')
   // Use Solid client here ...
   console.log('solid.js version: ' + Solid.meta.version())

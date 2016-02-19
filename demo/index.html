@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Solid.js Test Page</title>
+    <!-- Bootstrap CSS and Theme for demo purposes -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css">
+    <!-- Solid Demo template/stylesheet -->
+    <link rel="stylesheet" href="./demo.css">
+    <!-- Import RDFLib dependency. Creates a $rdf global variable -->
+    <script src="https://linkeddata.github.io/rdflib.js/dist/rdflib-0.3.3.min.js"></script>
+    <!-- Import Solid.js itself -->
+    <script src="https://solid.github.io/solid.js/dist/solid-0.8.0.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div>
+        <h1>Solid.js Demo Page</h1>
+        <p>Note: Open up your browser's Developer Tools, as the demo makes use
+          of <tt>console.log()</tt> events.</p>
+      </div>
+      <div class="demo-section">
+        <h3>Login Test</h3>
+          <form>
+            <div class="form-group">
+              <label>Current User:</label>
+              <span id="currentWebId">none</span>
+            </div>
+            <p>Log in using WebID+TLS:</p>
+            <div class="form-group">
+              <label>WebID URI:</label>
+              <input type="text" class="form-control" id="webIdUri" placeholder="https://test.databox.me/">
+            </div>
+            <!-- See the loginTest() function below -->
+            <button type="button" class="btn btn-primary"
+              id="login">Log In</button>
+          </form>
+      </div> <!-- / Login Test section -->
+    </div><!-- / page's .container -->
+    <script>
+      var Solid = require('solid')
+      document.addEventListener('DOMContentLoaded', function () { init() })
+
+      function init () {
+        // Init the Log In button
+        document.getElementById('login').addEventListener('click', function() {
+          var webId = document.getElementById('webIdUri').value
+          if (webId) {
+            loginTest(webId)
+          }
+        })
+      }
+
+      function loginTest(webId) {
+        console.log('Logging in to %s', webId)
+        Solid.auth.login(webId).then(function (loggedInWebId) {
+          console.log('Welcome user: %s', loggedInWebId)
+          document.getElementById('currentWebId').innerHTML = loggedInWebId
+        }).catch(function (reason) {
+          console.log('Unable to make a HEAD request for login: %s', reason)
+        })
+      }
+    </script>
+  </body>
+</html>
