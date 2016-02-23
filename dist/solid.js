@@ -370,7 +370,9 @@ function SolidProfile (profileUrl, parsedProfile, response) {
   this.externalResources = {
     inbox: null,
     preferences: [],
-    storage: []
+    storage: [],
+    publicTypeIndexes: [],
+    privateTypeIndexes: []
   }
 
   /**
@@ -456,6 +458,14 @@ SolidProfile.prototype.initFromGraph = function initFromGraph (parsedProfile) {
   // Init storage
   this.externalResources.storage = parseLinks(parsedProfile, webId,
     rdf.sym(Vocab.PIM.storage))
+
+  // Init publicTypeIndex
+  this.externalResources.publicTypeIndexes = parseLinks(parsedProfile, webId,
+    rdf.sym(Vocab.SOLID.publicTypeIndex))
+
+  // Init privateTypeIndex
+  this.externalResources.privateTypeIndexes = parseLinks(parsedProfile, webId,
+    rdf.sym(Vocab.SOLID.privateTypeIndex))
 }
 
 /**
@@ -493,6 +503,24 @@ SolidProfile.prototype.preferences = function preferences () {
  */
 SolidProfile.prototype.storage = function storage () {
   return this.externalResources.storage
+}
+
+/**
+ * Convenience method, returns an array of public type indexes for a user profile
+ * @method publicTypeIndexes
+ * @return {Array<String>}
+ */
+SolidProfile.prototype.publicTypeIndexes = function publicTypeIndexes () {
+  return this.externalResources.publicTypeIndexes
+}
+
+/**
+ * Convenience method, returns an array of private type indexes for a user profile
+ * @method privateTypeIndexes
+ * @return {Array<String>}
+ */
+SolidProfile.prototype.privateTypeIndexes = function privateTypeIndexes () {
+  return this.externalResources.privateTypeIndexes
 }
 
 /**
@@ -795,7 +823,9 @@ var Vocab = {
     'seeAlso': 'http://www.w3.org/2000/01/rdf-schema#seeAlso'
   },
   'SOLID': {
-    'inbox': 'http://www.w3.org/ns/solid/terms#inbox'
+    'inbox': 'http://www.w3.org/ns/solid/terms#inbox',
+    'publicTypeIndex': 'http://www.w3.org/ns/solid/terms#publicTypeIndex',
+    'privateTypeIndex': 'http://www.w3.org/ns/solid/terms#privateTypeIndex'
   }
 }
 
@@ -1294,7 +1324,7 @@ module.exports = XMLHttpRequest
 },{"xhr2":undefined}],15:[function(require,module,exports){
 module.exports={
   "name": "solid",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Common library for writing Solid applications",
   "main": "./index.js",
   "scripts": {
