@@ -12,7 +12,7 @@ module.exports = `@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 @prefix ter: <http://purl.org/dc/terms/>.
 @prefix XML: <http://www.w3.org/2001/XMLSchema#>.
 
-   pro:card a n0:PersonalProfileDocument; n0:maker <#me>; n0:primaryTopic <#me> .
+pro:card a n0:PersonalProfileDocument; n0:maker <#me>; n0:primaryTopic <#me> .
 <#me>
     a    n0:Person;
     cert:key
@@ -21,9 +21,9 @@ module.exports = `@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
        </settings/prefs.ttl>;
     sp:storage
        loc:;
-    terms:publicTypeIndex
+    terms:typeIndex
        </settings/publicTypeIndex.ttl>;
-    terms:privateTypeIndex
+    terms:typeIndex
        </settings/privateTypeIndex.ttl>;
     terms:inbox
        inbox:.
