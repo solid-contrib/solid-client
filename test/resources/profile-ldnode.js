@@ -21,6 +21,8 @@ module.exports = `@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
        </settings/prefs.ttl>;
     sp:storage
        loc:;
+    terms:typeIndex
+       </settings/publicTypeIndex.ttl>;
     terms:inbox
        inbox:.
 <#key-1455289666916>
