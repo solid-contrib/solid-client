@@ -10,7 +10,7 @@ var parsedProfileGraph = parseGraph(sampleProfileUrl,
   rawProfileSource, 'text/turtle')
 
 test('SolidProfile empty profile test', function (t) {
-  t.plan(8)
+  t.plan(9)
   let profile = new SolidProfile()
   t.notOk(profile.webId, 'Empty profile should not have webId set')
   t.notOk(profile.response, 'Empty profile - no response object')
@@ -19,8 +19,10 @@ test('SolidProfile empty profile test', function (t) {
     'Empty profile - no preferences')
   t.deepEqual(profile.storage(), [],
     'Empty profile - no storage')
-  t.deepEqual(profile.typeIndexes(), [],
-    'Empty profile - no type registry indexes')
+  t.deepEqual(profile.publicTypeIndexes(), [],
+    'Empty profile - no public type registry indexes')
+  t.deepEqual(profile.privateTypeIndexes(), [],
+    'Empty profile - no private type registry indexes')
   t.deepEqual(profile.relatedProfiles.sameAs, [],
     'Empty profile - no sameAs')
   t.deepEqual(profile.relatedProfiles.seeAlso, [],
@@ -67,6 +69,14 @@ test('SolidProfile public type registry index test', function (t) {
   let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
   let expectedLinks =
     ['https://localhost:8443/settings/publicTypeIndex.ttl']
-  t.deepEqual(profile.typeIndexes(), expectedLinks)
+  t.deepEqual(profile.publicTypeIndexes(), expectedLinks)
+  t.end()
+})
+
+test('SolidProfile private type registry index test', function (t) {
+  let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
+  let expectedLinks =
+    ['https://localhost:8443/settings/privateTypeIndex.ttl']
+  t.deepEqual(profile.privateTypeIndexes(), expectedLinks)
   t.end()
 })
