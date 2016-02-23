@@ -1,3 +1,8 @@
+##### Version 0.8.2:
+
+- Added convenience methods to load and query the Type Registry Index resources
+  (see [PR #44](https://github.com/solid/solid.js/pull/44))
+
 ##### Version 0.8.1:
 
 - Added a `SolidProfile.response` property (contains the original
