@@ -38,9 +38,11 @@ test('SolidProfile base profile url test', function (t) {
   t.equal(profile.baseProfileUrl, expectedBaseProfileUrl)
 })
 
-test('SolidProfile webId test', function (t) {
+test('SolidProfile parse webId test', function (t) {
   t.plan(1)
-  let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
+  let profileUrl = 'https://localhost:8443/profile/card'
+  let profile = new SolidProfile(profileUrl, parsedProfileGraph)
+  // Make sure the webId (different from the profileUrl) was parsed correctly
   let expectedWebId = 'https://localhost:8443/profile/card#me'
   t.equal(profile.webId, expectedWebId)
 })
@@ -49,6 +51,19 @@ test('SolidProfile preferences list test', function (t) {
   let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
   let expectedPreferences = ['https://localhost:8443/settings/prefs.ttl']
   t.deepEqual(profile.preferences(), expectedPreferences)
+  t.end()
+})
+
+test('SolidProfile relatedProfilesLinks() test', function (t) {
+  let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
+  // Make sure the Preferences, seeAlso and sameAs are parsed
+  let expectedLinks =
+    [
+      'https://localhost:8443/settings/prefs.ttl',
+      'https://localhost:8443/settings/privateProfile1.ttl',
+      'https://localhost:8443/settings/privateProfile2.ttl'
+    ]
+  t.deepEqual(profile.relatedProfilesLinks().sort(), expectedLinks)
   t.end()
 })
 

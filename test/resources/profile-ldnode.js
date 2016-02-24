@@ -3,7 +3,9 @@
  */
 module.exports = `@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 @prefix pro: <./>.
-@prefix n0: <http://xmlns.com/foaf/0.1/>.
+@prefix foaf: <http://xmlns.com/foaf/0.1/>.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+@prefix owl: <http://www.w3.org/2002/07/owl#>.
 @prefix sp: <http://www.w3.org/ns/pim/space#>.
 @prefix loc: </>.
 @prefix terms: <http://www.w3.org/ns/solid/terms#>.
@@ -12,9 +14,14 @@ module.exports = `@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 @prefix ter: <http://purl.org/dc/terms/>.
 @prefix XML: <http://www.w3.org/2001/XMLSchema#>.
 
-pro:card a n0:PersonalProfileDocument; n0:maker <#me>; n0:primaryTopic <#me> .
+pro:card a foaf:PersonalProfileDocument;
+  foaf:maker <#me>;
+  foaf:primaryTopic <#me>;
+  rdfs:seeAlso </settings/privateProfile1.ttl>.
+
 <#me>
-    a    n0:Person;
+    a    foaf:Person;
+    owl:sameAs </settings/privateProfile2.ttl>;
     cert:key
        <#key-1455289666916>;
     sp:preferencesFile
