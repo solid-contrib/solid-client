@@ -64,7 +64,7 @@ Before doing any sort of [Web operations](#web-operations) on Solid resources,
 your app will likely need to authenticate a user and load their profile,
 so let's start with those sections.
 
-See alsoL:
+See also:
 
 * [Solid Spec](https://github.com/solid/solid-spec)
 * [WebID](http://www.w3.org/2005/Incubator/webid/spec/identity)
