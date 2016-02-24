@@ -81,7 +81,7 @@ the javascript code has had a chance to run.
 How does an app discover if there is an already authenticated user that is
 accessing it?
 
-Application have access to the a Solid-specific HTTP header called
+Applications have access to the a Solid-specific HTTP header called
 `User:`. Solid servers commonly include this header in HTTP responses, where it
 contains the WebID of the authenticated user. An empty header usually means
 that the user is not authenticated.
