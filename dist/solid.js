@@ -231,9 +231,15 @@ function parseGraph (baseUrl, rdfSource, contentType) {
  */
 module.exports.getProfile = getProfile
 module.exports.loadExtendedProfile = loadExtendedProfile
+module.exports.loadTypeRegistry = loadTypeRegistry
+module.exports.isPrivateTypeIndex = isPrivateTypeIndex
+module.exports.isPublicTypeIndex = isPublicTypeIndex
+
 var graphUtil = require('./graph-util')
 var webClient = require('./web')
 var SolidProfile = require('./solid-profile')
+var rdf = require('./rdf-parser').rdflib
+var Vocab = require('./vocab')
 
 /**
  * Fetches a user's WebId profile, optionally follows `sameAs` etc links,
@@ -310,9 +316,74 @@ function loadExtendedProfile (profile, options) {
       })
       return profile
     })
+    .then(function (extendedProfile) {
+      // Also load the type registry, while we're at it
+      return loadTypeRegistry(extendedProfile, options)
+    })
 }
 
-},{"../config":1,"./graph-util":3,"./solid-profile":7,"./web":13}],5:[function(require,module,exports){
+/**
+ * Loads the public and private type registry index resources, adds them
+ * to the profile, and returns the profile.
+ * Usage:
+ *
+ *   ```
+ * var profile = Solid.identity.getProfile(url, true)
+ *   .then(function (profile) {
+ *     return Solid.identity.loadTypeRegistry(profile)
+ *   })
+ *   ```
+ * @method loadTypeRegistry
+ * @param profile {SolidProfile}
+ * @param [options] Options hashmap (see Solid.web.solidRequest() function docs)
+ * @return {Promise<SolidProfile>}
+ */
+function loadTypeRegistry (profile, options) {
+  options = options || {}
+  // Politely ask for Turtle formatted type registries
+  options.headers = options.headers || {
+    'Accept': 'text/turtle'
+  }
+  // load public and private index resources
+  var links = profile.typeIndexes()
+  return webClient.loadParsedGraphs(links, options)
+    .then(function (loadedGraphs) {
+      loadedGraphs.forEach(function (graph) {
+        // For each index resource loaded, add it to `profile.typeIndexPublic`
+        //  or `profile.typeIndexPrivate` as appropriate
+        if (graph && graph.value) {
+          profile.addTypeRegistry(graph)
+        }
+      })
+      return profile
+    })
+}
+
+/**
+ * Returns true if the parsed graph is a `solid:PrivateTypeIndex` document.
+ * @method isPrivateTypeIndex
+ * @param graph {$rdf.IndexedFormula} Parsed graph (loaded from a type index
+ *   resource)
+ * @return {Boolean}
+ */
+function isPrivateTypeIndex (graph) {
+  var object = rdf.sym(Vocab.SOLID.PrivateTypeIndex)
+  return graph.any(null, null, object, graph.uri)
+}
+
+/**
+ * Returns true if the parsed graph is a `solid:PrivateTypeIndex` document.
+ * @method isPublicTypeIndex
+ * @param graph {$rdf.IndexedFormula} Parsed graph (loaded from a type index
+ *   resource)
+ * @return {Boolean}
+ */
+function isPublicTypeIndex (graph) {
+  var object = rdf.sym(Vocab.SOLID.PublicTypeIndex)
+  return graph.any(null, null, object, graph.uri)
+}
+
+},{"../config":1,"./graph-util":3,"./rdf-parser":6,"./solid-profile":7,"./vocab":10,"./web":13}],5:[function(require,module,exports){
 'use strict'
 /**
  * Provides miscelaneous meta functions (such as library version)
@@ -353,6 +424,8 @@ module.exports = RDFParser
 module.exports = SolidProfile
 var rdf = require('./rdf-parser').rdflib
 var Vocab = require('./vocab')
+var identity = require('./identity')
+var graphUtil = require('./graph-util')
 
 /**
  * Provides convenience methods for a WebID Profile.
@@ -363,7 +436,7 @@ var Vocab = require('./vocab')
 function SolidProfile (profileUrl, parsedProfile, response) {
   /**
    * Links to profile-related external resources such as Preferences,
-   * Inbox location, storage locations, etc.
+   * Inbox location, storage locations, type registry indexes etc.
    * @property externalResources
    * @type Object
    */
@@ -371,9 +444,12 @@ function SolidProfile (profileUrl, parsedProfile, response) {
     inbox: null,
     preferences: [],
     storage: [],
-    publicTypeIndexes: [],
-    privateTypeIndexes: []
+    typeIndexes: []
   }
+
+  this.typeIndexPublic = rdf.graph()
+
+  this.typeIndexPrivate = rdf.graph()
 
   /**
    * Parsed graph of the WebID Profile document
@@ -459,13 +535,11 @@ SolidProfile.prototype.initFromGraph = function initFromGraph (parsedProfile) {
   this.externalResources.storage = parseLinks(parsedProfile, webId,
     rdf.sym(Vocab.PIM.storage))
 
-  // Init publicTypeIndex
-  this.externalResources.publicTypeIndexes = parseLinks(parsedProfile, webId,
-    rdf.sym(Vocab.SOLID.publicTypeIndex))
-
-  // Init privateTypeIndex
-  this.externalResources.privateTypeIndexes = parseLinks(parsedProfile, webId,
-    rdf.sym(Vocab.SOLID.privateTypeIndex))
+  // Init typeIndexes. Note: these are just the links to both public and
+  // private indexes. The actual index files will be loaded and parsed
+  //   in `Solid.identity.loadTypeRegistry()`)
+  this.externalResources.typeIndexes = parseLinks(parsedProfile, webId,
+    rdf.sym(Vocab.SOLID.typeIndex))
 }
 
 /**
@@ -506,22 +580,55 @@ SolidProfile.prototype.storage = function storage () {
 }
 
 /**
- * Convenience method, returns an array of public type indexes for a user profile
- * @method publicTypeIndexes
+ * Convenience method, returns an array of public and private type indexes for
+ * a user profile
+ * @method typeIndexes
  * @return {Array<String>}
  */
-SolidProfile.prototype.publicTypeIndexes = function publicTypeIndexes () {
-  return this.externalResources.publicTypeIndexes
+SolidProfile.prototype.typeIndexes = function typeIndexes () {
+  return this.externalResources.typeIndexes
 }
 
 /**
- * Convenience method, returns an array of private type indexes for a user profile
- * @method privateTypeIndexes
- * @return {Array<String>}
+ * Adds a parsed type index graph to the appropriate type registry (public
+ *   or private).
+ * @method addTypeRegistry
+ * @param graph {$rdf.IndexedFormula} Parsed graph (loaded from a type index
+ *   resource)
  */
-SolidProfile.prototype.privateTypeIndexes = function privateTypeIndexes () {
-  return this.externalResources.privateTypeIndexes
+SolidProfile.prototype.addTypeRegistry = function (graph) {
+  // Is this a public type registry?
+  if (identity.isPublicTypeIndex(graph)) {
+    graphUtil.appendGraph(this.typeIndexPublic, graph, graph.uri)
+  } else if (identity.isPrivateTypeIndex(graph)) {
+    graphUtil.appendGraph(this.typeIndexPrivate, graph, graph.uri)
+  } else {
+    throw new Error('Attempting to add an invalid type registry index')
+  }
 }
+
+/**
+ * Returns lists of registry entries for a given RDF Class, separated by
+ * public or private. Usage:
+ *
+ * ```
+ * profile.typeRegistryForClass(rdf.sym(Vocab.VCARD.AddressBook))  // result:
+ * {
+ *   public: [ array of triples (solid:instance or solid:instanceContainer) ],
+ *   private: [ array of triples (same) ]
+ * }
+ * ```
+ * @method typeRegistryForClass
+ * @param rdfClass {rdf.Symbol} RDF Class symbol
+ * @return {Object}
+ */
+SolidProfile.prototype.typeRegistryForClass =
+  function typeRegistryForClass (rdfClass) {
+    return {
+      public: this.typeIndexPublic.statementsMatching(null, null, rdfClass),
+      private: this.typeIndexPrivate.statementsMatching(null, null, rdfClass)
+    }
+  }
 
 /**
  * Extracts the WebID symbol from a parsed profile graph.
@@ -576,7 +683,7 @@ function parseLinks (graph, subject, predicate, object, source) {
   return links
 }
 
-},{"./rdf-parser":6,"./vocab":10}],8:[function(require,module,exports){
+},{"./graph-util":3,"./identity":4,"./rdf-parser":6,"./vocab":10}],8:[function(require,module,exports){
 'use strict'
 /**
 * @module solid-response
@@ -824,8 +931,16 @@ var Vocab = {
   },
   'SOLID': {
     'inbox': 'http://www.w3.org/ns/solid/terms#inbox',
-    'publicTypeIndex': 'http://www.w3.org/ns/solid/terms#publicTypeIndex',
-    'privateTypeIndex': 'http://www.w3.org/ns/solid/terms#privateTypeIndex'
+    'typeIndex': 'http://www.w3.org/ns/solid/terms#typeIndex',
+    'PrivateTypeIndex':
+      'http://www.w3.org/ns/solid/terms#PrivateTypeIndex',
+    'PublicTypeIndex':
+      'http://www.w3.org/ns/solid/terms#PublicTypeIndex',
+    'TypeRegistration':
+      'http://www.w3.org/ns/solid/terms#TypeRegistration'
+  },
+  'VCARD': {
+    'AddressBook': 'http://www.w3.org/2006/vcard/ns#AddressBook'
   }
 }
 
