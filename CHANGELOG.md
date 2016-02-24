@@ -2,6 +2,8 @@
 
 - Added convenience methods to load and query the Type Registry Index resources
   (see [PR #44](https://github.com/solid/solid.js/pull/44))
+- Fixed preferences semantics -- now part of the `profile.relatedProfiles`,
+  and auto-loaded on `getProfile()`
 
 ##### Version 0.8.1:
 
