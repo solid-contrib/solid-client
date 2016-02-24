@@ -58,6 +58,144 @@ npm test
 
 This runs the [Tape](https://github.com/substack/tape) unit test suite.
 
+## Logging In and User Profiles
+
+Before doing any sort of [Web operations](#web-operations) on Solid resources,
+your app will likely need to authenticate a user and load their profile,
+so let's start with those sections.
+
+See alsoL:
+
+* [Solid Spec](https://github.com/solid/solid-spec)
+* [WebID](http://www.w3.org/2005/Incubator/webid/spec/identity)
+* [User header](https://github.com/solid/solid-spec#finding-out-the-identity-currently-used)
+
+### Authentication (Current User)
+
+Solid currently uses WebID+TLS for authentication, which relies on a web
+browser's built-in key store to manage certificates and prompt the user to
+select the correct certificate when accessing a server. Most of the
+authentication process takes place before a web page gets fully loaded and
+the javascript code has had a chance to run.
+
+How does an app discover if there is an already authenticated user that is
+accessing it?
+
+Application have access to the a Solid-specific HTTP header called
+`User:`. Solid servers commonly include this header in HTTP responses, where it
+contains the WebID of the authenticated user. An empty header usually means
+that the user is not authenticated.
+
+Both Login and Signup functions return the user's WebID. Sometimes users don't
+have a WebID account, and in that case they need to sign up for one. The signup
+process also results in getting the user's WebID. If the operation is successful
+and a WebID is returned, then the user is considered to be authenticated.
+
+#### Login example
+
+Here is a typical example of authenticating a user and returning their WebID.
+The following `login` function, specific to your application, wraps the
+`Solid.auth.login` function. If the promise is resolved, then an application
+will do something with the `webid` value. Otherwise, if the promise is rejected,
+the application may choose to display an error message.
+
+HTML:
+
+```html
+<a href="#" onclick="login()">Login</a>
+```
+
+Javascript:
+
+```javascript
+var Solid = require('solid')
+var login = function() {
+  // Get the current user
+  Solid.auth.login().then(function(webid){
+    // authentication succeeded; do something with the WebID string
+    console.log(webid)
+  }).catch(function(err) {
+    // authentication failed; display some error message
+    console.log(err)
+  })
+}
+```
+
+### Signup example
+
+The `signup` function is very similar to the `login` function, wrapping the
+`Solid.auth.signup` function. It results in either a WebID or an error message
+being returned.
+
+HTML:
+
+```html
+<a href="#" onclick="signup()">Sign up</a>
+```
+
+Javascript:
+
+```javascript
+var Solid = require('solid')
+// Signup for a WebID
+var signup = function() {
+  Solid.auth.signup().then(function(webid) {
+    // authentication succeeded; do something with the WebID string
+    console.log(webid)
+  }).catch(function(err) {
+    // authentication failed; display some error message
+    console.log(err)
+  })
+}
+```
+
+### User Profiles
+
+Once you have a user's WebID (say, from a `login()` call), it's often useful
+to load the user profile:
+
+```javascript
+var profile = Solid.auth.login()
+  .then(function(webId){
+    // have the webId, now load the profile
+    return Solid.identity.getProfile(webId)
+  })
+```
+
+The call to `getProfile(url)` loads the full extended profile -- the profile
+document itself, any `sameAs` and `seeAlso` links it finds there, as well
+as the Preferences file.
+
+#### User Type Registry Index
+
+If your application needs to do data discovery, it can also call
+`loadTypeRegistry()` after loading the profile:
+
+```javascript
+var profile = Solid.auth.login()
+  .then(function (webId) {
+    return Solid.identity.getProfile(webId)
+  })
+  .then(function (profile) {
+    return Solid.identity.loadTypeRegistry(profile)
+  })
+```
+
+Now, both private and public type indexes are loaded, and you can look up
+where the user keeps various types.
+
+```javascript
+var bookLocations =
+  profile.typeRegistryForClass(rdf.sym(Vocab.VCARD.AddressBook))
+console.log(bookLocations)
+/*
+{
+  public: [ array of triples (solid:instance or solid:instanceContainer) ],
+  private: [ array of triples (same) ]
+}
+*/
+```
+
 ## Web operations
 
 Solid.js uses a mix of [LDP](http://www.w3.org/TR/ldp/) and Solid-specific
@@ -340,85 +478,3 @@ Solid.web.del(url).then(
 [Linked Data Platform](http://www.w3.org/TR/ldp/) specification.
 
 [Solid](https://github.com/solid/solid-spec) specification.
-
-### Authentication
-
-In the context of Solid, authentication is often conflated with identity
-discovery. Because applications run in the browser, users don't have to
-authenticate themselves to applications, but instead to the servers where the
-data resides.
-
-However, identity discovery still involves an authentication step, through which
-the application will have access to the a Solid-specific HTTP header called
-`User`. Solid servers commonly include this header in HTTP responses, where it
-contains the `WebID` of the authenticated user. An empty header usually means
-that the user is not authenticated.
-
-Both Login and Signup functions return the user's WebID. Sometimes users don't
-have a WebID account, and in that case they need to sign up for one. The signup
-process also results in getting the user's WebID. If the operation is successful
-and a WebID is returned, then the user is considered to be authenticated.
-
-### Login example
-
-Here is a typical example of authenticating a user and returning their WebID.
-The following `login` function, specific to your application, wraps the
-`Solid.auth.login` function. If the promise is resolved, then an application
-will do something with the `webid` value. Otherwise, if the promise is rejected,
-the application may choose to display an error message.
-
-HTML:
-
-```html
-<a href="#" onclick="login()">Login</a>
-```
-
-Javascript:
-
-```javascript
-var Solid = require('solid')
-var login = function() {
-  // Get the current user
-  Solid.auth.login().then(function(webid){
-    // authentication succeeded; do something with the WebID string
-    console.log(webid)
-  }).catch(function(err) {
-    // authentication failed; display some error message
-    console.log(err)
-  })
-}
-```
-
-### Signup example
-
-The `signup` function is very similar to the `login` function, wrapping the
-`Solid.auth.signup` function. It results in either a WebID or an error message
-being returned.
-
-HTML:
-
-```html
-<a href="#" onclick="signup()">Sign up</a>
-```
-
-Javascript:
-
-```javascript
-var Solid = require('solid')
-// Signup for a WebID
-var signup = function() {
-  Solid.auth.signup().then(function(webid) {
-    // authentication succeeded; do something with the WebID string
-    console.log(webid)
-  }).catch(function(err) {
-    // authentication failed; display some error message
-    console.log(err)
-  })
-}
-```
-
-### See also
-
-* [Solid Spec](https://github.com/solid/solid-spec)
-* [WebID](http://www.w3.org/2005/Incubator/webid/spec/identity)
-* [User header](https://github.com/solid/solid-spec#finding-out-the-identity-currently-used)
