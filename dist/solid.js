@@ -274,16 +274,12 @@ function getProfile (profileUrl, options) {
  * links, as well as Preferences), and appends them to the profile's
  * `parsedGraph`. Returns the profile instance.
  * @method loadExtendedProfile
+ * @private
  * @param profile {SolidProfile}
  * @param [options] Options hashmap (see Solid.web.solidRequest() function docs)
  * @return {Promise<SolidProfile>}
  */
 function loadExtendedProfile (profile, options) {
-  options = options || {}
-  // Politely ask for Turtle formatted profiles
-  options.headers = options.headers || {
-    'Accept': 'text/turtle'
-  }
   var links = profile.relatedProfilesLinks()
   return webClient.loadParsedGraphs(links, options)
     .then(function (loadedGraphs) {
@@ -610,13 +606,30 @@ SolidProfile.prototype.typeIndexes = function typeIndexes () {
 }
 
 /**
+ * Convenience method to load the type index registry. Usage:
+ *
+ *   ```
+ *   Solid.getProfile(url, options)
+ *     .then(function (profile) {
+ *       return profile.loadTypeRegistry(options)
+ *     })
+ *   ```
+ * @method loadTypeRegistry
+ * @param [options] Options hashmap (see Solid.web.solidRequest() function docs)
+ * @return {SolidProfile}
+ */
+SolidProfile.prototype.loadTypeRegistry = function loadTypeRegistry (options) {
+  return identity.loadTypeRegistry(this, options)
+}
+
+/**
  * Adds a parsed type index graph to the appropriate type registry (public
  *   or private).
  * @method addTypeRegistry
  * @param graph {$rdf.IndexedFormula} Parsed graph (loaded from a type index
  *   resource)
  */
-SolidProfile.prototype.addTypeRegistry = function (graph) {
+SolidProfile.prototype.addTypeRegistry = function addTypeRegistry (graph) {
   // Is this a public type registry?
   if (identity.isPublicTypeIndex(graph)) {
     graphUtil.appendGraph(this.typeIndexPublic, graph, graph.uri)
@@ -1563,13 +1576,17 @@ https://github.com/solid/solid
 var Solid = {
   auth: require('./lib/auth'),
   config: require('./config'),
+  getProfile: require('./lib/identity').getProfile,
   identity: require('./lib/identity'),
+  login: require('./lib/auth').login,
   meta: require('./lib/meta'),
+  signup: require('./lib/auth').signup,
   status: require('./lib/status'),
+  vocab: require('./lib/vocab'),
   web: require('./lib/web'),
   webUtil: require('./lib/web-util')
 }
 
 module.exports = Solid
 
-},{"./config":1,"./lib/auth":2,"./lib/identity":4,"./lib/meta":5,"./lib/status":9,"./lib/web":13,"./lib/web-util":12}]},{},[]);
+},{"./config":1,"./lib/auth":2,"./lib/identity":4,"./lib/meta":5,"./lib/status":9,"./lib/vocab":10,"./lib/web":13,"./lib/web-util":12}]},{},[]);
