@@ -1,8 +1,8 @@
 'use strict'
 
 var test = require('tape')
-var SolidProfile = require('../../lib/solid-profile')
-var parseGraph = require('../../lib/graph-util').parseGraph
+var SolidProfile = require('../../lib/solid/profile')
+var parseGraph = require('../../lib/util/graph-util').parseGraph
 
 var rawProfileSource = require('../resources/profile-ldnode')
 var sampleProfileUrl = 'https://localhost:8443/profile/card'
@@ -10,7 +10,7 @@ var parsedProfileGraph = parseGraph(sampleProfileUrl,
   rawProfileSource, 'text/turtle')
 
 var Vocab = require('../../lib/vocab')
-var rdf = require('../../lib/rdf-parser').rdflib
+var rdf = require('../../lib/util/rdf-parser').rdflib
 
 test('SolidProfile empty profile test', function (t) {
   let profile = new SolidProfile()

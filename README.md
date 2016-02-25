@@ -291,7 +291,7 @@ solid.web.post(parentDir, data, slug, isContainer).then(
   function(solidResponse) {
     console.log(solidResponse)
     // The resulting object has several useful properties.
-    // See lib/solid-response.js for details
+    // See lib/solid/response.js for details
     // solidResponse.url - value of the Location header
     // solidResponse.acl - url of acl resource
     // solidResponse.meta - url of meta resource

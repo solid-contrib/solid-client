@@ -49,8 +49,7 @@ var Solid = {
   signup: require('./lib/auth').signup,
   status: require('./lib/status'),
   vocab: require('./lib/vocab'),
-  web: require('./lib/web'),
-  webUtil: require('./lib/web-util')
+  web: require('./lib/web')
 }
 
 module.exports = Solid

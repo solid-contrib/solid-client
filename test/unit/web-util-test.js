@@ -1,7 +1,7 @@
 'use strict'
 
 var test = require('tape')
-var webUtil = require('../../lib/web-util')
+var webUtil = require('../../lib/util/web-util')
 
 test('parse link header test', function (t) {
   t.plan(1)

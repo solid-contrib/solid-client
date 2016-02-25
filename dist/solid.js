@@ -184,48 +184,6 @@ function signup (signupUrl) {
 },{"../config":1,"./web":13}],3:[function(require,module,exports){
 'use strict'
 /**
- * Provides convenience methods for graph manipulation.
- * Currently depends on RDFLib
- * @module graph-util
- */
-module.exports.appendGraph = appendGraph
-module.exports.parseGraph = parseGraph
-
-var rdf = require('./rdf-parser').rdflib
-
-/**
- * Appends RDF statements from one graph object to another
- * @method appendGraph
- * @param toGraph {Graph} rdf.Graph object to append to
- * @param fromGraph {Graph} rdf.Graph object to append from
- * @param docURI {String} Document URI to use as source
- */
-function appendGraph (toGraph, fromGraph, docURI) {
-  var source = (docURI) ? rdf.sym(docURI) : undefined
-  fromGraph.statementsMatching(undefined, undefined, undefined, source)
-    .forEach(function (st) {
-      toGraph.add(st.subject, st.predicate, st.object, st.why)
-    })
-}
-
-/**
- * Parses a given graph, from text rdfSource, as a given content type.
- * Returns parsed graph.
- * @method parseGraph
- * @param baseUrl {String}
- * @param rdfSource {String} Text source code
- * @param contentType {String} Mime Type (determines which parser to use)
- * @return {rdf.Graph}
- */
-function parseGraph (baseUrl, rdfSource, contentType) {
-  var parsedGraph = rdf.graph()
-  rdf.parse(rdfSource, parsedGraph, baseUrl, contentType)
-  return parsedGraph
-}
-
-},{"./rdf-parser":6}],4:[function(require,module,exports){
-'use strict'
-/**
  * Provides Solid helper functions involved with parsing a user's WebId profile.
  * @module identity
  */
@@ -235,10 +193,10 @@ module.exports.loadTypeRegistry = loadTypeRegistry
 module.exports.isPrivateTypeIndex = isPrivateTypeIndex
 module.exports.isPublicTypeIndex = isPublicTypeIndex
 
-var graphUtil = require('./graph-util')
+var graphUtil = require('./util/graph-util')
 var webClient = require('./web')
-var SolidProfile = require('./solid-profile')
-var rdf = require('./rdf-parser').rdflib
+var SolidProfile = require('./solid/profile')
+var rdf = require('./util/rdf-parser').rdflib
 var Vocab = require('./vocab')
 
 /**
@@ -246,7 +204,7 @@ var Vocab = require('./vocab')
  *   and return a promise with a parsed SolidProfile instance.
  * @method getProfile
  * @param profileUrl {String} WebId or Location of a user's profile.
- * @param [options] Options hashmap (see Solid.web.solidRequest() function docs)
+ * @param [options] Options hashmap (see solid.web.solidRequest() function docs)
  * @return {Promise<SolidProfile>}
  */
 function getProfile (profileUrl, options) {
@@ -276,7 +234,7 @@ function getProfile (profileUrl, options) {
  * @method loadExtendedProfile
  * @private
  * @param profile {SolidProfile}
- * @param [options] Options hashmap (see Solid.web.solidRequest() function docs)
+ * @param [options] Options hashmap (see solid.web.solidRequest() function docs)
  * @return {Promise<SolidProfile>}
  */
 function loadExtendedProfile (profile, options) {
@@ -295,17 +253,18 @@ function loadExtendedProfile (profile, options) {
 /**
  * Loads the public and private type registry index resources, adds them
  * to the profile, and returns the profile.
+ * Called by the profile.loadTypeRegistry() alias method.
  * Usage:
  *
  *   ```
- * var profile = Solid.identity.getProfile(url)
+ * var profile = solid.getProfile(url, options)
  *   .then(function (profile) {
- *     return Solid.identity.loadTypeRegistry(profile)
+ *     return profile.loadTypeRegistry(options)
  *   })
  *   ```
  * @method loadTypeRegistry
  * @param profile {SolidProfile}
- * @param [options] Options hashmap (see Solid.web.solidRequest() function docs)
+ * @param [options] Options hashmap (see solid.web.solidRequest() function docs)
  * @return {Promise<SolidProfile>}
  */
 function loadTypeRegistry (profile, options) {
@@ -353,7 +312,7 @@ function isPublicTypeIndex (graph) {
   return graph.any(null, null, object, graph.uri)
 }
 
-},{"./graph-util":3,"./rdf-parser":6,"./solid-profile":7,"./vocab":10,"./web":13}],5:[function(require,module,exports){
+},{"./solid/profile":5,"./util/graph-util":8,"./util/rdf-parser":9,"./vocab":12,"./web":13}],4:[function(require,module,exports){
 'use strict'
 /**
  * Provides miscelaneous meta functions (such as library version)
@@ -369,39 +328,16 @@ module.exports.version = function version () {
   return lib.version
 }
 
-},{"../package":15}],6:[function(require,module,exports){
+},{"../package":15}],5:[function(require,module,exports){
 'use strict'
 /**
- * Provides a generic wrapper around an RDF Parser library
- * (currently only RDFLib)
- *  @@ RDFLib is NOT JUST a parser library. It is a quadstore and a serializer library!
- * @module rdf-parser
- */
-var RDFParser = {}
-if (typeof $rdf !== 'undefined') {
-  RDFParser.rdflib = $rdf // FF extension
-} else if (typeof tabulator !== 'undefined') {
-  RDFParser.rdflib = tabulator.rdf
-} else if (typeof window !== 'undefined') {
-  // Running inside the browser but NOT FF extension
-  RDFParser.rdflib = window.$rdf
-} else {
-  // in Node.js
-  console.log("RDFParser.rdflib = require('rdflib')")
-  RDFParser.rdflib = require('rdflib')
-}
-module.exports = RDFParser
-
-},{"rdflib":undefined}],7:[function(require,module,exports){
-'use strict'
-/**
- * @module solid-profile
+ * @module profile
  */
 module.exports = SolidProfile
-var rdf = require('./rdf-parser').rdflib
-var Vocab = require('./vocab')
-var identity = require('./identity')
-var graphUtil = require('./graph-util')
+var rdf = require('../util/rdf-parser').rdflib
+var Vocab = require('../vocab')
+var identity = require('../identity')
+var graphUtil = require('../util/graph-util')
 
 /**
  * Provides convenience methods for a WebID Profile.
@@ -716,14 +652,14 @@ function parseLinks (graph, subject, predicate, object, source) {
   return links
 }
 
-},{"./graph-util":3,"./identity":4,"./rdf-parser":6,"./vocab":10}],8:[function(require,module,exports){
+},{"../identity":3,"../util/graph-util":8,"../util/rdf-parser":9,"../vocab":12}],6:[function(require,module,exports){
 'use strict'
 /**
-* @module solid-response
+* @module response
 */
 module.exports = SolidResponse
 
-var webUtil = require('./web-util')
+var webUtil = require('../util/web-util')
 
 /**
 * Provides a wrapper around an XHR response object, and adds several
@@ -894,7 +830,7 @@ SolidResponse.prototype.raw = function raw () {
   }
 }
 
-},{"./web-util":12}],9:[function(require,module,exports){
+},{"../util/web-util":11}],7:[function(require,module,exports){
 'use strict'
 /**
  * Provides Web API helpers dealing with a user's online / offline status.
@@ -934,52 +870,72 @@ function onOnline (callback) {
   window.addEventListener('online', callback, false)
 }
 
-},{}],10:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 'use strict'
 /**
- * Provides a hashmap of relevant vocabs / namespaces
- * @module vocab
+ * Provides convenience methods for graph manipulation.
+ * Currently depends on RDFLib
+ * @module graph-util
  */
-var Vocab = {
-  'DCT': 'http://purl.org/dc/terms/',
-  'FOAF': {
-    'primaryTopic': 'http://xmlns.com/foaf/0.1/primaryTopic'
-  },
-  'LDP': {
-    'BasicContainer': 'http://www.w3.org/ns/ldp#BasicContainer',
-    'NonRDFSource': 'http://www.w3.org/ns/ldp#NonRDFSource',
-    'RDFSource': 'http://www.w3.org/ns/ldp#RDFSource',
-    'Resource': 'http://www.w3.org/ns/ldp#Resource'
-  },
-  'OWL': {
-    'sameAs': 'http://www.w3.org/2002/07/owl#sameAs'
-  },
-  'PIM': {
-    'preferencesFile': 'http://www.w3.org/ns/pim/space#preferencesFile',
-    'storage': 'http://www.w3.org/ns/pim/space#storage'
-  },
-  'RDF': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-  'RDFS': {
-    'seeAlso': 'http://www.w3.org/2000/01/rdf-schema#seeAlso'
-  },
-  'SOLID': {
-    'inbox': 'http://www.w3.org/ns/solid/terms#inbox',
-    'typeIndex': 'http://www.w3.org/ns/solid/terms#typeIndex',
-    'PrivateTypeIndex':
-      'http://www.w3.org/ns/solid/terms#PrivateTypeIndex',
-    'PublicTypeIndex':
-      'http://www.w3.org/ns/solid/terms#PublicTypeIndex',
-    'TypeRegistration':
-      'http://www.w3.org/ns/solid/terms#TypeRegistration'
-  },
-  'VCARD': {
-    'AddressBook': 'http://www.w3.org/2006/vcard/ns#AddressBook'
-  }
+module.exports.appendGraph = appendGraph
+module.exports.parseGraph = parseGraph
+
+var rdf = require('./rdf-parser').rdflib
+
+/**
+ * Appends RDF statements from one graph object to another
+ * @method appendGraph
+ * @param toGraph {Graph} rdf.Graph object to append to
+ * @param fromGraph {Graph} rdf.Graph object to append from
+ * @param docURI {String} Document URI to use as source
+ */
+function appendGraph (toGraph, fromGraph, docURI) {
+  var source = (docURI) ? rdf.sym(docURI) : undefined
+  fromGraph.statementsMatching(undefined, undefined, undefined, source)
+    .forEach(function (st) {
+      toGraph.add(st.subject, st.predicate, st.object, st.why)
+    })
 }
 
-module.exports = Vocab
+/**
+ * Parses a given graph, from text rdfSource, as a given content type.
+ * Returns parsed graph.
+ * @method parseGraph
+ * @param baseUrl {String}
+ * @param rdfSource {String} Text source code
+ * @param contentType {String} Mime Type (determines which parser to use)
+ * @return {rdf.Graph}
+ */
+function parseGraph (baseUrl, rdfSource, contentType) {
+  var parsedGraph = rdf.graph()
+  rdf.parse(rdfSource, parsedGraph, baseUrl, contentType)
+  return parsedGraph
+}
 
-},{}],11:[function(require,module,exports){
+},{"./rdf-parser":9}],9:[function(require,module,exports){
+'use strict'
+/**
+ * Provides a generic wrapper around an RDF Parser library
+ * (currently only RDFLib)
+ *  @@ RDFLib is NOT JUST a parser library. It is a quadstore and a serializer library!
+ * @module rdf-parser
+ */
+var RDFParser = {}
+if (typeof $rdf !== 'undefined') {
+  RDFParser.rdflib = $rdf // FF extension
+} else if (typeof tabulator !== 'undefined') {
+  RDFParser.rdflib = tabulator.rdf
+} else if (typeof window !== 'undefined') {
+  // Running inside the browser but NOT FF extension
+  RDFParser.rdflib = window.$rdf
+} else {
+  // in Node.js
+  console.log("RDFParser.rdflib = require('rdflib')")
+  RDFParser.rdflib = require('rdflib')
+}
+module.exports = RDFParser
+
+},{"rdflib":undefined}],10:[function(require,module,exports){
 'use strict'
 /**
  * Provides a wrapper for rdflib's web operations (`rdf.Fetcher` based)
@@ -1034,7 +990,7 @@ var rdflibWebClient = {
 
 module.exports = rdflibWebClient
 
-},{"./rdf-parser":6}],12:[function(require,module,exports){
+},{"./rdf-parser":9}],11:[function(require,module,exports){
 'use strict'
 /**
  * Provides misc utility functions for the web client
@@ -1136,6 +1092,51 @@ function composePatchQuery (toDel, toIns) {
   return data
 }
 
+},{}],12:[function(require,module,exports){
+'use strict'
+/**
+ * Provides a hashmap of relevant vocabs / namespaces
+ * @module vocab
+ */
+var Vocab = {
+  'DCT': 'http://purl.org/dc/terms/',
+  'FOAF': {
+    'primaryTopic': 'http://xmlns.com/foaf/0.1/primaryTopic'
+  },
+  'LDP': {
+    'BasicContainer': 'http://www.w3.org/ns/ldp#BasicContainer',
+    'NonRDFSource': 'http://www.w3.org/ns/ldp#NonRDFSource',
+    'RDFSource': 'http://www.w3.org/ns/ldp#RDFSource',
+    'Resource': 'http://www.w3.org/ns/ldp#Resource'
+  },
+  'OWL': {
+    'sameAs': 'http://www.w3.org/2002/07/owl#sameAs'
+  },
+  'PIM': {
+    'preferencesFile': 'http://www.w3.org/ns/pim/space#preferencesFile',
+    'storage': 'http://www.w3.org/ns/pim/space#storage'
+  },
+  'RDF': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+  'RDFS': {
+    'seeAlso': 'http://www.w3.org/2000/01/rdf-schema#seeAlso'
+  },
+  'SOLID': {
+    'inbox': 'http://www.w3.org/ns/solid/terms#inbox',
+    'typeIndex': 'http://www.w3.org/ns/solid/terms#typeIndex',
+    'PrivateTypeIndex':
+      'http://www.w3.org/ns/solid/terms#PrivateTypeIndex',
+    'PublicTypeIndex':
+      'http://www.w3.org/ns/solid/terms#PublicTypeIndex',
+    'TypeRegistration':
+      'http://www.w3.org/ns/solid/terms#TypeRegistration'
+  },
+  'VCARD': {
+    'AddressBook': 'http://www.w3.org/2006/vcard/ns#AddressBook'
+  }
+}
+
+module.exports = Vocab
+
 },{}],13:[function(require,module,exports){
 'use strict'
 /**
@@ -1143,8 +1144,8 @@ function composePatchQuery (toDel, toIns) {
  * @module web
  */
 var config = require('../config')
-var graphUtil = require('./graph-util')
-var SolidResponse = require('./solid-response')
+var graphUtil = require('./util/graph-util')
+var SolidResponse = require('./solid/response')
 var Vocab = require('./vocab')
 var XMLHttpRequest = require('./xhr')
 
@@ -1352,7 +1353,7 @@ var SolidWebClient = {
     proxyUrl = proxyUrl || config.proxyUrl
     timeout = timeout || config.timeout
     if (config.parser === 'rdflib') {
-      var getParsedGraph = require('./web-rdflib').getParsedGraph
+      var getParsedGraph = require('./util/web-rdflib').getParsedGraph
     } else {
       throw Error('Parser library not supported: ' + config.parser)
     }
@@ -1424,7 +1425,7 @@ var SolidWebClient = {
    *     object if not successful)
    */
   patch: function patch (url, toDel, toIns) {
-    var composePatchQuery = require('./web-util').composePatchQuery
+    var composePatchQuery = require('./util/web-util').composePatchQuery
     var data = composePatchQuery(toDel, toIns)
     var mimeType = 'application/sparql-update'
     var options = {}
@@ -1452,7 +1453,7 @@ SolidWebClient.replace = SolidWebClient.put
 SolidWebClient.update = SolidWebClient.patch
 module.exports = SolidWebClient
 
-},{"../config":1,"./graph-util":3,"./solid-response":8,"./vocab":10,"./web-rdflib":11,"./web-util":12,"./xhr":14}],14:[function(require,module,exports){
+},{"../config":1,"./solid/response":6,"./util/graph-util":8,"./util/web-rdflib":10,"./util/web-util":11,"./vocab":12,"./xhr":14}],14:[function(require,module,exports){
 'use strict'
 /* global Components */
 /**
@@ -1583,10 +1584,9 @@ var Solid = {
   signup: require('./lib/auth').signup,
   status: require('./lib/status'),
   vocab: require('./lib/vocab'),
-  web: require('./lib/web'),
-  webUtil: require('./lib/web-util')
+  web: require('./lib/web')
 }
 
 module.exports = Solid
 
-},{"./config":1,"./lib/auth":2,"./lib/identity":4,"./lib/meta":5,"./lib/status":9,"./lib/vocab":10,"./lib/web":13,"./lib/web-util":12}]},{},[]);
+},{"./config":1,"./lib/auth":2,"./lib/identity":3,"./lib/meta":4,"./lib/status":7,"./lib/vocab":12,"./lib/web":13}]},{},[]);
