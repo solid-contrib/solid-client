@@ -30,8 +30,6 @@ pro:card a foaf:PersonalProfileDocument;
        loc:;
     terms:typeIndex
        </settings/publicTypeIndex.ttl>;
-    terms:typeIndex
-       </settings/privateTypeIndex.ttl>;
     terms:inbox
        inbox:.
 <#key-1455289666916>
