@@ -82,7 +82,16 @@ test('SolidProfile storage test', function (t) {
 })
 
 test('SolidProfile type registry indexes test', function (t) {
+  // Load the initial parsed profile graph
+  // The public profile has the link to publicTypeIndex.ttl
   let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
+  // Also load and parse the Preferences resource
+  // This is where the link to privateTypeIndex.ttl comes from
+  let urlPrefs = 'https://localhost:8443/settings/prefs.ttl'
+  let rawPrefsSource = require('../resources/profile-prefs')
+  let graphPrefs = parseGraph(urlPrefs, rawPrefsSource, 'text/turtle')
+  profile.appendFromGraph(graphPrefs, urlPrefs)
+
   let expectedLinks =
     [
       'https://localhost:8443/settings/privateTypeIndex.ttl',
@@ -93,13 +102,13 @@ test('SolidProfile type registry indexes test', function (t) {
 })
 
 test('SolidProfile addTypeRegistry() test', function (t) {
-  var urlPub = 'https://localhost:8443/settings/publicTypeIndex.ttl'
-  var rawIndexSourcePub = require('../resources/type-index-public')
-  var graphPubIndex = parseGraph(urlPub, rawIndexSourcePub, 'text/turtle')
+  let urlPub = 'https://localhost:8443/settings/publicTypeIndex.ttl'
+  let rawIndexSourcePub = require('../resources/type-index-public')
+  let graphPubIndex = parseGraph(urlPub, rawIndexSourcePub, 'text/turtle')
 
-  var urlPri = 'https://localhost:8443/settings/privateTypeIndex.ttl'
-  var rawIndexSourcePri = require('../resources/type-index-private')
-  var graphPriIndex = parseGraph(urlPri, rawIndexSourcePri, 'text/turtle')
+  let urlPri = 'https://localhost:8443/settings/privateTypeIndex.ttl'
+  let rawIndexSourcePri = require('../resources/type-index-private')
+  let graphPriIndex = parseGraph(urlPri, rawIndexSourcePri, 'text/turtle')
 
   let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
 

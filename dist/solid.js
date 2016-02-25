@@ -246,23 +246,14 @@ var Vocab = require('./vocab')
  *   and return a promise with a parsed SolidProfile instance.
  * @method getProfile
  * @param profileUrl {String} WebId or Location of a user's profile.
- * @param [ignoreExtended=false] {Boolean} Does not fetch external resources
- *   related to the profile, if true.
- * @param proxyUrl {String} URL template of the proxy to use for CORS
- *                          requests.
- * @param timeout {Number} Request timeout in milliseconds.
+ * @param [options] Options hashmap (see Solid.web.solidRequest() function docs)
  * @return {Promise<SolidProfile>}
  */
-function getProfile (profileUrl, ignoreExtended, proxyUrl, timeout) {
-  var config = require('../config')
-  proxyUrl = proxyUrl || config.proxyUrl
-  timeout = timeout || config.timeout
-  var options = {
-    headers: {
-      'Accept': 'text/turtle'
-    },
-    proxyUrl: proxyUrl,
-    timeout: timeout
+function getProfile (profileUrl, options) {
+  options = options || {}
+  // Politely ask for Turtle formatted profiles
+  options.headers = options.headers || {
+    'Accept': 'text/turtle'
   }
   // Load main profile
   return webClient.get(profileUrl, options)
@@ -274,27 +265,14 @@ function getProfile (profileUrl, ignoreExtended, proxyUrl, timeout) {
       var parsedProfile = graphUtil.parseGraph(profileUrl, response.raw(),
         contentType)
       var profile = new SolidProfile(profileUrl, parsedProfile, response)
-      if (ignoreExtended) {
-        return profile
-      } else {
-        return loadExtendedProfile(profile, options)
-      }
+      return loadExtendedProfile(profile, options)
     })
 }
 
 /**
  * Loads the related external profile resources (all the `sameAs` and `seeAlso`
- * links), and appends them to the profile's `parsedGraph`.
- * Returns the profile instance.
- * Usage:
- *
- *   ```
- * var profile = Solid.identity.getProfile(url, true)
- *   .then(function (profile) {
- *     console.log('getProfile results: %o, loading extended..', profile)
- *     return Solid.identity.loadExtendedProfile(profile)
- *   })
- *   ```
+ * links, as well as Preferences), and appends them to the profile's
+ * `parsedGraph`. Returns the profile instance.
  * @method loadExtendedProfile
  * @param profile {SolidProfile}
  * @param [options] Options hashmap (see Solid.web.solidRequest() function docs)
@@ -311,14 +289,10 @@ function loadExtendedProfile (profile, options) {
     .then(function (loadedGraphs) {
       loadedGraphs.forEach(function (graph) {
         if (graph && graph.value) {
-          graphUtil.appendGraph(profile.parsedGraph, graph.value, graph.uri)
+          profile.appendFromGraph(graph.value, graph.uri)
         }
       })
       return profile
-    })
-    .then(function (extendedProfile) {
-      // Also load the type registry, while we're at it
-      return loadTypeRegistry(extendedProfile, options)
     })
 }
 
@@ -328,7 +302,7 @@ function loadExtendedProfile (profile, options) {
  * Usage:
  *
  *   ```
- * var profile = Solid.identity.getProfile(url, true)
+ * var profile = Solid.identity.getProfile(url)
  *   .then(function (profile) {
  *     return Solid.identity.loadTypeRegistry(profile)
  *   })
@@ -352,7 +326,7 @@ function loadTypeRegistry (profile, options) {
         // For each index resource loaded, add it to `profile.typeIndexPublic`
         //  or `profile.typeIndexPrivate` as appropriate
         if (graph && graph.value) {
-          profile.addTypeRegistry(graph)
+          profile.addTypeRegistry(graph.value)
         }
       })
       return profile
@@ -383,7 +357,7 @@ function isPublicTypeIndex (graph) {
   return graph.any(null, null, object, graph.uri)
 }
 
-},{"../config":1,"./graph-util":3,"./rdf-parser":6,"./solid-profile":7,"./vocab":10,"./web":13}],5:[function(require,module,exports){
+},{"./graph-util":3,"./rdf-parser":6,"./solid-profile":7,"./vocab":10,"./web":13}],5:[function(require,module,exports){
 'use strict'
 /**
  * Provides miscelaneous meta functions (such as library version)
@@ -435,28 +409,37 @@ var graphUtil = require('./graph-util')
  */
 function SolidProfile (profileUrl, parsedProfile, response) {
   /**
-   * Links to profile-related external resources such as Preferences,
+   * Links to profile-related external resources such as the
    * Inbox location, storage locations, type registry indexes etc.
    * @property externalResources
    * @type Object
    */
   this.externalResources = {
     inbox: null,
-    preferences: [],
     storage: [],
     typeIndexes: []
   }
 
+  /**
+   * Public Type registry index graph
+   * @property typeIndexPublic
+   * @type rdf.Graph
+   */
   this.typeIndexPublic = rdf.graph()
 
+  /**
+   * Private Type registry index graph
+   * @property typeIndexPrivate
+   * @type rdf.Graph
+   */
   this.typeIndexPrivate = rdf.graph()
 
   /**
    * Parsed graph of the WebID Profile document
    * @property parsedGraph
-   * @type Object
+   * @type rdf.Graph
    */
-  this.parsedGraph = parsedProfile
+  this.parsedGraph = rdf.graph()
 
   /**
    * SolidResponse instance from which this profile object was created.
@@ -473,6 +456,7 @@ function SolidProfile (profileUrl, parsedProfile, response) {
    * @type Object
    */
   this.relatedProfiles = {
+    preferences: [],
     sameAs: [],
     seeAlso: []
   }
@@ -497,16 +481,69 @@ function SolidProfile (profileUrl, parsedProfile, response) {
     : profileUrl
 
   if (parsedProfile) {
-    this.initFromGraph(parsedProfile)
+    this.initWebId(parsedProfile)
+    this.appendFromGraph(parsedProfile, this.baseProfileUrl)
   }
 }
 
 /**
- * Initializes a profile from a parsed profile RDF graph
- * @method initFromGraph
+ * Update the profile based on a parsed graph, which can be either the
+ * initial WebID profile, or the various extended profile graphs
+ * (such as the seeAlso, sameAs and preferences links)
+ * @method appendFromGraph
+ * @param parsedProfile {rdf.IndexedFormula} RDFLib-parsed user profile
+ * @param profileUrl {String} URL of this particular parsed graph
+ */
+SolidProfile.prototype.appendFromGraph =
+  function appendFromGraph (parsedProfile, profileUrl) {
+    if (!parsedProfile) {
+      return
+    }
+    // Add the graph of this parsedProfile to the existing graph
+    graphUtil.appendGraph(this.parsedGraph, parsedProfile, profileUrl)
+
+    var webId = rdf.sym(this.webId)
+    var links
+
+    // Add sameAs and seeAlso
+    links = parseLinks(parsedProfile, null, rdf.sym(Vocab.OWL.sameAs))
+    this.relatedProfiles.sameAs = this.relatedProfiles.sameAs.concat(links)
+
+    links = parseLinks(parsedProfile, null, rdf.sym(Vocab.RDFS.seeAlso))
+    this.relatedProfiles.seeAlso = this.relatedProfiles.seeAlso.concat(links)
+
+    // Add preferencesFile links
+    links = parseLinks(parsedProfile, webId, rdf.sym(Vocab.PIM.preferencesFile))
+    this.relatedProfiles.preferences =
+      this.relatedProfiles.preferences.concat(links)
+
+    // Init inbox (singular). Note that inbox has
+    // Write-Once semantics -- it's initialized from public profile, but
+    // cannot be overwritten by related profiles
+    if (!this.externalResources.inbox) {
+      this.externalResources.inbox = parseLink(parsedProfile, webId,
+        rdf.sym(Vocab.SOLID.inbox))
+    }
+
+    // Add storage
+    links = parseLinks(parsedProfile, webId, rdf.sym(Vocab.PIM.storage))
+    this.externalResources.storage = this.externalResources.storage.concat(links)
+
+    // Add typeIndexes. Note: these are just the links to both public and
+    // private indexes. The actual index files will be loaded and parsed
+    //   in `Solid.identity.loadTypeRegistry()`)
+    links = parseLinks(parsedProfile, webId, rdf.sym(Vocab.SOLID.typeIndex))
+    this.externalResources.typeIndexes =
+      this.externalResources.typeIndexes.concat(links)
+  }
+
+/**
+ * Extracts the WebID from a parsed profile graph and initializes it.
+ * Should only be done once (when creating a new SolidProfile instance)
+ * @method initWebId
  * @param parsedProfile {rdf.IndexedFormula} RDFLib-parsed user profile
  */
-SolidProfile.prototype.initFromGraph = function initFromGraph (parsedProfile) {
+SolidProfile.prototype.initWebId = function initWebId (parsedProfile) {
   if (!parsedProfile) {
     return
   }
@@ -515,41 +552,18 @@ SolidProfile.prototype.initFromGraph = function initFromGraph (parsedProfile) {
   } catch (e) {
     throw new Error('Unable to parse WebID from profile')
   }
-  var webId = rdf.sym(this.webId)
-
-  // Init sameAs and seeAlso
-  this.relatedProfiles.sameAs = parseLinks(parsedProfile, webId,
-    rdf.sym(Vocab.OWL.sameAs))
-  this.relatedProfiles.seeAlso = parseLinks(parsedProfile, webId,
-    rdf.sym(Vocab.RDFS.seeAlso))
-
-  // Init preferencesFile links
-  this.externalResources.preferences = parseLinks(parsedProfile, webId,
-    rdf.sym(Vocab.PIM.preferencesFile))
-
-  // Init inbox (singular)
-  this.externalResources.inbox = parseLink(parsedProfile, webId,
-    rdf.sym(Vocab.SOLID.inbox))
-
-  // Init storage
-  this.externalResources.storage = parseLinks(parsedProfile, webId,
-    rdf.sym(Vocab.PIM.storage))
-
-  // Init typeIndexes. Note: these are just the links to both public and
-  // private indexes. The actual index files will be loaded and parsed
-  //   in `Solid.identity.loadTypeRegistry()`)
-  this.externalResources.typeIndexes = parseLinks(parsedProfile, webId,
-    rdf.sym(Vocab.SOLID.typeIndex))
 }
 
 /**
- * Returns an array of related external profile links (sameAs and seeAlso)
+ * Returns an array of related external profile links (sameAs and seeAlso and
+ * Preferences files)
  * @method relatedProfilesLinks
  * @return {Array<String>}
  */
 SolidProfile.prototype.relatedProfilesLinks = function relatedProfilesLinks () {
   return this.relatedProfiles.sameAs
     .concat(this.relatedProfiles.seeAlso)
+    .concat(this.relatedProfiles.preferences)
 }
 
 /**
@@ -567,7 +581,7 @@ SolidProfile.prototype.inbox = function inbox () {
  * @return {Array<String>}
  */
 SolidProfile.prototype.preferences = function preferences () {
-  return this.externalResources.preferences
+  return this.relatedProfiles.preferences
 }
 
 /**
