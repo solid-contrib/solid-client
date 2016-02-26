@@ -1,4 +1,4 @@
-##### Version 0.8.2:
+##### Version 0.9.0:
 
 - Added convenience methods to load and query the Type Registry Index resources
   (see [PR #44](https://github.com/solid/solid.js/pull/44))
@@ -9,9 +9,10 @@
   doesn't have to go through `Solid.identity` or `Solid.auth`.
   Non-breaking change -- the old methods will still work.
   New usage:
-
   * `Solid.login()` and `Solid.signup()`
   * `Solid.getProfile()`
+- Implemented `solid.web.list()` container listing method.
+- Added `SolidContainer` and `SolidResource` classes
 
 ##### Version 0.8.1:
 
