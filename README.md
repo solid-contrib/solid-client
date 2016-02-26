@@ -206,7 +206,7 @@ functions to manipulate Web resources. Please see the
 
 Sometimes an application may need to get some useful meta data about a resource.
 For instance, it may want to find out where the ACL resource is. Clients should
-take notice to the fact that the `Solid.web.head()` function will always
+take notice to the fact that the `solid.web.head()` function will always
 successfully complete, even for resources that don't exists, since that is
 considered useful information. For instance, clients can use the
 `solidResponse.xhr.status` value will indicate whether the resource exists or
@@ -234,7 +234,7 @@ solid.web.head(url).then(
 )
 ```
 
-The `SolidResponse` object returned by most `Solid.web` calls, including
+The `SolidResponse` object returned by most `solid.web` calls, including
 `head()`, contains the following properties:
 
 * `url` - the URL of the resource // https://example.org/blog/hellow-world
@@ -252,12 +252,11 @@ The `SolidResponse` object returned by most `Solid.web` calls, including
   resulted in this response.
 * `xhr` - the raw XMLHttpRequest object (e.g. xhr.status)
 
-The `SolidResponse` object also has
 
 ### Creating a Solid Container
 
-The Solid client offers a function called `Solid.web.post()` (also
-aliased to `Solid.web.create()`), which is used to create containers. The
+The Solid client offers a function called `solid.web.post()` (also
+aliased to `solid.web.create()`), which is used to create containers. The
 function accepts the following parameters:
 
 * `parentDir` (string) - the URL of the parent container in which the new
@@ -301,6 +300,77 @@ solid.web.post(parentDir, data, slug, isContainer).then(
   console.log(err.status) // contains the error status
   console.log(err.xhr) // contains the xhr object
 })
+```
+
+### Listing a Solid Container
+
+To list the contents of a Solid container, use `solid.web.list()`.
+This returns a `SolidContainer` instance, which will contained various
+useful properties:
+
+- A short name (`.name`) and absolute URI (`.uri`)
+- A `.parsedGraph` property for further RDF queries
+- A parsed list of links to all the contents (both containers and resources)
+  (`.contentsUris`)
+- A list of RDF types to which the container belongs (`.types`)
+- A hashmap of all sub-Containers within this container, keyed by absolute uri
+  (`.containers`)
+- A hashmap of all non-container Resources within this container, also keyed by
+  absolute uri. (`.resources`)
+
+Containers also have several convenience methods:
+
+- `container.isEmpty()` will return `true` when there are no sub-containers or
+  resources inside it
+- `container.findByType(rdfClass)` will return an array of resources or
+  containers that have the given `rdfClass` in their `.types` array
+
+For example:
+
+```javascript
+var container = solid.web.list('/settings/')
+// container is an instance of SolidContainer (see lib/solid/container.js)
+container.uri   // -> 'https://localhost:8443/settings/'
+container.name  // -> 'settings'
+container.isEmpty()  // -> false
+container.types // ->
+[
+  'http://www.w3.org/ns/ldp#BasicContainer',
+  'http://www.w3.org/ns/ldp#Container'
+]
+container.contentsUris // ->
+[
+  'https://localhost:8443/settings/prefs.ttl',
+  'https://localhost:8443/settings/privateTypeIndex.ttl',
+  'https://localhost:8443/settings/testcontainer/'
+]
+
+var subContainer =
+    container.containers['https://localhost:8443/settings/testcontainer/']
+subContainer.name // -> 'testcontainer'
+subContainer.types // ->
+[
+  'http://www.w3.org/ns/ldp#BasicContainer',
+  'http://www.w3.org/ns/ldp#Container',
+  'http://www.w3.org/ns/ldp#Resource'
+]
+
+var resource =
+  container.resources['https://localhost:8443/settings/privateTypeIndex.ttl']
+// resource - SolidResource instance
+resource.name // -> 'privateTypeIndex.ttl'
+resource.types // ->
+[
+  'http://www.w3.org/ns/ldp#Resource', 'http://www.w3.org/ns/solid/terms#PrivateTypeIndex'
+]
+resource.isType('http://www.w3.org/ns/solid/terms#PrivateTypeIndex')  // -> true
+
+container.findByType('http://www.w3.org/ns/ldp#Resource')  // ->
+[
+  // a SolidContainer('testcontainer'),
+  // a SolidResource('privateTypeIndex.ttl'),
+  // a SolidResource('prefs.ttl')
+]
 ```
 
 ### Creating a resource
