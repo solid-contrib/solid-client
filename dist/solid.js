@@ -181,7 +181,7 @@ function signup (signupUrl) {
   })
 }
 
-},{"../config":1,"./web":13}],3:[function(require,module,exports){
+},{"../config":1,"./web":15}],3:[function(require,module,exports){
 'use strict'
 /**
  * Provides Solid helper functions involved with parsing a user's WebId profile.
@@ -312,7 +312,7 @@ function isPublicTypeIndex (graph) {
   return graph.any(null, null, object, graph.uri)
 }
 
-},{"./solid/profile":5,"./util/graph-util":8,"./util/rdf-parser":9,"./vocab":12,"./web":13}],4:[function(require,module,exports){
+},{"./solid/profile":6,"./util/graph-util":10,"./util/rdf-parser":11,"./vocab":14,"./web":15}],4:[function(require,module,exports){
 'use strict'
 /**
  * Provides miscelaneous meta functions (such as library version)
@@ -328,7 +328,118 @@ module.exports.version = function version () {
   return lib.version
 }
 
-},{"../package":15}],5:[function(require,module,exports){
+},{"../package":17}],5:[function(require,module,exports){
+'use strict'
+/**
+ * @module container
+ */
+module.exports = SolidContainer
+var rdf = require('../util/rdf-parser').rdflib
+var graphUtil = require('../util/graph-util')
+var parseLinks = graphUtil.parseLinks
+var Vocab = require('../vocab')
+var SolidResource = require('./resource')
+
+/**
+ * @class SolidContainer
+ * @extends SolidResource
+ * @constructor
+ * @param uri {String}
+ * @param response {SolidResponse}
+ */
+function SolidContainer (uri, response) {
+  // Call parent constructor
+  SolidResource.call(this, uri, response)
+
+  /**
+   * Hashmap of Containers within this container, keyed by absolute uri
+   * @property containers
+   * @type Object
+   */
+  this.containers = {}
+  /**
+   * List of URIs of all contents (containers and resources)
+   * @property contentsUris
+   * @type Array<String>
+   */
+  this.contentsUris = []
+
+  /**
+   * Hashmap of Contents that are just resources (not containers),
+   * keyed by absolute uri
+   * @property resources
+   * @type Object
+   */
+  this.resources = {}
+
+  if (response) {
+    this.initFromResponse(this.uri, response)
+  }
+}
+// SolidContainer.prototype object inherits from SolidResource.prototype
+SolidContainer.prototype = Object.create(SolidResource.prototype)
+SolidContainer.prototype.constructor = SolidContainer
+
+/**
+ * Extracts the contents (resources and sub-containers)
+ * of the given graph and adds them to this container
+ * @method appendFromGraph
+ * @param parsedGraph {Graph}
+ * @param graphUri {String}
+ */
+SolidContainer.prototype.appendFromGraph =
+  function appendFromGraph (parsedGraph, graphUri) {
+    // Extract all the contents links (resources and containers)
+    var contentsUris = parseLinks(parsedGraph, null,
+      rdf.sym(Vocab.LDP.contains))
+    this.contentsUris = this.contentsUris.concat(contentsUris.sort())
+
+    // Extract links that are just containers
+    var containersLinks = parsedGraph.each(null,
+      null, rdf.sym(Vocab.LDP.Container))
+    var self = this
+    var container
+    containersLinks.forEach(function (containerLink) {
+      // Filter out . (the link to this directory)
+      if (containerLink.uri !== self.uri) {
+        container = new SolidContainer(containerLink.uri)
+        container.types = Object.keys(parsedGraph.findTypeURIs(containerLink))
+        self.containers[container.uri] = container
+      }
+    })
+    // Now that containers are defined, all the rest are non-container resources
+    var isResource
+    var isContainer
+    var resource
+    contentsUris.forEach(function (link) {
+      isContainer = link in self.containers
+      isResource = link !== self.uri && !isContainer
+      if (isResource) {
+        resource = new SolidResource(link)
+        resource.types = Object.keys(parsedGraph.findTypeURIs(rdf.sym(link)))
+        self.resources[link] = resource
+      }
+    })
+  }
+
+/**
+ * @method initFromResponse
+ * @param uri {String}
+ * @param response {SolidResponse}
+ */
+SolidContainer.prototype.initFromResponse =
+  function initFromResponse (uri, response) {
+    var contentType = response.contentType()
+    if (!contentType) {
+      throw new Error('Cannot parse container without a Content-Type: header')
+    }
+    var parsedGraph = graphUtil.parseGraph(uri, response.raw(),
+      contentType)
+    this.parsedGraph = parsedGraph
+    this.appendFromGraph(parsedGraph, uri)
+  }
+
+},{"../util/graph-util":10,"../util/rdf-parser":11,"../vocab":14,"./resource":7}],6:[function(require,module,exports){
 'use strict'
 /**
  * @module profile
@@ -338,6 +449,7 @@ var rdf = require('../util/rdf-parser').rdflib
 var Vocab = require('../vocab')
 var identity = require('../identity')
 var graphUtil = require('../util/graph-util')
+var parseLinks = graphUtil.parseLinks
 
 /**
  * Provides convenience methods for a WebID Profile.
@@ -632,27 +744,81 @@ function parseLink (graph, subject, predicate, object, source) {
   }
 }
 
+},{"../identity":3,"../util/graph-util":10,"../util/rdf-parser":11,"../vocab":14}],7:[function(require,module,exports){
+'use strict'
 /**
- * Extracts the URIs from a parsed graph that match parameters
- * @method parseLinks
- * @param graph {rdf.IndexedFormula}
- * @param subject {rdf.Symbol}
- * @param predicate {rdf.Symbol}
- * @param object {rdf.Symbol}
- * @param source {rdf.Symbol}
- * @return {Array<String>} Array of link URIs that match the parameters
+ * @module resource
  */
-function parseLinks (graph, subject, predicate, object, source) {
-  var links = []
-  var matches = graph.statementsMatching(subject,
-    predicate, object, source)
-  matches.forEach(function (match) {
-    links.push(match.object.uri)
-  })
-  return links
+
+/**
+ * Represents a Solid / LDP Resource (currently used when listing
+ * SolidContainer resources)
+ * @class SolidResource
+ * @constructor
+ */
+module.exports = SolidResource
+
+function SolidResource (uri, response) {
+  /**
+   * Short name (page/filename part of the resource path),
+   * derived from the URI
+   * @property name
+   * @type String
+   */
+  this.name = null
+  /**
+   * Parsed graph of the contents of the resource
+   * @property parsedGraph
+   * @type Graph
+   */
+  this.parsedGraph = null
+  /**
+   * Optional SolidResponse object from which this resource was initialized
+   * @property response
+   * @type SolidResponse
+   */
+  this.response = response
+  /**
+   * List of RDF Types (classes) to which this resource belongs
+   * @property types
+   * @type Array<String>
+   */
+  this.types = []
+  /**
+   * Absolute url of the resource
+   * @property url
+   * @type String
+   */
+  this.uri = uri
+
+  if (response) {
+    if (response.url !== uri) {
+      // Override the given url (which may be relative) with that of the
+      // response object (which will be absolute)
+      this.uri = response.url
+    }
+  }
+  this.initName()
 }
 
-},{"../identity":3,"../util/graph-util":8,"../util/rdf-parser":9,"../vocab":12}],6:[function(require,module,exports){
+/**
+ * Initializes the short name from the url
+ * @method initName
+ */
+SolidResource.prototype.initName = function initName () {
+  if (!this.uri) {
+    return
+  }
+  // Split on '/', use the last fragment
+  var fragments = this.uri.split('/')
+  this.name = fragments.pop()
+  if (!this.name && fragments.length > 0) {
+    // URI ended in a '/'. Try again.
+    this.name = fragments.pop()
+  }
+}
+
+},{}],8:[function(require,module,exports){
 'use strict'
 /**
 * @module response
@@ -830,7 +996,7 @@ SolidResponse.prototype.raw = function raw () {
   }
 }
 
-},{"../util/web-util":11}],7:[function(require,module,exports){
+},{"../util/web-util":13}],9:[function(require,module,exports){
 'use strict'
 /**
  * Provides Web API helpers dealing with a user's online / offline status.
@@ -870,7 +1036,7 @@ function onOnline (callback) {
   window.addEventListener('online', callback, false)
 }
 
-},{}],8:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 'use strict'
 /**
  * Provides convenience methods for graph manipulation.
@@ -879,6 +1045,7 @@ function onOnline (callback) {
  */
 module.exports.appendGraph = appendGraph
 module.exports.parseGraph = parseGraph
+module.exports.parseLinks = parseLinks
 
 var rdf = require('./rdf-parser').rdflib
 
@@ -912,7 +1079,27 @@ function parseGraph (baseUrl, rdfSource, contentType) {
   return parsedGraph
 }
 
-},{"./rdf-parser":9}],9:[function(require,module,exports){
+/**
+ * Extracts the URIs from a parsed graph that match parameters
+ * @method parseLinks
+ * @param graph {rdf.IndexedFormula}
+ * @param subject {rdf.Symbol}
+ * @param predicate {rdf.Symbol}
+ * @param object {rdf.Symbol}
+ * @param source {rdf.Symbol}
+ * @return {Array<String>} Array of link URIs that match the parameters
+ */
+function parseLinks (graph, subject, predicate, object, source) {
+  var links = []
+  var matches = graph.statementsMatching(subject,
+    predicate, object, source)
+  matches.forEach(function (match) {
+    links.push(match.object.uri)
+  })
+  return links
+}
+
+},{"./rdf-parser":11}],11:[function(require,module,exports){
 'use strict'
 /**
  * Provides a generic wrapper around an RDF Parser library
@@ -930,12 +1117,11 @@ if (typeof $rdf !== 'undefined') {
   RDFParser.rdflib = window.$rdf
 } else {
   // in Node.js
-  console.log("RDFParser.rdflib = require('rdflib')")
   RDFParser.rdflib = require('rdflib')
 }
 module.exports = RDFParser
 
-},{"rdflib":undefined}],10:[function(require,module,exports){
+},{"rdflib":undefined}],12:[function(require,module,exports){
 'use strict'
 /**
  * Provides a wrapper for rdflib's web operations (`rdf.Fetcher` based)
@@ -990,7 +1176,7 @@ var rdflibWebClient = {
 
 module.exports = rdflibWebClient
 
-},{"./rdf-parser":9}],11:[function(require,module,exports){
+},{"./rdf-parser":11}],13:[function(require,module,exports){
 'use strict'
 /**
  * Provides misc utility functions for the web client
@@ -1092,7 +1278,7 @@ function composePatchQuery (toDel, toIns) {
   return data
 }
 
-},{}],12:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 'use strict'
 /**
  * Provides a hashmap of relevant vocabs / namespaces
@@ -1105,6 +1291,8 @@ var Vocab = {
   },
   'LDP': {
     'BasicContainer': 'http://www.w3.org/ns/ldp#BasicContainer',
+    'Container': 'http://www.w3.org/ns/ldp#Container',
+    'contains': 'http://www.w3.org/ns/ldp#contains',
     'NonRDFSource': 'http://www.w3.org/ns/ldp#NonRDFSource',
     'RDFSource': 'http://www.w3.org/ns/ldp#RDFSource',
     'Resource': 'http://www.w3.org/ns/ldp#Resource'
@@ -1137,7 +1325,7 @@ var Vocab = {
 
 module.exports = Vocab
 
-},{}],13:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 'use strict'
 /**
  * Provides a Solid web client class for performing LDP CRUD operations.
@@ -1146,6 +1334,7 @@ module.exports = Vocab
 var config = require('../config')
 var graphUtil = require('./util/graph-util')
 var SolidResponse = require('./solid/response')
+var SolidContainer = require('./solid/container')
 var Vocab = require('./vocab')
 var XMLHttpRequest = require('./xhr')
 
@@ -1287,6 +1476,30 @@ var SolidWebClient = {
    */
   get: function get (url, options) {
     return this.solidRequest(url, 'GET', options)
+  },
+
+  /**
+   * Lists the contents of a Solid Container
+   */
+  list: function list (url, options) {
+    if (typeof url !== 'string') {
+      throw new Error('Invalid url passed to list()')
+    }
+    // Make sure the container url ends in a /
+    var urlNotEmpty = url !== ''
+    var noEndingSlash = !url.endsWith('/')
+    if (urlNotEmpty && noEndingSlash) {
+      url = url + '/'
+    }
+    options = options || {}
+    options.headers = options.headers || {}
+    if (!options.headers['Accept']) {
+      options.headers['Accept'] = 'text/turtle'
+    }
+    return this.get(url, options)
+      .then(function (result) {
+        return new SolidContainer(url, result)
+      })
   },
 
   /**
@@ -1453,7 +1666,7 @@ SolidWebClient.replace = SolidWebClient.put
 SolidWebClient.update = SolidWebClient.patch
 module.exports = SolidWebClient
 
-},{"../config":1,"./solid/response":6,"./util/graph-util":8,"./util/web-rdflib":10,"./util/web-util":11,"./vocab":12,"./xhr":14}],14:[function(require,module,exports){
+},{"../config":1,"./solid/container":5,"./solid/response":8,"./util/graph-util":10,"./util/web-rdflib":12,"./util/web-util":13,"./vocab":14,"./xhr":16}],16:[function(require,module,exports){
 'use strict'
 /* global Components */
 /**
@@ -1478,7 +1691,7 @@ if (typeof tabulator !== 'undefined' && tabulator.isExtension) {
 }
 module.exports = XMLHttpRequest
 
-},{"xhr2":undefined}],15:[function(require,module,exports){
+},{"xhr2":undefined}],17:[function(require,module,exports){
 module.exports={
   "name": "solid",
   "version": "0.8.1",
@@ -1589,4 +1802,4 @@ var Solid = {
 
 module.exports = Solid
 
-},{"./config":1,"./lib/auth":2,"./lib/identity":3,"./lib/meta":4,"./lib/status":7,"./lib/vocab":12,"./lib/web":13}]},{},[]);
+},{"./config":1,"./lib/auth":2,"./lib/identity":3,"./lib/meta":4,"./lib/status":9,"./lib/vocab":14,"./lib/web":15}]},{},[]);
