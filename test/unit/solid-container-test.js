@@ -44,6 +44,12 @@ test('SolidContainer from parsed response test', function (t) {
   // (absolute, not relative like in the constructor)
   t.equal(container.uri, 'https://localhost:8443/settings/')
 
+  let expectedTypes = [
+    'http://www.w3.org/ns/ldp#BasicContainer',
+    'http://www.w3.org/ns/ldp#Container'
+  ]
+  t.deepEqual(container.types.sort(), expectedTypes)
+
   // There are 6 total items in the sample /settings/ container
   let expectedLinks = [
     'https://localhost:8443/settings/ajax-loader.gif',
@@ -63,7 +69,7 @@ test('SolidContainer from parsed response test', function (t) {
 
   t.ok(testContainer instanceof SolidContainer)
   t.equal(testContainer.name, 'testcontainer')
-  let expectedTypes = [
+  expectedTypes = [
     'http://www.w3.org/ns/ldp#BasicContainer',
     'http://www.w3.org/ns/ldp#Container',
     'http://www.w3.org/ns/ldp#Resource'
