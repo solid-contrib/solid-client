@@ -42,11 +42,14 @@ https://github.com/solid/solid
 var Solid = {
   auth: require('./lib/auth'),
   config: require('./config'),
+  getProfile: require('./lib/identity').getProfile,
   identity: require('./lib/identity'),
+  login: require('./lib/auth').login,
   meta: require('./lib/meta'),
+  signup: require('./lib/auth').signup,
   status: require('./lib/status'),
-  web: require('./lib/web'),
-  webUtil: require('./lib/web-util')
+  vocab: require('./lib/vocab'),
+  web: require('./lib/web')
 }
 
 module.exports = Solid

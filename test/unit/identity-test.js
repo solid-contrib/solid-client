@@ -2,7 +2,7 @@
 
 var test = require('tape')
 var Solid = require('../../index')
-var parseGraph = require('../../lib/graph-util').parseGraph
+var parseGraph = require('../../lib/util/graph-util').parseGraph
 
 test('Solid.identity isPublicTypeIndex text', function (t) {
   var url = 'https://localhost:8443/settings/publicTypeIndex.ttl'

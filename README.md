@@ -21,9 +21,9 @@ Example `index.html`:
 <script src="https://solid.github.io/solid.js/dist/solid-0.8.1.js"></script>
 <script>
   // $rdf is exported as a global when you load RDFLib, above
-  var Solid = require('solid')
+  var solid = require('solid')
   // Use Solid client here ...
-  console.log('solid.js version: ' + Solid.meta.version())
+  console.log('solid.js version: ' + solid.meta.version())
 </script>
 ```
 
@@ -95,8 +95,8 @@ and a WebID is returned, then the user is considered to be authenticated.
 
 Here is a typical example of authenticating a user and returning their WebID.
 The following `login` function, specific to your application, wraps the
-`Solid.auth.login` function. If the promise is resolved, then an application
-will do something with the `webid` value. Otherwise, if the promise is rejected,
+`solid.login()` function. If the promise is resolved, then an application
+will do something with the `webId` value. Otherwise, if the promise is rejected,
 the application may choose to display an error message.
 
 HTML:
@@ -108,12 +108,12 @@ HTML:
 Javascript:
 
 ```javascript
-var Solid = require('solid')
+var solid = require('solid')
 var login = function() {
   // Get the current user
-  Solid.auth.login().then(function(webid){
+  solid.login().then(function(webId){
     // authentication succeeded; do something with the WebID string
-    console.log(webid)
+    console.log(webId)
   }).catch(function(err) {
     // authentication failed; display some error message
     console.log(err)
@@ -124,7 +124,7 @@ var login = function() {
 ### Signup example
 
 The `signup` function is very similar to the `login` function, wrapping the
-`Solid.auth.signup` function. It results in either a WebID or an error message
+`solid.signup()` function. It results in either a WebID or an error message
 being returned.
 
 HTML:
@@ -136,12 +136,12 @@ HTML:
 Javascript:
 
 ```javascript
-var Solid = require('solid')
+var solid = require('solid')
 // Signup for a WebID
 var signup = function() {
-  Solid.auth.signup().then(function(webid) {
+  solid.signup().then(function(webId) {
     // authentication succeeded; do something with the WebID string
-    console.log(webid)
+    console.log(webId)
   }).catch(function(err) {
     // authentication failed; display some error message
     console.log(err)
@@ -155,10 +155,10 @@ Once you have a user's WebID (say, from a `login()` call), it's often useful
 to load the user profile:
 
 ```javascript
-var profile = Solid.auth.login()
+var profile = solid.login()
   .then(function(webId){
     // have the webId, now load the profile
-    return Solid.identity.getProfile(webId)
+    return solid.getProfile(webId)
   })
 ```
 
@@ -172,12 +172,12 @@ If your application needs to do data discovery, it can also call
 `loadTypeRegistry()` after loading the profile:
 
 ```javascript
-var profile = Solid.auth.login()
+var profile = solid.login()
   .then(function (webId) {
-    return Solid.identity.getProfile(webId)
+    return solid.getProfile(webId)
   })
   .then(function (profile) {
-    return Solid.identity.loadTypeRegistry(profile)
+    return profile.loadTypeRegistry()
   })
 ```
 
@@ -216,9 +216,9 @@ Here, for example, we can find out where the corresponding ACL resource is for
 our new blog post `hellow-world`.
 
 ```javascript
-var Solid = require('solid')
+var solid = require('solid')
 var url = 'https://example.org/blog/hellow-world'
-Solid.web.head(url).then(
+solid.web.head(url).then(
   function(solidResponse) {
     console.log(solidResponse.acl) // the ACL uri
     if (!solidResponse.exists()) {
@@ -281,17 +281,17 @@ sending some meta data (semantics) about the container, setting its type to
 
 ```javascript
 // Assumes you've loaded rdflib.js and solid.js, see Dependences above
-var Solid = require('solid')
+var solid = require('solid')
 var parentDir = 'https://example.org/'
 var slug = 'blog'
 var data = '<#this> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/sioc/ns#Blog> .'
 var isContainer = true
 
-Solid.web.post(parentDir, data, slug, isContainer).then(
+solid.web.post(parentDir, data, slug, isContainer).then(
   function(solidResponse) {
     console.log(solidResponse)
     // The resulting object has several useful properties.
-    // See lib/solid-response.js for details
+    // See lib/solid/response.js for details
     // solidResponse.url - value of the Location header
     // solidResponse.acl - url of acl resource
     // solidResponse.meta - url of meta resource
@@ -312,7 +312,7 @@ In this example we will create the resource `hello-world` under the newly
 created `blog/` container.
 
 ```javascript
-var Solid = require('solid')
+var solid = require('solid')
 var parentDir = 'https://example.org/blog/'
 var slug = 'hello-world'
 var data = `
@@ -321,7 +321,7 @@ var data = `
     <http://rdfs.org/sioc/ns#content> "Hello world! This is my first post" .
 `
 
-Solid.web.post(parentDir, data, slug).then(
+solid.web.post(parentDir, data, slug).then(
   function(meta) {
     console.log(meta.url) // URL of the newly created resource
   }
@@ -362,10 +362,10 @@ aliased to `Solid.web.update()`) takes three arguments:
 * `toIns` (array) - an array of statements to be inserted, serialized as Turtle.
 
 ```javascript
-var Solid = require('solid')
+var solid = require('solid')
 var toDel = [ oldTtitle ]
 var toIns = [ newTitle ]
-Solid.web.patch(url, toDel, toIns).then(function (meta){
+solid.web.patch(url, toDel, toIns).then(function (meta){
   console.log(meta.xhr.status) // HTTP 200 (OK)
 }).catch(function(err) {
   console.log(err) // error object
@@ -389,11 +389,11 @@ Here is an example where we try to overwrite the existing resource
 `hello-world`, giving it a bogus type - `http://example.org/#Post`.
 
 ```javascript
-var Solid = require('solid')
+var solid = require('solid')
 var url = 'https://example.org/blog/hello-world'
 var data = '<> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/#Post> .'
 
-Solid.web.put(url, data).then(
+solid.web.put(url, data).then(
   function (meta) {
     console.log(meta.xhr.status) // HTTP 200 (OK)
   }
@@ -409,7 +409,7 @@ We can now retrieve the created resource in its raw (unparsed form).
 
 ```javascript
 var url = 'https://example.org/blog/hello-world'
-Solid.web.get(url).then(
+solid.web.get(url).then(
   function(response) {
     console.log('Raw resource: %s', response.raw())
   }
@@ -426,15 +426,15 @@ the function  `Solid.web.getParsedGraph()`.
 This function returns a graph object, which can then be queried.
 
 ```javascript
-var Solid = require('solid')
+var solid = require('solid')
 // $rdf is a global exposed by loading 'rdflib.js'
-Solid.config.parser = 'rdflib'  // 'rdflib' is the default parser
+solid.config.parser = 'rdflib'  // 'rdflib' is the default parser
 var RDF = $rdf.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
 var SIOC = $rdf.Namespace('http://rdfs.org/sioc/ns#')
 
 var url = 'https://example.org/blog/hello-world'
 
-Solid.web.getParsedGraph(url).then(
+solid.web.getParsedGraph(url).then(
   function(graphed) {
     // Print all statements matching resources of type foaf:Post
     console.log(graphed.statementsMatching(undefined, RDF('type'),
@@ -458,10 +458,10 @@ only work for empty containers. For now, app developers should make sure to
 empty a container by recursively calling calling this function on its contents.
 
 ```javascript
-var Solid = require('solid')
+var solid = require('solid')
 var url = 'https://example.org/blog/hello-world'
 
-Solid.web.del(url).then(
+solid.web.del(url).then(
   function(success) {
     console.log(success) // true/false
   }

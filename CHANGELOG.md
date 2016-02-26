@@ -4,6 +4,14 @@
   (see [PR #44](https://github.com/solid/solid.js/pull/44))
 - Fixed preferences semantics -- now part of the `profile.relatedProfiles`,
   and auto-loaded on `getProfile()`
+- Removed option to ignore extended profiles in `getProfile()` (not needed)
+- Now exporting the main methods at the top module level, so that client code
+  doesn't have to go through `Solid.identity` or `Solid.auth`.
+  Non-breaking change -- the old methods will still work.
+  New usage:
+
+  * `Solid.login()` and `Solid.signup()`
+  * `Solid.getProfile()`
 
 ##### Version 0.8.1:
 

@@ -1,7 +1,7 @@
 'use strict'
 
 var test = require('tape')
-var SolidResponse = require('../../lib/solid-response')
+var SolidResponse = require('../../lib/solid/response')
 
 test('empty SolidResponse test', function (t) {
   t.plan(4)
