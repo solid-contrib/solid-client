@@ -378,14 +378,20 @@ module.exports.version = function version () {
 /**
  * Provides a generic wrapper around an RDF Parser library
  * (currently only RDFLib)
+ *  @@ RDFLib is NOT JUST a parser library. It is a quadstore and a serializer library!
  * @module rdf-parser
  */
 var RDFParser = {}
-if (typeof window !== 'undefined') {
-  // Running inside the browser
+if (typeof $rdf !== 'undefined') {
+  RDFParser.rdflib = $rdf // FF extension
+} else if (typeof tabulator !== 'undefined') {
+  RDFParser.rdflib = tabulator.rdf
+} else if (typeof window !== 'undefined') {
+  // Running inside the browser but NOT FF extension
   RDFParser.rdflib = window.$rdf
 } else {
   // in Node.js
+  console.log("RDFParser.rdflib = require('rdflib')")
   RDFParser.rdflib = require('rdflib')
 }
 module.exports = RDFParser
@@ -1435,13 +1441,21 @@ module.exports = SolidWebClient
 
 },{"../config":1,"./graph-util":3,"./solid-response":8,"./vocab":10,"./web-rdflib":11,"./web-util":12,"./xhr":14}],14:[function(require,module,exports){
 'use strict'
+/* global Components */
 /**
  * Provides a generic wrapper around the XMLHttpRequest object, to make it
- * usable both in the browser and in Node.js
+ * usable both in the browser and firefox extension and in Node.js
  * @module xhr
  */
 var XMLHttpRequest
-if (typeof window !== 'undefined' && 'XMLHttpRequest' in window) {
+if (typeof tabulator !== 'undefined' && tabulator.isExtension) {
+  // Running inside the Tabulator Firefox extension
+  // Cannot use XMLHttpRequest natively, must request it through SDK
+  XMLHttpRequest = Components
+    .classes['@mozilla.org/xmlextras/xmlhttprequest;1']
+    .createInstance()
+    .QueryInterface(Components.interfaces.nsIXMLHttpRequest)
+} else if (typeof window !== 'undefined' && 'XMLHttpRequest' in window) {
   // Running inside the browser
   XMLHttpRequest = window.XMLHttpRequest
 } else {
