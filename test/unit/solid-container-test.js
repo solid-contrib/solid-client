@@ -22,6 +22,7 @@ function sampleResponse () {
 
 test('SolidContainer empty container test', function (t) {
   let container = new SolidContainer()
+  t.ok(container.isEmpty(), 'Empty container - isEmpty() true')
   t.notOk(container.uri, 'Empty container - null uri')
   t.notOk(container.parsedGraph, 'Empty container - null parsedGraph')
   t.deepEqual(container.contentsUris, [],
@@ -36,6 +37,7 @@ test('SolidContainer empty container test', function (t) {
 test('SolidContainer from parsed response test', function (t) {
   let response = sampleResponse()
   let container = new SolidContainer('/settings/', response)
+  t.notOk(container.isEmpty(), 'Container with items - isEmpty() false')
   t.equal(container.response, response)
   // Check that the 'short name' is set
   t.equal(container.name, 'settings')
@@ -88,5 +90,10 @@ test('SolidContainer from parsed response test', function (t) {
   ]
   t.deepEqual(testResource.types.sort(), expectedTypes)
   t.equal(testResource.name, 'privateTypeIndex.ttl')
+
+  let findResults =
+    container.findByType('http://www.w3.org/ns/solid/terms#PrivateTypeIndex')
+  t.equal(findResults[0].name, 'privateTypeIndex.ttl')
+
   t.end()
 })
