@@ -1,3 +1,7 @@
+##### Version 0.9.1:
+
+- Misc bug fixes for loading extended profile logic (issues PR #54 and PR #55)
+
 ##### Version 0.9.0:
 
 - Added convenience methods to load and query the Type Registry Index resources
