@@ -81,23 +81,39 @@ test('SolidProfile storage test', function (t) {
   t.end()
 })
 
+test('SolidProfile extended profile test', function (t) {
+  let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
+  let expectedStorageLinks = ['https://localhost:8443/']
+  t.deepEqual(profile.storage(), expectedStorageLinks)
+  t.end()
+})
+
+function getPrefsGraph (urlPrefs) {
+  let rawPrefsSource = require('../resources/profile-prefs')
+  let graphPrefs = parseGraph(urlPrefs, rawPrefsSource, 'text/turtle')
+  return graphPrefs
+}
+
 test('SolidProfile type registry indexes test', function (t) {
   // Load the initial parsed profile graph
   // The public profile has the link to publicTypeIndex.ttl
   let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
+  // Test that the parsed profile graph is loaded, and contains the name
+  let name = profile.parsedGraph
+    .any(rdf.sym(profile.webId), rdf.sym(Vocab.FOAF.name)).value
+  t.equal(name, 'Alice')
+
   // Also load and parse the Preferences resource
   // This is where the link to privateTypeIndex.ttl comes from
   let urlPrefs = 'https://localhost:8443/settings/prefs.ttl'
-  let rawPrefsSource = require('../resources/profile-prefs')
-  let graphPrefs = parseGraph(urlPrefs, rawPrefsSource, 'text/turtle')
+  let graphPrefs = getPrefsGraph(urlPrefs)
   profile.appendFromGraph(graphPrefs, urlPrefs)
+  // profile is an Extended Profile at this point
 
-  let expectedLinks =
-    [
-      'https://localhost:8443/settings/privateTypeIndex.ttl',
-      'https://localhost:8443/settings/publicTypeIndex.ttl'
-    ]
-  t.deepEqual(profile.typeIndexes().sort(), expectedLinks)
+  // Make sure the original parsed graph is not overwritten at this point
+  name = profile.parsedGraph
+    .any(rdf.sym(profile.webId), rdf.sym(Vocab.FOAF.name)).value
+  t.equal(name, 'Alice')
   t.end()
 })
 
