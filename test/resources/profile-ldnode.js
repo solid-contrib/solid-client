@@ -21,6 +21,7 @@ pro:card a foaf:PersonalProfileDocument;
 
 <#me>
     a    foaf:Person;
+    foaf:name "Alice";
     owl:sameAs </settings/privateProfile2.ttl>;
     cert:key
        <#key-1455289666916>;
