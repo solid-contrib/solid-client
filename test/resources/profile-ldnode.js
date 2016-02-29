@@ -27,6 +27,9 @@ pro:card a foaf:PersonalProfileDocument;
        <#key-1455289666916>;
     sp:preferencesFile
        </settings/prefs.ttl>;
+    # Add a duplicate Preferences link, to test client side de-duplication
+    sp:preferencesFile
+       </settings/prefs.ttl>;
     sp:storage
        loc:;
     terms:typeIndex
