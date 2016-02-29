@@ -12,6 +12,12 @@ var parsedProfileGraph = parseGraph(sampleProfileUrl,
 var Vocab = require('../../lib/vocab')
 var rdf = require('../../lib/util/rdf-parser').rdflib
 
+function getPrefsGraph (urlPrefs) {
+  let rawPrefsSource = require('../resources/profile-prefs')
+  let graphPrefs = parseGraph(urlPrefs, rawPrefsSource, 'text/turtle')
+  return graphPrefs
+}
+
 test('SolidProfile empty profile test', function (t) {
   let profile = new SolidProfile()
   t.notOk(profile.webId, 'Empty profile should not have webId set')
@@ -87,12 +93,6 @@ test('SolidProfile extended profile test', function (t) {
   t.deepEqual(profile.storage(), expectedStorageLinks)
   t.end()
 })
-
-function getPrefsGraph (urlPrefs) {
-  let rawPrefsSource = require('../resources/profile-prefs')
-  let graphPrefs = parseGraph(urlPrefs, rawPrefsSource, 'text/turtle')
-  return graphPrefs
-}
 
 test('SolidProfile type registry indexes test', function (t) {
   // Load the initial parsed profile graph
