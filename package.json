@@ -1,6 +1,6 @@
 {
   "name": "solid",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Common library for writing Solid applications",
   "main": "./index.js",
   "scripts": {
