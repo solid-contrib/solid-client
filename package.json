@@ -6,8 +6,8 @@
   "scripts": {
     "build-browserified": "browserify -r ./index.js:solid --exclude 'xhr2' --exclude 'rdflib' > dist/solid.js",
     "build-minified": "browserify -r ./index.js:solid --exclude 'xhr2' --exclude 'rdflib' -d -p [minifyify --no-map] > dist/solid.min.js",
-    "build": "npm run clean && npm run standard && npm run build-browserified && npm run build-minified",
-    "clean": "rm -rf dist/*",
+    "build": "npm run clean && mkdir -p dist && npm run standard && npm run build-browserified && npm run build-minified",
+    "clean": "rm -rf dist/",
     "standard": "standard lib/*",
     "tape": "tape test/unit/*.js",
     "test": "npm run standard && npm run tape",
