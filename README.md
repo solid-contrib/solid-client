@@ -185,8 +185,9 @@ Now, both private and public type indexes are loaded, and you can look up
 where the user keeps various types.
 
 ```javascript
+var vocab = solid.vocab
 var bookLocations =
-  profile.typeRegistryForClass(rdf.sym(Vocab.VCARD.AddressBook))
+  profile.typeRegistryForClass(vocab.vcard('AddressBook'))
 console.log(bookLocations)
 /*
 {

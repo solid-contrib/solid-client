@@ -9,7 +9,7 @@ var sampleProfileUrl = 'https://localhost:8443/profile/card'
 var parsedProfileGraph = parseGraph(sampleProfileUrl,
   rawProfileSource, 'text/turtle')
 
-var Vocab = require('../../lib/vocab')
+var vocab = require('../../lib/vocab')
 var rdf = require('../../lib/util/rdf-parser').rdflib
 
 function getPrefsGraph (urlPrefs) {
@@ -100,7 +100,7 @@ test('SolidProfile type registry indexes test', function (t) {
   let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
   // Test that the parsed profile graph is loaded, and contains the name
   let name = profile.parsedGraph
-    .any(rdf.sym(profile.webId), rdf.sym(Vocab.FOAF.name)).value
+    .any(rdf.sym(profile.webId), vocab.foaf('name')).value
   t.equal(name, 'Alice')
 
   // Also load and parse the Preferences resource
@@ -112,7 +112,7 @@ test('SolidProfile type registry indexes test', function (t) {
 
   // Make sure the original parsed graph is not overwritten at this point
   name = profile.parsedGraph
-    .any(rdf.sym(profile.webId), rdf.sym(Vocab.FOAF.name)).value
+    .any(rdf.sym(profile.webId), vocab.foaf('name')).value
   t.equal(name, 'Alice')
   t.end()
 })
@@ -133,13 +133,13 @@ test('SolidProfile addTypeRegistry() test', function (t) {
 
   // Look up the address book (loaded from public registry)
   var result =
-    profile.typeRegistryForClass(rdf.sym(Vocab.VCARD.AddressBook))
+    profile.typeRegistryForClass(vocab.vcard('AddressBook'))
   t.deepEqual(result.private, [])  // no private registry matches
   t.equal(result.public.length, 1)  // one public registry match
 
   // Look up the SIOC posts (loaded from private registry)
   result =
-    profile.typeRegistryForClass(rdf.sym('http://rdfs.org/sioc/ns#Post'))
+    profile.typeRegistryForClass(vocab.sioc('Post'))
   t.deepEqual(result.public, [])  // no public registry matches
   t.equal(result.private.length, 1)  // one public registry match
   t.end()
