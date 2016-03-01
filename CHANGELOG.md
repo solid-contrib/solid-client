@@ -1,3 +1,10 @@
+##### Version 0.10.0:
+
+- (**possibly breaking change** (if you were using the Vocab object))
+  Switch to `npm-ns` based Namespace object for
+  `lib/vocab.js`. Now usage is: `vocab.foaf('name')` instead of
+  `rdf.sym(Vocab.FOAF.name)`.
+
 ##### Version 0.9.1:
 
 - Misc bug fixes for loading extended profile logic (issues PR #54 and PR #55)

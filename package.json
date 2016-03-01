@@ -1,6 +1,6 @@
 {
   "name": "solid",
-  "version": "0.9.1",
+  "version": "0.10.0",
   "description": "Common library for writing Solid applications",
   "main": "./index.js",
   "scripts": {
@@ -33,6 +33,7 @@
   },
   "homepage": "https://github.com/solid/solid.js",
   "dependencies": {
+    "rdf-ns": "0.0.2",
     "rdflib": "^0.3.2",
     "xhr2": "^0.1.3"
   },
