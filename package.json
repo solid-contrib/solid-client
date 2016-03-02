@@ -34,7 +34,7 @@
   "homepage": "https://github.com/solid/solid.js",
   "dependencies": {
     "rdf-ns": "0.0.2",
-    "rdflib": "^0.3.2",
+    "rdflib": "^0.4.0",
     "xhr2": "^0.1.3"
   },
   "devDependencies": {
