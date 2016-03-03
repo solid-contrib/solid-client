@@ -20,6 +20,7 @@ function getPrefsGraph (urlPrefs) {
 
 test('SolidProfile empty profile test', function (t) {
   let profile = new SolidProfile()
+  t.notOk(profile.isLoaded, 'Empty profile - isLoaded should be false')
   t.notOk(profile.webId, 'Empty profile should not have webId set')
   t.notOk(profile.response, 'Empty profile - no response object')
   t.notOk(profile.inbox.uri || profile.inbox.graph, 'Empty profile - no inbox')
