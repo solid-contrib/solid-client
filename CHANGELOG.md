@@ -1,3 +1,25 @@
+##### Version 0.11.0:
+
+- (**breaking change**) Changed Preferences semantics -- a profile is allowed
+  only one Preferences object. Removed `profile.preferences()` helper method.
+  Usage is now: `profile.preferences.uri` (string uri) and
+  `profile.preferences.graph` (parsed preferences graph, once profile is loaded)
+- (**breaking change**) Removed `profile.inbox()` helper method.
+  Usage is now: `profile.inbox.uri` (string uri) and
+  `profile.inbox.graph` (parsed Inbox graph, once it's loaded). Note:
+  the Inbox is not automatically loaded and parsed on `getProfile()`.
+- (**breaking change**) Changed `profile.typeIndexPublic` and
+  `profile.typeIndexPrivate` semantics -- they are each now write-once (like the
+  preferences and inbox), instead of a list. Usage is now:
+  `profile.typeIndexPrivate.uri` and `.graph`, and
+  `profile.typeIndexPublic.uri` and `.graph`.
+- (**breaking change**) Removed `profile.typeIndexes()` method, `typeIndexes` is
+  now just an object property. New usage: `profile.typeIndexes`
+- (**breaking change**) Removed `profile.storage()` method, root storage is now
+  just an object property. New usage: `profile.storage`
+- Added `profile.hasStorage()` convenience method -- returns true if the profile
+  has a link to root storage.
+
 ##### Version 0.10.0:
 
 - (**possibly breaking change** (if you were using the Vocab object))
