@@ -17,7 +17,7 @@ Solid.js is currently intended for client-side use only (inside a web browser):
 Example `index.html`:
 
 ```html
-<script src="https://linkeddata.github.io/rdflib.js/dist/rdflib-0.5.0.min.js"></script>
+<script src="https://linkeddata.github.io/rdflib.js/archive/rdflib-0.5.0.min.js"></script>
 <script src="https://solid.github.io/solid.js/dist/solid-0.11.0.js"></script>
 <script>
   // $rdf is exported as a global when you load RDFLib, above
