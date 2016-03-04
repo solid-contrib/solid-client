@@ -86,6 +86,22 @@
             <div id="inboxLink"></div>
           </div>
         </div>
+        <div class="row" style="margin-top: 1em;">
+          <div class="col-md-2">
+            <label>Private Type Index Link:</label>
+          </div>
+          <div class="col-md-10">
+            <div id="privateTypeIndexLink"></div>
+          </div>
+        </div>
+        <div class="row" style="margin-top: 1em;">
+          <div class="col-md-2">
+            <label>Public Type Index Link:</label>
+          </div>
+          <div class="col-md-10">
+            <div id="publicTypeIndexLink"></div>
+          </div>
+        </div>
         <div class="row">
           <div class="col-md-12">
             <label>Profile Raw Contents (500 chars):</label>
@@ -150,11 +166,15 @@
         document.getElementById('parsedProfileWebId').textContent =
           profile.webId
         document.getElementById('storageLinks').innerHTML =
-          profile.storage().join('<br />')
-        document.getElementById('preferencesLinks').innerHTML =
-          profile.preferences().join('<br />')
+          profile.storage.join('<br />')
+        document.getElementById('preferencesLinks').textContent =
+          profile.preferences.uri
         document.getElementById('inboxLink').textContent =
-          profile.inbox()
+          profile.inbox.uri
+        document.getElementById('privateTypeIndexLink').textContent =
+          profile.typeIndexPrivate.uri
+        document.getElementById('publicTypeIndexLink').textContent =
+          profile.typeIndexPublic.uri
         document.getElementById('profileContents').textContent =
           profile.response.raw().slice(0,500) + '\n...'
       }
