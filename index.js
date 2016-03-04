@@ -42,6 +42,7 @@ https://github.com/solid/solid
 var Solid = {
   auth: require('./lib/auth'),
   config: require('./config'),
+  currentUser: require('./lib/auth').currentUser,
   getProfile: require('./lib/identity').getProfile,
   identity: require('./lib/identity'),
   login: require('./lib/auth').login,
