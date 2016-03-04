@@ -65,15 +65,10 @@ This runs the [Tape](https://github.com/substack/tape) unit test suite.
 
 ## Logging In and User Profiles
 
-Before doing any sort of [Web operations](#web-operations) on Solid resources,
-your app will likely need to authenticate a user and load their profile,
-so let's start with those sections.
-
-See also:
-
-* [Solid Spec](https://github.com/solid/solid-spec)
-* [WebID](http://www.w3.org/2005/Incubator/webid/spec/identity)
-* [User header](https://github.com/solid/solid-spec#finding-out-the-identity-currently-used)
+Before doing any sort of [reading or
+writing](https://github.com/solid/solid-spec#reading-and-writing-resources) of
+Solid resources, your app will likely need to authenticate a user and load their
+profile, so let's start with those sections.
 
 ### Authentication
 
@@ -245,11 +240,11 @@ considered useful information. For instance, clients can use the
 not.
 
 Here, for example, we can find out where the corresponding ACL resource is for
-our new blog post `hellow-world`.
+our new blog post `hello-world`.
 
 ```javascript
 var solid = require('solid')
-var url = 'https://example.org/blog/hellow-world'
+var url = 'https://example.org/blog/hello-world'
 solid.web.head(url).then(
   function(solidResponse) {
     console.log(solidResponse.acl) // the ACL uri
@@ -269,17 +264,17 @@ solid.web.head(url).then(
 The `SolidResponse` object returned by most `solid.web` calls, including
 `head()`, contains the following properties:
 
-* `url` - the URL of the resource // https://example.org/blog/hellow-world
-* `acl` - the URL of the corresponding acl resource  //
-  `https://example.org/blog/hellow-world.acl`
-* `meta` - the URL of the corresponding meta resource //
-  `https://example.org/blog/hellow-world.meta`
+* `url` - the URL of the resource // https://example.org/blog/hello-world
+* `acl` - the URL of the corresponding .acl resource  //
+  `https://example.org/blog/hello-world.acl`
+* `meta` - the URL of the corresponding .meta resource //
+  `https://example.org/blog/hello-world.meta`
 * `type` - LDP type for the resource, if applicable. For example:
   `http://www.w3.org/ns/ldp#Resource`
 * `user` - the WebID of the authenticated user (if authenticated) //
   `https://user.example.org/profile#me`
 * `websocket` - the URI of the corresponding websocket instance //
-  `wss://example.org/blog/hellow-world`
+  `wss://example.org/blog/hello-world`
 * `method` - the HTTP verb (`get`, `put`, etc) of the original request that
   resulted in this response.
 * `xhr` - the raw XMLHttpRequest object (e.g. xhr.status)
@@ -574,9 +569,3 @@ solid.web.del(url).then(
   }
 )
 ```
-
-### See also
-
-[Linked Data Platform](http://www.w3.org/TR/ldp/) specification.
-
-[Solid](https://github.com/solid/solid-spec) specification.
