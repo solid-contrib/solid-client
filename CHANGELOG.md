@@ -1,3 +1,8 @@
+##### Version 0.11.1:
+
+- Add a convenience method `solid.currentUser()`. See the README
+  [Authentication section](README.md#authentication).
+
 ##### Version 0.11.0:
 
 - (**breaking change**) Changed Preferences semantics -- a profile is allowed
