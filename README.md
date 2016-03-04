@@ -18,7 +18,7 @@ Example `index.html`:
 
 ```html
 <script src="https://linkeddata.github.io/rdflib.js/archive/rdflib-0.5.0.min.js"></script>
-<script src="https://solid.github.io/solid.js/dist/solid-0.11.0.js"></script>
+<script src="https://solid.github.io/solid.js/dist/solid-0.11.1.js"></script>
 <script>
   // $rdf is exported as a global when you load RDFLib, above
   var solid = require('solid')
@@ -26,6 +26,10 @@ Example `index.html`:
   console.log('solid.js version: ' + solid.meta.version())
 </script>
 ```
+
+Take a look at the **[Solid.js Demo
+Page](https://solid.github.io/solid.js/demo/)** (source located in
+`demo/index.html`) for more usage examples.
 
 ## Tutorials
 
