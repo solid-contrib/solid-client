@@ -70,26 +70,52 @@ See also:
 * [WebID](http://www.w3.org/2005/Incubator/webid/spec/identity)
 * [User header](https://github.com/solid/solid-spec#finding-out-the-identity-currently-used)
 
-### Authentication (Current User)
+### Authentication
 
-Solid currently uses WebID+TLS for authentication, which relies on a web
-browser's built-in key store to manage certificates and prompt the user to
-select the correct certificate when accessing a server. Most of the
-authentication process takes place before a web page gets fully loaded and
-the javascript code has had a chance to run.
+Solid currently uses [WebID-TLS](https://github.com/solid/solid-spec#webid-tls)
+for authentication, which relies on a web browser's built-in key store to manage
+certificates and prompt the user to select the correct certificate when
+accessing a server.
 
-How does an app discover if there is an already authenticated user that is
-accessing it?
-
-Applications have access to the a Solid-specific HTTP header called
-`User:`. Solid servers commonly include this header in HTTP responses, where it
-contains the WebID of the authenticated user. An empty header usually means
+Solid servers must always return a Solid-specific HTTP header called `User`,
+which contains the [WebID](https://github.com/solid/solid-spec#identity) that
+the user used to access this particular server. An empty header usually means
 that the user is not authenticated.
 
-Both Login and Signup functions return the user's WebID. Sometimes users don't
-have a WebID account, and in that case they need to sign up for one. The signup
-process also results in getting the user's WebID. If the operation is successful
-and a WebID is returned, then the user is considered to be authenticated.
+#### Detecting the Current Logged-in User
+
+Most of the WebID-TLS authentication process takes place before a web
+page gets fully loaded and the javascript code has had a chance to run.
+Since client-side Javascript code does *not* have access to most HTTP headers
+(including the `User` header) of the page on which it runs, how does an app
+discover if there is an already authenticated user that is accessing it?
+
+The current best practice answer is -- the app should do an Ajax/XHR HEAD
+request to the relevant resource:
+
+1. either to the *current page* if it's a standalone app, or
+2. to the requested resource (if it's an app that's acting as a viewer or
+  editor, and requires a resource URI as a parameter)
+
+For the first case (standalone apps), Solid.js provides a convenience
+`solid.currentUser()` method (which does a HEAD request to the current page in
+the background). Usage:
+
+```js
+solid.currentUser()
+  .then(function (currentWebId) {
+    if (currentWebId) {
+      console.log('Current WebID: %s', currentWebId)
+    } else {
+      console.log('You are not logged in')
+    }
+  })
+```
+
+For the second case (apps that are wrapping a resource as viewers or editors),
+client apps can just use a `solid.login(targetUrl)` function to return the
+current user's WebID. And if users are unable to log in, prompt the user
+to create an account with `solid.signup()`.
 
 #### Login example
 
