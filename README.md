@@ -2,7 +2,7 @@
 [![](https://img.shields.io/badge/project-Solid-7C4DFF.svg?style=flat-square)](https://github.com/solid/solid)
 [![Build Status](https://travis-ci.org/solid/solid.js.svg?branch=master)](https://travis-ci.org/solid/solid.js)
 
-Javascript library for writing [Solid](https://github.com/solid/solid-spec)
+Javascript library for writing [Solid](https://github.com/solid/solid)
 applications. (See **[Changelog](CHANGELOG.md)** for version history.)
 
 ## Usage
@@ -35,6 +35,7 @@ Page](https://solid.github.io/solid.js/demo/)** (source located in
 
 If you would like to learn how to build Solid apps using Solid.js, please see:
 
+* [solid introduction tutorial](https://github.com/solid/solid-tutorial-intro)
 * [pastebin example tutorial](https://github.com/solid/solid-tutorial-pastebin)
 * [using rdflib.js tutorial](https://github.com/solid/solid-tutorial-rdflib.js)
 
