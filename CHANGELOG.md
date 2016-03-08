@@ -1,3 +1,8 @@
+##### Version 0.12.0:
+
+- Updated the `profile.loadTypeRegistry()` semantics to match the latest
+  Data Discovery / Type Registry proposal.
+
 ##### Version 0.11.1:
 
 - Add a convenience method `solid.currentUser()`. See the README

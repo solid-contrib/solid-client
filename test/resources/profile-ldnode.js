@@ -32,7 +32,7 @@ pro:card a foaf:PersonalProfileDocument;
        </settings/prefs.ttl>;
     sp:storage
        loc:;
-    terms:typeIndex
+    terms:publicTypeIndex
        </settings/publicTypeIndex.ttl>;
     terms:inbox
        inbox:.

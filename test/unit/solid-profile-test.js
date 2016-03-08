@@ -28,8 +28,6 @@ test('SolidProfile empty profile test', function (t) {
     'Empty profile - no preferences')
   t.deepEqual(profile.storage, [],
     'Empty profile - no storage')
-  t.deepEqual(profile.typeIndexes, [],
-    'Empty profile - no type indexes links')
   t.notOk(profile.typeIndexPrivate.uri || profile.typeIndexPrivate.graph,
     'Empty profile - no private type registry index')
   t.notOk(profile.typeIndexPublic.uri || profile.typeIndexPublic.graph,
@@ -92,7 +90,7 @@ test('SolidProfile storage test', function (t) {
   t.end()
 })
 
-test('SolidProfile type registry indexes test', function (t) {
+test('SolidProfile extended profile test', function (t) {
   // Load the initial parsed profile graph
   // The public profile has the link to publicTypeIndex.ttl
   let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
@@ -112,33 +110,5 @@ test('SolidProfile type registry indexes test', function (t) {
   name = profile.parsedGraph
     .any(rdf.sym(profile.webId), vocab.foaf('name')).value
   t.equal(name, 'Alice')
-  t.end()
-})
-
-test('SolidProfile addTypeRegistry() test', function (t) {
-  let urlPub = 'https://localhost:8443/settings/publicTypeIndex.ttl'
-  let rawIndexSourcePub = require('../resources/type-index-public')
-  let graphPubIndex = parseGraph(urlPub, rawIndexSourcePub, 'text/turtle')
-
-  let urlPri = 'https://localhost:8443/settings/privateTypeIndex.ttl'
-  let rawIndexSourcePri = require('../resources/type-index-private')
-  let graphPriIndex = parseGraph(urlPri, rawIndexSourcePri, 'text/turtle')
-
-  let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
-
-  profile.addTypeRegistry(graphPubIndex)
-  profile.addTypeRegistry(graphPriIndex)
-
-  // Look up the address book (loaded from public registry)
-  var result =
-    profile.typeRegistryForClass(vocab.vcard('AddressBook'))
-  t.deepEqual(result.private, [])  // no private registry matches
-  t.equal(result.public.length, 1)  // one public registry match
-
-  // Look up the SIOC posts (loaded from private registry)
-  result =
-    profile.typeRegistryForClass(vocab.sioc('Post'))
-  t.deepEqual(result.public, [])  // no public registry matches
-  t.equal(result.private.length, 1)  // one public registry match
   t.end()
 })
