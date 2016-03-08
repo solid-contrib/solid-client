@@ -39,7 +39,7 @@
       </div> <!-- / Login Test section -->
       <div class="demo-section">
         <h3>Load Profile</h3>
-        <p>Enter the WebID Profile URI (yours or someone else's).</p>
+        <p>Enter a WebID Profile URI (yours or someone else's).</p>
         <div class="row">
           <div class="col-md-12">
             <form>
@@ -109,6 +109,30 @@
           </div>
         </div>
       </div> <!-- / Load Profile Test section -->
+      <div class="demo-section">
+        <h3>Read/Write/Delete</h3>
+        <form>
+        <div class="row">
+          <div class="form-group">
+            <label for="solidResourceURI">Resource URI:</label>
+            <input type="text" class="form-control" id="solidResourceURI"
+              placeholder="https://test.databox.me/resource.ttl">
+          </div>
+          <!-- See the loadOptionsTest() function below -->
+          <button type="button" class="btn btn-primary"
+            id="loadOptions">Load Options</button>
+        </div>
+        <div class="row">
+          <div class="col-md-4">
+            <label>HTTP Status:</label>
+          </div>
+          <div class="col-md-8">
+            <pre id="resourceStatus"></pre>
+          </div>
+        </div>
+        </form>
+
+      </div> <!-- / Solid Read/Write/Delete section -->
     </div><!-- / page's .container -->
     <script>
       // RDFLib is already loaded, exported as a global var $rdf
@@ -135,6 +159,15 @@
               loadProfileTest(profileUri)
             }
           })
+        // Init the Load Options button
+        document.getElementById('loadOptions').addEventListener('click',
+          function() {
+            var solidResourceURI =
+              document.getElementById('solidResourceURI').value
+            if (solidResourceURI) {
+              loadOptionsTest(solidResourceURI)
+            }
+          })
       }
       // Gets called when a user presses the 'Log In' button
       function loginTest (webId) {
@@ -152,8 +185,8 @@
         Solid.identity.getProfile(profileUri, true)
           .then(function (profile) {
             console.log('Fetched profile: %o', profile)
-            console.log('Now loading extended/related profile resources.')
             displayProfile(profile)
+            console.log('Now loading extended/related profile resources.')
             return Solid.identity.loadExtendedProfile(profile)
           })
           .then(function (extendedProfile) {
@@ -177,6 +210,19 @@
           profile.typeIndexPublic.uri
         document.getElementById('profileContents').textContent =
           profile.response.raw().slice(0,500) + '\n...'
+      }
+      // Gets called when user presses 'Load Options' button
+      function loadOptionsTest (uri) {
+        console.log('Fetching OPTIONS for %s', uri)
+        Solid.web.options(uri).then(function (response) {
+          displayResource(response)
+        })
+      }
+      // Updates the status of the solid resource, used by loadOptionsTest() etc
+      function displayResource (solidResponse) {
+        console.log('Options fetched. Response: %o', solidResponse)
+        document.getElementById('resourceStatus').textContent =
+          solidResponse.xhr.status + ' ' + solidResponse.xhr.statusText
       }
     </script>
   </body>
