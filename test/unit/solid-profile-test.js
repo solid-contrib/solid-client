@@ -28,9 +28,9 @@ test('SolidProfile empty profile test', function (t) {
     'Empty profile - no preferences')
   t.deepEqual(profile.storage, [],
     'Empty profile - no storage')
-  t.notOk(profile.typeIndexPrivate.uri || profile.typeIndexPrivate.graph,
+  t.notOk(profile.typeIndexUnlisted.uri || profile.typeIndexUnlisted.graph,
     'Empty profile - no private type registry index')
-  t.notOk(profile.typeIndexPublic.uri || profile.typeIndexPublic.graph,
+  t.notOk(profile.typeIndexListed.uri || profile.typeIndexListed.graph,
     'Empty profile - no public type registry index')
   t.deepEqual(profile.relatedProfiles.sameAs, [],
     'Empty profile - no sameAs')

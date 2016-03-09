@@ -388,9 +388,11 @@ var resource =
 resource.name // -> 'privateTypeIndex.ttl'
 resource.types // ->
 [
-  'http://www.w3.org/ns/ldp#Resource', 'http://www.w3.org/ns/solid/terms#PrivateTypeIndex'
+  'http://www.w3.org/ns/ldp#Resource',
+  'http://www.w3.org/ns/solid/terms#TypeIndex',
+  'http://www.w3.org/ns/solid/terms#UnlistedDocument'
 ]
-resource.isType('http://www.w3.org/ns/solid/terms#PrivateTypeIndex')  // -> true
+resource.isType('http://www.w3.org/ns/solid/terms#TypeIndex')  // -> true
 
 container.findByType('http://www.w3.org/ns/ldp#Resource')  // ->
 [

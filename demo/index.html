@@ -87,12 +87,18 @@
             <div id="inboxLink"></div>
           </div>
         </div>
+        <div class="row">
+          <div class="col-md-12">
+            <label>Profile Raw Contents (500 chars):</label>
+            <pre id="profileContents"></pre>
+          </div>
+        </div>
         <div class="row" style="margin-top: 1em;">
           <div class="col-md-2">
             <label>Private Type Index Link:</label>
           </div>
           <div class="col-md-10">
-            <div id="privateTypeIndexLink"></div>
+            <div id="unlistedTypeIndexLink"></div>
           </div>
         </div>
         <div class="row" style="margin-top: 1em;">
@@ -100,13 +106,15 @@
             <label>Public Type Index Link:</label>
           </div>
           <div class="col-md-10">
-            <div id="publicTypeIndexLink"></div>
+            <div id="listedTypeIndexLink"></div>
           </div>
         </div>
         <div class="row">
           <div class="col-md-12">
-            <label>Profile Raw Contents (500 chars):</label>
-            <pre id="profileContents"></pre>
+            <h5>Type Registry</h5>
+            <button type="button" class="btn btn-primary"
+              id="createRegistry" onclick="createRegistry()">
+                Create Registry</button>
           </div>
         </div>
       </div> <!-- / Load Profile Test section -->
@@ -180,7 +188,6 @@
             document.getElementById('currentWebId').innerHTML = currentWebId
           })
       }
-
       // Gets called when a user presses the 'Log In' button
       function loginTest (webId) {
         console.log('Logging in to %s', webId)
@@ -216,10 +223,10 @@
           profile.preferences.uri
         document.getElementById('inboxLink').textContent =
           profile.inbox.uri
-        document.getElementById('privateTypeIndexLink').textContent =
-          profile.typeIndexPrivate.uri
-        document.getElementById('publicTypeIndexLink').textContent =
-          profile.typeIndexPublic.uri
+        document.getElementById('unlistedTypeIndexLink').textContent =
+          profile.typeIndexUnlisted.uri
+        document.getElementById('listedTypeIndexLink').textContent =
+          profile.typeIndexListed.uri
         document.getElementById('profileContents').textContent =
           profile.response.raw().slice(0,500) + '\n...'
       }

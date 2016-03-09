@@ -12,18 +12,18 @@ var sampleProfileUrl = 'https://localhost:8443/profile/card'
 var parsedProfileGraph = parseGraph(sampleProfileUrl,
   rawProfileSource, 'text/turtle')
 
-test('Solid.typeRegistry isPublicTypeIndex test', function (t) {
+test('Solid.typeRegistry isListedTypeIndex test', function (t) {
   var url = 'https://localhost:8443/settings/publicTypeIndex.ttl'
-  var rawIndexSource = require('../resources/type-index-public')
+  var rawIndexSource = require('../resources/type-index-listed')
   var graph = parseGraph(url, rawIndexSource, 'text/turtle')
   var result = typeRegistry.isListedTypeIndex(graph)
   t.ok(result)
   t.end()
 })
 
-test('Solid.typeRegistry isPrivateTypeIndex test', function (t) {
+test('Solid.typeRegistry isUnlistedTypeIndex test', function (t) {
   var url = 'https://localhost:8443/settings/privateTypeIndex.ttl'
-  var rawIndexSource = require('../resources/type-index-private')
+  var rawIndexSource = require('../resources/type-index-unlisted')
   var graph = parseGraph(url, rawIndexSource, 'text/turtle')
   var result = typeRegistry.isUnlistedTypeIndex(graph)
   t.ok(result)
@@ -39,30 +39,31 @@ test('registerType - throws error for invalid arguments', function (t) {
 })
 
 test('SolidProfile addTypeRegistry() test', function (t) {
-  let urlPub = 'https://localhost:8443/settings/publicTypeIndex.ttl'
-  let rawIndexSourcePub = require('../resources/type-index-public')
-  let graphPubIndex = parseGraph(urlPub, rawIndexSourcePub, 'text/turtle')
+  let urlListed = 'https://localhost:8443/settings/publicTypeIndex.ttl'
+  let rawIndexSourceListed = require('../resources/type-index-listed')
+  let graphListedIndex = parseGraph(urlListed, rawIndexSourceListed,
+      'text/turtle')
 
-  let urlPri = 'https://localhost:8443/settings/privateTypeIndex.ttl'
-  let rawIndexSourcePri = require('../resources/type-index-private')
-  let graphPriIndex = parseGraph(urlPri, rawIndexSourcePri, 'text/turtle')
+  let urlUnlisted = 'https://localhost:8443/settings/privateTypeIndex.ttl'
+  let rawIndexSourceUnlisted = require('../resources/type-index-unlisted')
+  let graphUnlistedIndex = parseGraph(urlUnlisted, rawIndexSourceUnlisted,
+    'text/turtle')
 
   let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
 
-  profile.addTypeRegistry(graphPubIndex)
-  profile.addTypeRegistry(graphPriIndex)
+  profile.addTypeRegistry(graphListedIndex)
+  profile.addTypeRegistry(graphUnlistedIndex)
 
   // Look up the address book (loaded from public registry)
   var result =
     profile.typeRegistryForClass(vocab.vcard('AddressBook'))
-  console.log(result.public[0].toNT())
-  t.deepEqual(result.private, [])  // no private registry matches
-  t.equal(result.public.length, 1)  // one public registry match
+  t.deepEqual(result.unlisted, [])  // no unlisted registry matches
+  t.equal(result.listed.length, 1)  // one listed registry match
 
-  // Look up the SIOC posts (loaded from private registry)
+  // Look up the SIOC posts (loaded from the unlisted registry)
   result =
     profile.typeRegistryForClass(vocab.sioc('Post'))
-  t.deepEqual(result.public, [])  // no public registry matches
-  t.equal(result.private.length, 1)  // one public registry match
+  t.deepEqual(result.listed, [])  // no listed registry matches
+  t.equal(result.unlisted.length, 1)  // one unlisted registry match
   t.end()
 })
