@@ -51,8 +51,9 @@ test('SolidProfile addTypeRegistry() test', function (t) {
 
   let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
 
-  profile.addTypeRegistry(graphListedIndex)
-  profile.addTypeRegistry(graphUnlistedIndex)
+  profile.addTypeRegistry(graphListedIndex, urlListed)
+  profile.addTypeRegistry(graphUnlistedIndex, urlUnlisted)
+  profile.isLoaded = true
 
   // Look up the address book (loaded from public registry)
   var result =
@@ -77,6 +78,11 @@ test('SolidProfile addTypeRegistry() test', function (t) {
   t.equal(registration.locationUri,
     'https://localhost:8443/posts/')
   t.notOk(registration.isListed)
+
+  // var classToRegister = vocab.vcard('Contact')
+  // var location = 'https://localhost:8443/contacts/'
+  // var locationType = 'container'
+  // profile.registerType(classToRegister, location, locationType, 'unlisted')
 
   t.end()
 })
