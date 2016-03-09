@@ -57,13 +57,26 @@ test('SolidProfile addTypeRegistry() test', function (t) {
   // Look up the address book (loaded from public registry)
   var result =
     profile.typeRegistryForClass(vocab.vcard('AddressBook'))
-  t.deepEqual(result.unlisted, [])  // no unlisted registry matches
-  t.equal(result.listed.length, 1)  // one listed registry match
+  t.equal(result.length, 1)  // one listed registry match
+  var registration = result[0]
+  t.ok(registration.uri)
+  t.equal(registration.rdfClass.uri, vocab.vcard('AddressBook').uri)
+  t.equal(registration.locationType, 'instance')
+  t.equal(registration.locationUri,
+    'https://localhost:8443/contacts/addressBook.ttl')
+  t.ok(registration.isListed)
 
   // Look up the SIOC posts (loaded from the unlisted registry)
   result =
     profile.typeRegistryForClass(vocab.sioc('Post'))
-  t.deepEqual(result.listed, [])  // no listed registry matches
-  t.equal(result.unlisted.length, 1)  // one unlisted registry match
+  t.equal(result.length, 1)  // one unlisted registry match
+  registration = result[0]
+  t.ok(registration.uri)
+  t.equal(registration.rdfClass.uri, vocab.sioc('Post').uri)
+  t.equal(registration.locationType, 'container')
+  t.equal(registration.locationUri,
+    'https://localhost:8443/posts/')
+  t.notOk(registration.isListed)
+
   t.end()
 })
