@@ -16,7 +16,7 @@ test('Solid.typeRegistry isPublicTypeIndex test', function (t) {
   var url = 'https://localhost:8443/settings/publicTypeIndex.ttl'
   var rawIndexSource = require('../resources/type-index-public')
   var graph = parseGraph(url, rawIndexSource, 'text/turtle')
-  var result = typeRegistry.isPublicTypeIndex(graph)
+  var result = typeRegistry.isListedTypeIndex(graph)
   t.ok(result)
   t.end()
 })
@@ -25,7 +25,7 @@ test('Solid.typeRegistry isPrivateTypeIndex test', function (t) {
   var url = 'https://localhost:8443/settings/privateTypeIndex.ttl'
   var rawIndexSource = require('../resources/type-index-private')
   var graph = parseGraph(url, rawIndexSource, 'text/turtle')
-  var result = typeRegistry.isPrivateTypeIndex(graph)
+  var result = typeRegistry.isUnlistedTypeIndex(graph)
   t.ok(result)
   t.end()
 })
