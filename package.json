@@ -6,12 +6,13 @@
   "scripts": {
     "build-browserified": "browserify -r ./index.js:solid --exclude 'xhr2' --exclude 'rdflib' > dist/solid.js",
     "build-minified": "browserify -r ./index.js:solid --exclude 'xhr2' --exclude 'rdflib' -d -p [minifyify --no-map] > dist/solid.min.js",
-    "build": "npm run clean && mkdir -p dist && npm run standard && npm run build-browserified && npm run build-minified",
+    "build": "npm run clean && mkdir -p dist/resources && npm run standard && npm run build-browserified && npm run build-minified",
+    "build-qunit-resources": "browserify -r ./test/resources/profile-ldnode.js:test-ldnode-profile --exclude 'xhr2' --exclude 'rdflib' > dist/resources/test-ldnode-profile.js",
     "clean": "rm -rf dist/",
     "standard": "standard lib/*",
     "tape": "tape test/unit/*.js",
     "test": "npm run standard && npm run tape",
-    "qunit": "npm run standard && npm run build-browserified && open test/index.html"
+    "qunit": "npm run standard && npm run build-browserified && open test/integration/index.html"
   },
   "repository": {
     "type": "git",
@@ -35,11 +36,13 @@
   "dependencies": {
     "rdf-ns": "0.0.2",
     "rdflib": "^0.5.0",
+    "shorthash": "0.0.2",
     "xhr2": "^0.1.3"
   },
   "devDependencies": {
     "browserify": "^13.0.0",
     "minifyify": "^7.2.1",
+    "qunit": "^0.9.0",
     "standard": "^5.4.1",
     "tape": "^4.4.0"
   },

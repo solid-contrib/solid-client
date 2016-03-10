@@ -1,3 +1,12 @@
+##### Version 0.12.0:
+
+- Updated the `profile.loadTypeRegistry()` semantics to match the latest
+  Data Discovery / Type Registry proposal.
+- (**breaking change**) Renamed type index related properties and methods to
+  match the proposal -- for example, `typeIndexListed` instead of
+  `typeIndexPublic`.
+- Implemented `profile.registerType()`
+
 ##### Version 0.11.1:
 
 - Add a convenience method `solid.currentUser()`. See the README

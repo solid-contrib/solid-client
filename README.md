@@ -188,9 +188,10 @@ var profile = solid.login()
   })
 ```
 
-The call to `getProfile(url)` loads the full extended profile -- the profile
-document itself, any `sameAs` and `seeAlso` links it finds there, as well
-as the Preferences file.
+The call to `getProfile(url)` loads the full [extended 
+profile](https://github.com/solid/solid-spec/blob/master/solid-webid-profiles.md#extended-profile):
+the profile document itself, any `sameAs` and `seeAlso` links it finds there, 
+as well as the Preferences file.
 
 #### User Type Registry Index
 
@@ -207,20 +208,66 @@ var profile = solid.login()
   })
 ```
 
-Now, both private and public type indexes are loaded, and you can look up
+Now, both listed and unlisted type indexes are loaded, and you can look up
 where the user keeps various types.
 
-```javascript
+```js
 var vocab = solid.vocab
-var bookLocations =
-  profile.typeRegistryForClass(vocab.vcard('AddressBook'))
-console.log(bookLocations)
-/*
-{
-  public: [ array of triples (solid:instance or solid:instanceContainer) ],
-  private: [ array of triples (same) ]
-}
+// .. load profile and load type registry
+
+var addressBookRegistrations = solid.getProfile(webId)
+  .then(function (profile) {
+    return profile.loadTypeRegistry()
+  })
+  .then(function (profile) {
+    return profile.typeRegistryForClass(vocab.vcard('AddressBook'))
+  })
+/* 
+-->
+[
+  an IndexRegistration(
+    locationUri: 'https://localhost:8443/public-contacts/AddressBook.ttl',
+    locationType: 'instance',
+    isListed: true
+  ),
+  an IndexRegistration(
+    locationUri: 'https://localhost:8443/personal-address-books/',
+    locationType: 'container',
+    isListed: false
+  )  
+]
 */
+```
+
+You can then load the resources from the returned locations, as usual.
+
+```js
+addressBookRegistrations.forEach(function (registration) {
+  if (registration.isInstance()) {
+    // load the instance via web.get()
+  } else if (registration.isContainer()) {
+    // this is a container with many address books, use web.list()
+  }
+})
+```
+
+#### Registering Types in the Type Registry
+
+To register an RDF Class with a user's Type Registry (listed or unlisted),
+use `profile.registerType()`:
+
+```js
+var vocab = solid.vocab
+// .. load profile
+
+var classToRegister = vocab.sioc('Post')
+var locationToRegister = 'https://localhost:8443/new-posts-container/'
+profile.registerType(classToRegister, locationToRegister, 'container', 'listed')
+  .then(function (profile) {
+    // Now the type is registered, and the profile's type registry is refreshed
+    // querying the registry now will include the new container
+    profile.typeRegistryForClass(vocab.sioc('Post'))
+  })
 ```
 
 ## Web operations
@@ -388,9 +435,11 @@ var resource =
 resource.name // -> 'privateTypeIndex.ttl'
 resource.types // ->
 [
-  'http://www.w3.org/ns/ldp#Resource', 'http://www.w3.org/ns/solid/terms#PrivateTypeIndex'
+  'http://www.w3.org/ns/ldp#Resource',
+  'http://www.w3.org/ns/solid/terms#TypeIndex',
+  'http://www.w3.org/ns/solid/terms#UnlistedDocument'
 ]
-resource.isType('http://www.w3.org/ns/solid/terms#PrivateTypeIndex')  // -> true
+resource.isType('http://www.w3.org/ns/solid/terms#TypeIndex')  // -> true
 
 container.findByType('http://www.w3.org/ns/ldp#Resource')  // ->
 [
