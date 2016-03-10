@@ -5,6 +5,7 @@
 - (**breaking change**) Renamed type index related properties and methods to
   match the proposal -- for example, `typeIndexListed` instead of
   `typeIndexPublic`.
+- Implemented `profile.registerType()`
 
 ##### Version 0.11.1:
 
