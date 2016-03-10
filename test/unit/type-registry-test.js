@@ -60,7 +60,7 @@ test('SolidProfile addTypeRegistry() test', function (t) {
     profile.typeRegistryForClass(vocab.vcard('AddressBook'))
   t.equal(result.length, 1)  // one listed registry match
   var registration = result[0]
-  t.ok(registration.uri)
+  t.ok(registration.registrationUri)
   t.equal(registration.rdfClass.uri, vocab.vcard('AddressBook').uri)
   t.equal(registration.locationType, 'instance')
   t.equal(registration.locationUri,
@@ -72,7 +72,7 @@ test('SolidProfile addTypeRegistry() test', function (t) {
     profile.typeRegistryForClass(vocab.sioc('Post'))
   t.equal(result.length, 1)  // one unlisted registry match
   registration = result[0]
-  t.ok(registration.uri)
+  t.ok(registration.registrationUri)
   t.equal(registration.rdfClass.uri, vocab.sioc('Post').uri)
   t.equal(registration.locationType, 'container')
   t.equal(registration.locationUri,
