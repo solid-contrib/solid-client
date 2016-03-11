@@ -18,7 +18,7 @@ Example `index.html`:
 
 ```html
 <script src="https://linkeddata.github.io/rdflib.js/archive/rdflib-0.5.0.min.js"></script>
-<script src="https://solid.github.io/solid.js/dist/solid-0.11.1.js"></script>
+<script src="https://solid.github.io/solid.js/dist/solid-0.12.0.min.js"></script>
 <script>
   // $rdf is exported as a global when you load RDFLib, above
   var solid = require('solid')
@@ -188,9 +188,9 @@ var profile = solid.login()
   })
 ```
 
-The call to `getProfile(url)` loads the full [extended 
+The call to `getProfile(url)` loads the full [extended
 profile](https://github.com/solid/solid-spec/blob/master/solid-webid-profiles.md#extended-profile):
-the profile document itself, any `sameAs` and `seeAlso` links it finds there, 
+the profile document itself, any `sameAs` and `seeAlso` links it finds there,
 as well as the Preferences file.
 
 #### User Type Registry Index
@@ -222,7 +222,7 @@ var addressBookRegistrations = solid.getProfile(webId)
   .then(function (profile) {
     return profile.typeRegistryForClass(vocab.vcard('AddressBook'))
   })
-/* 
+/*
 -->
 [
   an IndexRegistration(
