@@ -1,3 +1,7 @@
+##### Version 0.12.1:
+
+- Fixed `web.patch()`-related issue that was blocking `profile.registerType()`
+
 ##### Version 0.12.0:
 
 - Updated the `profile.loadTypeRegistry()` semantics to match the latest
