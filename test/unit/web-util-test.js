@@ -3,6 +3,18 @@
 var test = require('tape')
 var webUtil = require('../../lib/util/web-util')
 
+test('web-util.composePatchQuery() test', function (t) {
+  let toDelLinks = ['triple1', 'triple2', 'triple3']
+  let toAddLinks = ['triple4', 'triple5', 'triple6']
+  let expectedQuery = 'DELETE DATA { triple1 . triple2 . triple3 };\n' +
+    'INSERT DATA { triple4 . triple5 . triple6 };\n'
+  t.equal(
+    webUtil.composePatchQuery(toDelLinks, toAddLinks),
+    expectedQuery
+  )
+  t.end()
+})
+
 test('parse link header test', function (t) {
   t.plan(1)
   let linkStr = '<testResource.ttl.acl>; rel="acl", <testResource.ttl.meta>; rel="describedBy", <http://www.w3.org/ns/ldp#Resource>; rel="type"'
