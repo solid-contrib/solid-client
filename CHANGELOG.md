@@ -1,3 +1,9 @@
+##### Version 0.12.2:
+
+- Make `withCredentials` XHR parameter optional with `web.get()` (and other 
+  web requests). This is set by default, but can be suppressed with options.
+  Usage: `solid.web.get(url, { noCredentials = true })` 
+
 ##### Version 0.12.1:
 
 - Fixed `web.patch()`-related issue that was blocking `profile.registerType()`
