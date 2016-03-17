@@ -2,7 +2,8 @@
 
 - Make `withCredentials` XHR parameter optional with `web.get()` (and other 
   web requests). This is set by default, but can be suppressed with options.
-  Usage: `solid.web.get(url, { noCredentials = true })` 
+  Usage: `solid.web.get(url, { noCredentials = true })`
+- Implement `profile.unregisterType()`
 
 ##### Version 0.12.1:
 

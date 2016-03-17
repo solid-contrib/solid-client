@@ -252,7 +252,7 @@ addressBookRegistrations.forEach(function (registration) {
 })
 ```
 
-#### Registering Types in the Type Registry
+#### Registering (and un-registering) Types in the Type Registry
 
 To register an RDF Class with a user's Type Registry (listed or unlisted),
 use `profile.registerType()`:
@@ -268,6 +268,14 @@ profile.registerType(classToRegister, locationToRegister, 'container', 'listed')
     // Now the type is registered, and the profile's type registry is refreshed
     // querying the registry now will include the new container
     profile.typeRegistryForClass(vocab.sioc('Post'))
+  })
+
+// To remove the same class from registry:
+var classToRemove = vocab.sioc('Post')
+profile.unregisterType(classToRemove, 'listed')
+  .then(function (profile) {
+    // Type is removed
+    profile.typeRegistryForClass(vocab.sioc('Post'))   // --> []
   })
 ```
 
