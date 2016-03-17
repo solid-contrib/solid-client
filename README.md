@@ -18,8 +18,8 @@ Solid.js is currently intended for client-side use only (inside a web browser):
 Example `index.html`:
 
 ```html
-<script src="https://linkeddata.github.io/rdflib.js/archive/rdflib-0.5.0.min.js"></script>
-<script src="https://solid.github.io/solid.js/dist/solid-0.12.1.min.js"></script>
+<script src="https://solid.github.io/releases/rdflib.js/rdflib-0.5.0.min.js"></script>
+<script src="https://solid.github.io/releases/solid.js/solid-0.13.0.min.js"></script>
 <script>
   // $rdf is exported as a global when you load RDFLib, above
   var solid = require('solid')
@@ -263,7 +263,8 @@ var vocab = solid.vocab
 
 var classToRegister = vocab.sioc('Post')
 var locationToRegister = 'https://localhost:8443/new-posts-container/'
-profile.registerType(classToRegister, locationToRegister, 'container', 'listed')
+var isListed = true
+profile.registerType(classToRegister, locationToRegister, 'container', isListed)
   .then(function (profile) {
     // Now the type is registered, and the profile's type registry is refreshed
     // querying the registry now will include the new container
@@ -272,7 +273,7 @@ profile.registerType(classToRegister, locationToRegister, 'container', 'listed')
 
 // To remove the same class from registry:
 var classToRemove = vocab.sioc('Post')
-profile.unregisterType(classToRemove, 'listed')
+profile.unregisterType(classToRemove, isListed)
   .then(function (profile) {
     // Type is removed
     profile.typeRegistryForClass(vocab.sioc('Post'))   // --> []
