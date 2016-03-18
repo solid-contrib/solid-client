@@ -48,7 +48,6 @@ test('SolidProfile addTypeRegistry() test', function (t) {
   let rawIndexSourceUnlisted = require('../resources/type-index-unlisted')
   let graphUnlistedIndex = parseGraph(urlUnlisted, rawIndexSourceUnlisted,
     'text/turtle')
-
   let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
 
   profile.addTypeRegistry(graphListedIndex, urlListed)
@@ -82,7 +81,7 @@ test('SolidProfile addTypeRegistry() test', function (t) {
   // var classToRegister = vocab.vcard('Contact')
   // var location = 'https://localhost:8443/contacts/'
   // var locationType = 'container'
-  // profile.registerType(classToRegister, location, locationType, 'unlisted')
+  // profile.registerType(classToRegister, location, locationType)
 
   t.end()
 })
