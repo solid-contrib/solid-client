@@ -390,7 +390,7 @@ solid.web.post(parentDir, data, slug, isContainer).then(
 
 To list the contents of a Solid container, use `solid.web.list()`.
 This returns a promise that resolves to a `SolidContainer` instance, 
-which will contained various useful properties:
+which will contain various useful properties:
 
 - A short name (`.name`) and absolute URI (`.uri`)
 - A `.parsedGraph` property for further RDF queries
