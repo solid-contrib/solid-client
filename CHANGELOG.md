@@ -1,3 +1,16 @@
+##### Version 0.14.0:
+
+- Merge the `web.list()` functionality into `web.get()`. That is, if the result
+  of a `get()` call is a Container, return an instance of `SolidContainer` 
+  (as if `web.list()` was called instead).
+- Give a Deprecation warning on usage of `.list()`
+- Add an `isContainer()` helper method to `SolidResponse` and `SolidContainer`.
+- Give a Deprecation warning when `web.list()` is used.
+- (**breaking change**) `response.type` is now response `.types` (plural),
+  since Solid/LDP resources can have multiple types (for example, a Container
+  is of type `http://www.w3.org/ns/ldp#Container` and 
+  `http://www.w3.org/ns/ldp#BasicContainer` both).
+
 ##### Version 0.13.0:
 
 - Make `withCredentials` XHR parameter optional with `web.get()` (and other 

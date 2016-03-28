@@ -17,11 +17,14 @@ test('web-util.composePatchQuery() test', function (t) {
 
 test('parse link header test', function (t) {
   t.plan(1)
-  let linkStr = '<testResource.ttl.acl>; rel="acl", <testResource.ttl.meta>; rel="describedBy", <http://www.w3.org/ns/ldp#Resource>; rel="type"'
+  let linkStr = '<testResource.ttl.acl>; rel="acl", <testResource.ttl.meta>; rel="describedBy", <http://www.w3.org/ns/ldp#Resource>; rel="type", <http://www.w3.org/ns/ldp#RDFResource>; rel="type"'
   let expectedParsedLinks = {
-    acl: 'testResource.ttl.acl',
-    describedBy: 'testResource.ttl.meta',
-    type: 'http://www.w3.org/ns/ldp#Resource'
+    acl: [ 'testResource.ttl.acl' ],
+    describedBy: [ 'testResource.ttl.meta' ],
+    type: [
+      'http://www.w3.org/ns/ldp#RDFResource',
+      'http://www.w3.org/ns/ldp#Resource'
+    ]
   }
   let actualParsedLinks = webUtil.parseLinkHeader(linkStr)
 

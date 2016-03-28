@@ -321,13 +321,14 @@ solid.web.head(url).then(
 The `SolidResponse` object returned by most `solid.web` calls, including
 `head()`, contains the following properties:
 
-* `url` - the URL of the resource // https://example.org/blog/hello-world
+* `url` - the URL of the resource // `https://example.org/blog/hello-world`
 * `acl` - the URL of the corresponding .acl resource  //
   `https://example.org/blog/hello-world.acl`
 * `meta` - the URL of the corresponding .meta resource //
   `https://example.org/blog/hello-world.meta`
-* `type` - LDP type for the resource, if applicable. For example:
-  `http://www.w3.org/ns/ldp#Resource`
+* `types` - An array of LDP types for the resource, if applicable. For example:
+    `[ 'http://www.w3.org/ns/ldp#LDPResource', 
+       'http://www.w3.org/ns/ldp#Resource' ]`
 * `user` - the WebID of the authenticated user (if authenticated) //
   `https://user.example.org/profile#me`
 * `websocket` - the URI of the corresponding websocket instance //
@@ -336,6 +337,77 @@ The `SolidResponse` object returned by most `solid.web` calls, including
   resulted in this response.
 * `xhr` - the raw XMLHttpRequest object (e.g. xhr.status)
 
+The response object also has some convenience methods:
+
+* `contentType()` - returns the MIME type of the resource
+* `isContainer()` - determines whether the resource is a Container or a regular
+    resource
+
+### Fetching a resource
+
+Assuming that a resource or a container exists (see 
+[creating resources](#creating-a-resource) and 
+[creating containers](#creating-a-solid-container) below), you can retrieve
+it using `web.get()`:
+
+```js
+solid.web.get(url)
+  .then(function(response) {
+    if (response.isContainer()) {
+      // This is an instance of SolidContainer, see Listing Containers below
+      for (resourceUrl in response.resources) {
+        // iterate over resources
+      }
+      for (subcontainerUrl in response.containers) {
+        // iterate over sub-containers
+      }
+    } else {
+      // Regular resource
+      console.log('Raw resource: %s', response.raw())
+      
+      // You can parse it using RDFLib.js, etc:
+      var parsedGraph = $rdf.graph()
+      $rdf.parse(response.raw(), parsedGraph, response.url, 
+        response.contentType())
+      // parsedGraph is now an instance of $rdf.IndexedFormula
+    }
+  }
+).catch(
+  function(err) {
+    console.log(err) // error object
+    // ...
+  }
+)
+```
+
+#### Fetching a resource using RDFLib.js
+
+Alternatively, we can retrieve it already parsed (here, by `rdflib.js`), using
+the function  `solid.web.getParsedGraph()`.
+This function returns a graph object, which can then be queried.
+
+```javascript
+var solid = require('solid')
+// $rdf is a global exposed by loading 'rdflib.js'
+solid.config.parser = 'rdflib'  // 'rdflib' is the default parser
+var RDF = $rdf.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
+var SIOC = $rdf.Namespace('http://rdfs.org/sioc/ns#')
+
+var url = 'https://example.org/blog/hello-world'
+
+solid.web.getParsedGraph(url).then(
+  function(graphed) {
+    // Print all statements matching resources of type foaf:Post
+    console.log(graphed.statementsMatching(undefined, RDF('type'),
+      SIOC('Post')))
+  }
+).catch(
+  function(err) {
+    console.log(err) // error object
+    // ...
+  }
+)
+```
 
 ### Creating a Solid Container
 
@@ -388,7 +460,7 @@ solid.web.post(parentDir, data, slug, isContainer).then(
 
 ### Listing a Solid Container
 
-To list the contents of a Solid container, use `solid.web.list()`.
+To list the contents of a Solid container, just use `solid.web.get()`.
 This returns a promise that resolves to a `SolidContainer` instance, 
 which will contain various useful properties:
 
@@ -510,13 +582,13 @@ blog post resource:
 // $rdf is a global exposed by loading 'rdflib.js'
 var url = 'https://example.org/blog/hello-world'
 
-var oldTitle = $rdf.st($rdf.sym(url), $rdf.sym('http://purl.org/dc/terms/title'), "First post").toNT()
+var oldTitleTriple = $rdf.st($rdf.sym(url), $rdf.sym('http://purl.org/dc/terms/title'), "First post").toNT()
 
-var newTitle = $rdf.st($rdf.sym(url), $rdf.sym('http://purl.org/dc/terms/title'), "Hello").toNT()
+var newTitleTriple = $rdf.st($rdf.sym(url), $rdf.sym('http://purl.org/dc/terms/title'), "Hello").toNT()
 ```
 
-Now we can actually patch the resource. The `Solid.web.patch()` function (also
-aliased to `Solid.web.update()`) takes three arguments:
+Now we can actually patch the resource. The `solid.web.patch()` function (also
+aliased to `solid.web.update()`) takes three arguments:
 
 * `url` (string) - the URL of the resource to be overwritten.
 * `toDel` (array) - an array of statements to be deleted, serialized as Turtle.
@@ -524,8 +596,8 @@ aliased to `Solid.web.update()`) takes three arguments:
 
 ```javascript
 var solid = require('solid')
-var toDel = [ oldTtitle ]
-var toIns = [ newTitle ]
+var toDel = [ oldTitleTriple ]
+var toIns = [ newTitleTriple ]
 solid.web.patch(url, toDel, toIns).then(function (meta){
   console.log(meta.xhr.status) // HTTP 200 (OK)
 }).catch(function(err) {
@@ -537,7 +609,7 @@ solid.web.patch(url, toDel, toIns).then(function (meta){
 ### Replacing a resource
 
 We can also completely replace (overwrite) existing resources with new content,
-using the client's `Solid.web.put()` function (also aliased to `replace()`). The
+using the client's `solid.web.put()` function (also aliased to `replace()`). The
 function accepts the following parameters:
 
 * `url` (string) - the URL of the resource to be overwritten.
@@ -564,55 +636,10 @@ solid.web.put(url, data).then(
 })
 ```
 
-### Reading a resource
-
-We can now retrieve the created resource in its raw (unparsed form).
-
-```javascript
-var url = 'https://example.org/blog/hello-world'
-solid.web.get(url).then(
-  function(response) {
-    console.log('Raw resource: %s', response.raw())
-  }
-).catch(
-  function(err) {
-    console.log(err) // error object
-    // ...
-  }
-)
-```
-
-Alternatively, we can retrieve it already parsed (here, by `rdflib.js`), using
-the function  `Solid.web.getParsedGraph()`.
-This function returns a graph object, which can then be queried.
-
-```javascript
-var solid = require('solid')
-// $rdf is a global exposed by loading 'rdflib.js'
-solid.config.parser = 'rdflib'  // 'rdflib' is the default parser
-var RDF = $rdf.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
-var SIOC = $rdf.Namespace('http://rdfs.org/sioc/ns#')
-
-var url = 'https://example.org/blog/hello-world'
-
-solid.web.getParsedGraph(url).then(
-  function(graphed) {
-    // Print all statements matching resources of type foaf:Post
-    console.log(graphed.statementsMatching(undefined, RDF('type'),
-      SIOC('Post')))
-  }
-).catch(
-  function(err) {
-    console.log(err) // error object
-    // ...
-  }
-)
-```
-
 ### Deleting a resource
 
 Delete an RDF resource from the Web. For example, we can delete the blog post
-`hello-world` we created earlier, using the `Solid.web.del()` function.
+`hello-world` we created earlier, using the `solid.web.del()` function.
 
 **NOTE:** while this function can also be used to delete containers, it will
 only work for empty containers. For now, app developers should make sure to
