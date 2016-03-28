@@ -389,8 +389,8 @@ solid.web.post(parentDir, data, slug, isContainer).then(
 ### Listing a Solid Container
 
 To list the contents of a Solid container, use `solid.web.list()`.
-This returns a `SolidContainer` instance, which will contained various
-useful properties:
+This returns a promise that resolves to a `SolidContainer` instance, 
+which will contained various useful properties:
 
 - A short name (`.name`) and absolute URI (`.uri`)
 - A `.parsedGraph` property for further RDF queries
@@ -411,8 +411,13 @@ Containers also have several convenience methods:
 
 For example:
 
-```javascript
+```js
 var container = solid.web.list('/settings/')
+                  .then(function (container) {
+                    console.log(container)
+                    // See below
+                  })
+
 // container is an instance of SolidContainer (see lib/solid/container.js)
 container.uri   // -> 'https://localhost:8443/settings/'
 container.name  // -> 'settings'
