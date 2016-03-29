@@ -23,6 +23,7 @@ function sampleResponse () {
 test('SolidContainer empty container test', function (t) {
   let container = new SolidContainer()
   t.ok(container.isEmpty(), 'Empty container - isEmpty() true')
+  t.ok(container.isContainer(), 'Container - isContainer() true')
   t.notOk(container.uri, 'Empty container - null uri')
   t.notOk(container.parsedGraph, 'Empty container - null parsedGraph')
   t.deepEqual(container.contentsUris, [],
