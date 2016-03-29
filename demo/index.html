@@ -143,13 +143,38 @@
           </div>
         </div>
       </div> <!-- / Solid Read/Write/Delete section -->
+      <div class="demo-section">
+        <h3>ACL</h3>
+        <div class="row">
+          <div class="col-md-12">
+            <form>
+              <div class="form-group">
+                <label for="solidACLURI">RDF get Permissions for Resource URI:</label>
+                <input type="text" class="form-control" id="solidACLResourceURI"
+                placeholder="https://test.databox.me/resource.ttl" value="https://ghanemabdo.databox.me/Applications/contacts/vCard_1006.ttl">
+              </div>
+              <!-- See the loadOptionsTest() function below -->
+              <button type="button" class="btn btn-primary"
+              id="loadPermissions">Load Permissions</button>
+            </form>
+          </div>
+        </div>
+        <div class="row" style="margin-top: 1em;">
+          <div class="col-md-3 text-right">
+            <label>Permissions:</label>
+          </div>
+          <div class="col-md-9">
+            <span id="permissionsDisplay"></span>
+          </div>
+        </div>
+      </div> <!-- / Solid Permissions section -->
     </div><!-- / page's .container -->
     <script>
       // RDFLib is already loaded, exported as a global var $rdf
       var solid = require('solid')
       // Configure Solid (optional step)
       // solid.config.proxyUrl = 'https://databox.me/,proxy?uri={uri}'
-      solid.config.proxyUrl = 'https://localhost:8443/proxy?uri={uri}'
+      // solid.config.proxyUrl = 'https://localhost:8443/proxy?uri={uri}'
       solid.config.timeout = 30000
 
       // Calls the init() function when the page loads
@@ -179,6 +204,17 @@
               loadOptionsTest(solidResourceURI)
             }
           })
+
+          // Init the Load Permissions button
+          document.getElementById('loadPermissions').addEventListener('click',
+            function() {
+              var solidResourceURI =
+                document.getElementById('solidACLResourceURI').value
+              if (solidResourceURI) {
+                loadPermissions(solidResourceURI)
+              }
+            })
+
         updateCurrentUser()
       }
       function updateCurrentUser () {
@@ -243,6 +279,21 @@
         console.log('Options fetched. Response: %o', solidResponse)
         document.getElementById('resourceStatus').textContent =
           solidResponse.xhr.status + ' ' + solidResponse.xhr.statusText
+      }
+
+      // Loads the permissions for the given resources
+      function loadPermissions(uri) {
+        console.log("loading permissons for resource %s", uri)
+        solid.permissions.getPermissions(uri)
+          .then(function (permissions) {
+            displayPermissions(permissions)
+          })
+      }
+      // displays the retrieved permissions
+      function displayPermissions(permissons) {
+        console.log('permissions: %o', permissons)
+        document.getElementById('permissionsDisplay').textContent =
+          JSON.stringify(permissions)
       }
     </script>
   </body>
