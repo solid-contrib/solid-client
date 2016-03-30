@@ -10,6 +10,7 @@
   since Solid/LDP resources can have multiple types (for example, a Container
   is of type `http://www.w3.org/ns/ldp#Container` and 
   `http://www.w3.org/ns/ldp#BasicContainer` both).
+- Implemented `web.createContainer()` convenience method.
 
 ##### Version 0.13.0:
 

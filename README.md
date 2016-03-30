@@ -411,38 +411,30 @@ solid.web.getParsedGraph(url).then(
 
 ### Creating a Solid Container
 
-The Solid client offers a function called `solid.web.post()` (also
-aliased to `solid.web.create()`), which is used to create containers. The
+The Solid client offers a function called `solid.web.createContainer()`, 
+which is used to create containers. The
 function accepts the following parameters:
 
 * `parentDir` (string) - the URL of the parent container in which the new
   resource/container will be created.
-* `data` (string) - RDF data serialized as `text/turtle`; can also be an empty
-  string if no data will be sent.
-* `slug` (string) (optional) - the value for the `Slug` header -- i.e. the name
+* `containerName` (string) (optional) - the value for the `Slug` header -- i.e. the name
   of the new resource to be created; this value is optional.
-* `isContainer` (boolean) (optional) - whether the new resource should be an
-  LDP container or a regular LDP resource; defaults to LDP resource if the
-  value is not set; this value is optional.
-* `mime` (string) (optional) - the mime type for this resource; this value is
-  optional and defaults to `text/turtle`. This value is ignored when creating
-  containers.
+* `options` (object) - Optional hashmap of request options
+* `data` (string) - Optional RDF data serialized as `text/turtle`; can also be an empty
+  string if no data will be sent.
 
-For example, a blog application may decide to store posts in a hierarchical
-manner -- i.e. `/blog/hello-world`. Here, `blog` is a container, while
-`hello-world` is a regular resource (file). In the example below we are also
-sending some meta data (semantics) about the container, setting its type to
-`sioc:Blog`.
+In the example below we are also sending some meta data (semantics) about the 
+container, setting its type to `sioc:Blog`.
 
 ```javascript
 // Assumes you've loaded rdflib.js and solid.js, see Dependences above
 var solid = require('solid')
-var parentDir = 'https://example.org/'
-var slug = 'blog'
+var parentUrl = 'https://example.org/'
+var containerName = 'blog'
+var options = {}
 var data = '<#this> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/sioc/ns#Blog> .'
-var isContainer = true
 
-solid.web.post(parentDir, data, slug, isContainer).then(
+solid.web.createContainer(parentUrl, containerName, options, data).then(
   function(solidResponse) {
     console.log(solidResponse)
     // The resulting object has several useful properties.
@@ -453,10 +445,11 @@ solid.web.post(parentDir, data, slug, isContainer).then(
   }
 ).catch(function(err){
   console.log(err) // error object
-  console.log(err.status) // contains the error status
-  console.log(err.xhr) // contains the xhr object
 })
 ```
+
+Note that the `options` and `data` parameters are optional, and you can simply
+do `solid.web.createContainer(url, name)`.
 
 ### Listing a Solid Container
 
@@ -538,8 +531,7 @@ container.findByType('http://www.w3.org/ns/ldp#Resource')  // ->
 
 ### Creating a resource
 
-Creating a regular LDP resource is very similar to creating containers, except
-for the `isContainer` value, which is no longer set.
+Creating a regular LDP resource is done using the `web.post()` method.
 
 In this example we will create the resource `hello-world` under the newly
 created `blog/` container.
