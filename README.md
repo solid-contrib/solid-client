@@ -327,7 +327,7 @@ The `SolidResponse` object returned by most `solid.web` calls, including
 * `meta` - the URL of the corresponding .meta resource //
   `https://example.org/blog/hello-world.meta`
 * `types` - An array of LDP types for the resource, if applicable. For example:
-    `[ 'http://www.w3.org/ns/ldp#LDPResource', 
+    `[ 'http://www.w3.org/ns/ldp#LDPResource',
        'http://www.w3.org/ns/ldp#Resource' ]`
 * `user` - the WebID of the authenticated user (if authenticated) //
   `https://user.example.org/profile#me`
@@ -345,8 +345,8 @@ The response object also has some convenience methods:
 
 ### Fetching a resource
 
-Assuming that a resource or a container exists (see 
-[creating resources](#creating-a-resource) and 
+Assuming that a resource or a container exists (see
+[creating resources](#creating-a-resource) and
 [creating containers](#creating-a-solid-container) below), you can retrieve
 it using `web.get()`:
 
@@ -364,10 +364,10 @@ solid.web.get(url)
     } else {
       // Regular resource
       console.log('Raw resource: %s', response.raw())
-      
+
       // You can parse it using RDFLib.js, etc:
       var parsedGraph = $rdf.graph()
-      $rdf.parse(response.raw(), parsedGraph, response.url, 
+      $rdf.parse(response.raw(), parsedGraph, response.url,
         response.contentType())
       // parsedGraph is now an instance of $rdf.IndexedFormula
     }
@@ -411,7 +411,7 @@ solid.web.getParsedGraph(url).then(
 
 ### Creating a Solid Container
 
-The Solid client offers a function called `solid.web.createContainer()`, 
+The Solid client offers a function called `solid.web.createContainer()`,
 which is used to create containers. The
 function accepts the following parameters:
 
@@ -423,7 +423,7 @@ function accepts the following parameters:
 * `data` (string) - Optional RDF data serialized as `text/turtle`; can also be an empty
   string if no data will be sent.
 
-In the example below we are also sending some meta data (semantics) about the 
+In the example below we are also sending some meta data (semantics) about the
 container, setting its type to `sioc:Blog`.
 
 ```javascript
@@ -454,7 +454,7 @@ do `solid.web.createContainer(url, name)`.
 ### Listing a Solid Container
 
 To list the contents of a Solid container, just use `solid.web.get()`.
-This returns a promise that resolves to a `SolidContainer` instance, 
+This returns a promise that resolves to a `SolidContainer` instance,
 which will contain various useful properties:
 
 - A short name (`.name`) and absolute URI (`.uri`)
@@ -655,7 +655,7 @@ solid.web.del(url).then(
 
 ### Managing Resource Permissions
 
-Add or modify the permissions for a particular resource or container programatically. This basically to enable applications manage the permissions of resources and containers it creates or has access to. There are 3 levels of permissions:
+Add or modify the permissions for a particular resource or container programatically. This basically to enable applications manage the permissions of resources and containers it creates or has access to. Note that only the account owner has the privilege to add/modify the acl resources. There are 3 levels of permissions:
 * `Owner`- WebIDs for agents that indicates the owners of the resource who has full control over it.
 * `User`- Given the WebID of a user, a set of permissions that are assigned to the user.
 * `Everyone`- permissions granted for everyone.
@@ -665,14 +665,122 @@ Every level of the list above could be assigned zero or more permission types. P
 * `PermissionType.Write`- Indicates that the corresponding WebID can Write to the resource.
 * `PermissionType.Append`- Indicates that the corresponding WebID can Append to the resource.
 
-permissions.js provides a set of methods that enable an application carry out the main operations on acls for a resource such as:
+permissions.js provides a set of methods that enable an application to carry out the main operations on permissions for a resource such as:
 
 #### Reading permissions
 
+To obtain the list of agents having access to a resource given its url and the access modes granted for them, permissions.js provides the getPermissions method that returns a javascript object `permissions` that has the keys are access modes 'PermissionType.Read/Write/Append/Owner' and the values are lists of WebIDs of the agents granted this mode. Example:
 
+```javascript
+var solid = require('solid')
+var url = 'https://example.org/blog/hello-world'
+
+solid.getPermissions(url).then(
+  function(permissions) {
+    for (var mode in permissions) {
+        var agents = permissions[mode]
+        console.log(mode)   //Read/Write/Append/Owner
+        for (var i in agents) {
+            var agentWebID = agents[i]
+            console.log(agentWebID) //print a list of agents who have this
+                                    // access mode
+        }
+    }
+  }
+).catch(
+  function(err) {
+    console.log(err) // error object
+    // ...
+  }
+)
+```
 
 #### Setting permissions
 
+It's a common case that the application needs to create resources on user's pod and grant particular access permissions for some agents or for everyone. Every resource has access permissions defined either by a dedicated acl resource or inherited from one of its parents on the chain up to the root. Changing resource's permissions required attaching a dedicated acl reousrce to the target resource. In this case, it's optional to allow the application decide to extend or override the inherited permissions. The user can set permissions for a resource using 'setPermissions' method that takes the following parameters:
+* 'url'- the URI of the resource to obtain the permissions for.
+* 'agents'- a list of WebIDs for agents to set permissions for.
+* 'permissions'- a list of list of permissions. Each list corresponds to one agent from the agents list.
+* 'replaceInherited'- a flag to indicate whether to override or preserve the permissions inherited from parents. This parameter is 'true' by default. If 'false' is passed and if the permissions for this resource is inherited from a parent resource, the existing permissions will be retrieved and merged with the new permissions then the new acl resource will be written.
+setPermissions returns a promise which succeeds with the url of the created acl resource or fails returning the error object.
 
+```javascript
+var solid = require('solid')
+var url = 'https://example.org/blog/hello-world'
+var agents = ['https://user1.example.org/profile#me', 'https://user2.example.org/profile#me']
+var permissions = [[PermissionType.Owner, PermissionType.Write, PermissionType.Read], [PermissionType.Read, PermissionType.Append]]
+var replaceInherited =
+
+solid.setPermissions(url, agents, permissions).then(
+  function(aclUrl) {
+    console.log(aclUrl)
+  }
+).catch(
+  function(err) {
+    console.log(err) // error object
+    // ...
+  }
+)
+```
 
 #### Get the ACL resource URI of a resource
+
+It's important in some cases that the application retrieves the URI of the acl resource corresponding to a resource especially to maintain permissions of containers that accommodate several resources. Passing the URI of a resource to 'getAclResource' method returns a promise handling the URI of the acl resource corresponding to this resource.
+
+```javascript
+var solid = require('solid')
+var url = 'https://example.org/blog/hello-world'
+
+solid.getAclResource(url).then(
+  function(aclUrl) {
+    console.log(aclUrl)    // acl resource URI
+  }
+).catch(
+  function(err) {
+    console.log(err) // error object or status code in case the registered user
+                     //is not authorized to get acl information
+    // ...
+  }
+)
+```
+
+#### Dedicated ACL resource URI of a resource
+
+Each server implementation adopts a naming convention for acl resources. permissions.js provide 'getDedicatedAclResource' method to retrieve the URI of the dedicated acl resource of a resource regardless it exists or not.
+
+```javascript
+var solid = require('solid')
+var url = 'https://example.org/blog/hello-world'
+
+solid.getDedicatedAclResource(url).then(
+  function(aclUrl) {
+    console.log(aclUrl)    // dedicated acl resource URI
+  }
+).catch(
+  function(err) {
+    console.log(err) // error object or status code in case the registered user
+                     //is not authorized to get acl information
+    // ...
+  }
+)
+```
+
+#### Permissions inheritance
+
+Resources that don't have a dedicated acl resource inherits its permissions from the closest parent having a dedicated acl resource. permissions.js provides a convenience method 'isPermissionsInherited' to report whether a resource inherits permissions from one of its parents or it has it's dedicated acl resource which in this case should override any permissions inherited from any of its parents.
+
+```javascript
+var solid = require('solid')
+var url = 'https://example.org/blog/hello-world'
+
+solid.isPermissionsInherited(url).then(
+  function(isInherited) {
+    console.log(isInherited)    // true or false
+  }
+).catch(
+  function(err) {
+    console.log(err) // error object
+    // ...
+  }
+)
+```
