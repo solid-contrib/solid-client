@@ -9,10 +9,9 @@
     <!-- Solid Demo template/stylesheet -->
     <link rel="stylesheet" href="./demo.css">
     <!-- Import RDFLib dependency. Creates a $rdf global variable -->
-    <script src="https://solid.github.io/releases/rdflib.js/rdflib-0.5.0.min.js"></script>
+    <script src="https://solid.github.io/releases/rdflib.js/rdflib-0.6.0.min.js"></script>
     <!-- Import solid.js itself -->
-    <!-- <script src="./solid-0.12.0.js"></script> -->
-    <script src="https://solid.github.io/releases/solid.js/solid-0.13.0.min.js"></script>
+    <script src="https://solid.github.io/releases/solid.js/solid-0.14.1.min.js"></script>
   </head>
   <body>
     <div class="container">
@@ -149,7 +148,7 @@
       var solid = require('solid')
       // Configure Solid (optional step)
       // solid.config.proxyUrl = 'https://databox.me/,proxy?uri={uri}'
-      solid.config.proxyUrl = 'https://localhost:8443/proxy?uri={uri}'
+      // solid.config.proxyUrl = 'https://localhost:8443/proxy?uri={uri}'
       solid.config.timeout = 30000
 
       // Calls the init() function when the page loads
