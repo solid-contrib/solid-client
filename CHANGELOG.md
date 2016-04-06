@@ -1,3 +1,7 @@
+##### Version 0.14.1:
+
+- Add `response.parsedGraph()` convenience method (for use with `web.get()`)
+
 ##### Version 0.14.0:
 
 - Merge the `web.list()` functionality into `web.get()`. That is, if the result
