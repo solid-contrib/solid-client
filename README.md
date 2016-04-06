@@ -391,7 +391,7 @@ solid.web.get(url)
   .then(function(response) {
     var graph = response.parsedGraph()
     // Print all statements matching resources of type foaf:Post
-    console.log(graphed.statementsMatching(undefined, vocab.rdf('type'),
+    console.log(graph.statementsMatching(undefined, vocab.rdf('type'),
       vocab.sioc('Post')))
   })
   .catch(function(err) {
