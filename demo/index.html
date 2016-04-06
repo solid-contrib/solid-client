@@ -11,8 +11,8 @@
     <!-- Import RDFLib dependency. Creates a $rdf global variable -->
     <script src="https://solid.github.io/releases/rdflib.js/rdflib-0.5.0.min.js"></script>
     <!-- Import solid.js itself -->
-    <!-- <script src="./solid-0.12.0.js"></script> -->
-    <script src="https://solid.github.io/releases/solid.js/solid-0.13.0.min.js"></script>
+    <script src="../dist/solid.js"></script>
+    <!--<script src="https://solid.github.io/releases/solid.js/solid-0.13.0.min.js"></script>-->
   </head>
   <body>
     <div class="container">
@@ -149,13 +149,21 @@
           <div class="col-md-12">
             <form>
               <div class="form-group">
-                <label for="solidACLURI">RDF get Permissions for Resource URI:</label>
+                <label for="solidACLURI">Get Permissions for Resource URI:</label>
                 <input type="text" class="form-control" id="solidACLResourceURI"
-                placeholder="https://test.databox.me/resource.ttl" value="https://ghanemabdo.databox.me/Applications/contacts/vCard_1006.ttl">
+                placeholder="https://test.databox.me/resource.ttl" value="https://ghanemabdo.databox.me/Applications/contacts/vCard_1005.ttl">
+                <label for="solidACLWebIDs">Agents' WebIDs (Comma separated):</label>
+                <input type="text" class="form-control" id="solidACLAgents"
+                placeholder="https://ghanemabdo.databox.me/profile/card#me,https://essam.databox.me/profile/card#me,http://xmlns.com/foaf/0.1/Agent" value="https://ghanemabdo.databox.me/profile/card#me,https://essam.databox.me/profile/card#me,http://xmlns.com/foaf/0.1/Agent">
+                <label for="solidACLPermissions">Permissions list for every agent:</label>
+                <input type="text" class="form-control" id="solidACLPermissions"
+                placeholder="Read,Write,Control-Read,Write,Append-Read" value="Read,Write,Control-Read,Write,Append-Read">
               </div>
               <!-- See the loadOptionsTest() function below -->
               <button type="button" class="btn btn-primary"
               id="loadPermissions">Load Permissions</button>
+              <button type="button" class="btn btn-primary"
+              id="writePermissions">Write Permissions</button>
             </form>
           </div>
         </div>
@@ -214,6 +222,37 @@
                 loadPermissions(solidResourceURI)
               }
             })
+
+            // Init the Write Permissions button
+            document.getElementById('writePermissions').addEventListener('click',
+              function() {
+                var solidResourceURI =
+                  document.getElementById('solidACLResourceURI').value
+                  var agents =
+                    document.getElementById('solidACLAgents').value
+                    var permissions =
+                      document.getElementById('solidACLPermissions').value
+                if (solidResourceURI) {
+                    if (agents) {
+                        agents = agents.split(',')
+                        for (var i in agents) {
+                            agents[i] = agents[i].trim()
+                        }
+                    }
+
+                    if (permissions) {
+                        permissions = permissions.split('-')
+                        for (var i in permissions) {
+                            permissions[i] = permissions[i].split(',')
+                            for (var j in permissions[i]) {
+                                permissions[i][j] = permissions[i][j].trim()
+                            }
+                        }
+                    }
+
+                  writePermissions(solidResourceURI, agents, permissions)
+                }
+              })
 
         updateCurrentUser()
       }
@@ -283,15 +322,26 @@
 
       // Loads the permissions for the given resources
       function loadPermissions(uri) {
-        console.log("loading permissons for resource %s", uri)
+        console.log('loading permissons for resource %s', uri)
         solid.permissions.getPermissions(uri)
           .then(function (permissions) {
             displayPermissions(permissions)
           })
       }
+
+      // writes the listed permissions for agents for the given resource
+      function writePermissions(uri, agents, permissions) {
+        console.log('writing permissions for resource %s, agents list %o, permissions %o', uri, agents, permissions)
+        solid.permissions.setPermissions(uri, agents, permissions)
+        .then(function (aclUri) {
+            console.log('created acl resource uri: %s', uri)
+            document.getElementById('permissionsDisplay').textContent = aclUri
+        })
+      }
+
       // displays the retrieved permissions
-      function displayPermissions(permissons) {
-        console.log('permissions: %o', permissons)
+      function displayPermissions(permissions) {
+        console.log('permissions: %o', permissions)
         document.getElementById('permissionsDisplay').textContent =
           JSON.stringify(permissions)
       }
