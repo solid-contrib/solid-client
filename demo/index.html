@@ -200,7 +200,7 @@
       // Gets called when a user presses the 'Load Profile' button
       function loadProfileTest (profileUri) {
         console.log('Loading profile %s', profileUri)
-        solid.identity.getProfile(profileUri, true)
+        solid.identity.getProfile(profileUri)
           .then(function (profile) {
             console.log('Fetched profile: %o', profile)
             console.log('Now loading extended/related profile resources.')
