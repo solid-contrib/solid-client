@@ -3,20 +3,20 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Solid.js Test Page</title>
+    <title>solid.js Test Page</title>
     <!-- Bootstrap CSS and Theme for demo purposes -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
     <!-- Solid Demo template/stylesheet -->
     <link rel="stylesheet" href="./demo.css">
     <!-- Import RDFLib dependency. Creates a $rdf global variable -->
-    <script src="https://linkeddata.github.io/rdflib.js/archive/rdflib-0.5.0.min.js"></script>
-    <!-- Import Solid.js itself -->
-    <script src="https://solid.github.io/solid.js/dist/solid-0.11.0.js"></script>
+    <script src="https://solid.github.io/releases/rdflib.js/rdflib-0.6.0.min.js"></script>
+    <!-- Import solid.js itself -->
+    <script src="https://solid.github.io/releases/solid.js/solid-0.14.1.min.js"></script>
   </head>
   <body>
     <div class="container">
       <div>
-        <h1>Solid.js Demo Page</h1>
+        <h1>solid.js Demo Page</h1>
         <p>Note: Open up your browser's Developer Tools, as the demo makes use
           of <tt>console.log()</tt> events.</p>
       </div>
@@ -25,7 +25,7 @@
           <form>
             <div class="form-group">
               <label>Current User:</label>
-              <span id="currentWebId">none</span>
+              <span id="currentWebId">Detecting current user...</span>
             </div>
             <p>Log in using WebID+TLS:</p>
             <div class="form-group">
@@ -39,7 +39,7 @@
       </div> <!-- / Login Test section -->
       <div class="demo-section">
         <h3>Load Profile</h3>
-        <p>Enter the WebID Profile URI (yours or someone else's).</p>
+        <p>Enter a WebID Profile URI (yours or someone else's).</p>
         <div class="row">
           <div class="col-md-12">
             <form>
@@ -72,10 +72,10 @@
         </div>
         <div class="row" style="margin-top: 1em;">
           <div class="col-md-2">
-            <label>Preferences Links:</label>
+            <label>Preferences Link:</label>
           </div>
           <div class="col-md-10">
-            <div id="preferencesLinks"></div>
+            <div id="preferencesLink"></div>
           </div>
         </div>
         <div class="row" style="margin-top: 1em;">
@@ -86,12 +86,18 @@
             <div id="inboxLink"></div>
           </div>
         </div>
+        <div class="row">
+          <div class="col-md-12">
+            <label>Profile Raw Contents (500 chars):</label>
+            <pre id="profileContents"></pre>
+          </div>
+        </div>
         <div class="row" style="margin-top: 1em;">
           <div class="col-md-2">
             <label>Private Type Index Link:</label>
           </div>
           <div class="col-md-10">
-            <div id="privateTypeIndexLink"></div>
+            <div id="unlistedTypeIndexLink"></div>
           </div>
         </div>
         <div class="row" style="margin-top: 1em;">
@@ -99,23 +105,51 @@
             <label>Public Type Index Link:</label>
           </div>
           <div class="col-md-10">
-            <div id="publicTypeIndexLink"></div>
+            <div id="listedTypeIndexLink"></div>
           </div>
         </div>
         <div class="row">
           <div class="col-md-12">
-            <label>Profile Raw Contents (500 chars):</label>
-            <pre id="profileContents"></pre>
+            <h5>Type Registry</h5>
+            <button type="button" class="btn btn-primary"
+              id="createRegistry" onclick="createRegistry()">
+                Create Registry</button>
           </div>
         </div>
       </div> <!-- / Load Profile Test section -->
+      <div class="demo-section">
+        <h3>Read/Write/Delete</h3>
+        <div class="row">
+          <div class="col-md-12">
+            <form>
+              <div class="form-group">
+                <label for="solidResourceURI">RDF Resource URI:</label>
+                <input type="text" class="form-control" id="solidResourceURI"
+                placeholder="https://test.databox.me/resource.ttl">
+              </div>
+              <!-- See the loadOptionsTest() function below -->
+              <button type="button" class="btn btn-primary"
+              id="loadOptions">Load Options</button>
+            </form>
+          </div>
+        </div>
+        <div class="row" style="margin-top: 1em;">
+          <div class="col-md-3 text-right">
+            <label>HTTP Status:</label>
+          </div>
+          <div class="col-md-9">
+            <span id="resourceStatus"></span>
+          </div>
+        </div>
+      </div> <!-- / Solid Read/Write/Delete section -->
     </div><!-- / page's .container -->
     <script>
       // RDFLib is already loaded, exported as a global var $rdf
-      var Solid = require('solid')
+      var solid = require('solid')
       // Configure Solid (optional step)
-      Solid.config.proxyUrl = 'https://databox.me/,proxy?uri={uri}'
-      Solid.config.timeout = 30000
+      // solid.config.proxyUrl = 'https://databox.me/,proxy?uri={uri}'
+      // solid.config.proxyUrl = 'https://localhost:8443/proxy?uri={uri}'
+      solid.config.timeout = 30000
 
       // Calls the init() function when the page loads
       document.addEventListener('DOMContentLoaded', function () { init() })
@@ -135,11 +169,28 @@
               loadProfileTest(profileUri)
             }
           })
+        // Init the Load Options button
+        document.getElementById('loadOptions').addEventListener('click',
+          function() {
+            var solidResourceURI =
+              document.getElementById('solidResourceURI').value
+            if (solidResourceURI) {
+              loadOptionsTest(solidResourceURI)
+            }
+          })
+        updateCurrentUser()
+      }
+      function updateCurrentUser () {
+        solid.currentUser()
+          .then(function (currentWebId) {
+            currentWebId = currentWebId || 'none'
+            document.getElementById('currentWebId').innerHTML = currentWebId
+          })
       }
       // Gets called when a user presses the 'Log In' button
       function loginTest (webId) {
         console.log('Logging in to %s', webId)
-        Solid.auth.login(webId).then(function (loggedInWebId) {
+        solid.auth.login(webId).then(function (loggedInWebId) {
           console.log('Welcome user: %s', loggedInWebId)
           document.getElementById('currentWebId').innerHTML = loggedInWebId
         }).catch(function (reason) {
@@ -149,12 +200,12 @@
       // Gets called when a user presses the 'Load Profile' button
       function loadProfileTest (profileUri) {
         console.log('Loading profile %s', profileUri)
-        Solid.identity.getProfile(profileUri, true)
+        solid.identity.getProfile(profileUri, true)
           .then(function (profile) {
             console.log('Fetched profile: %o', profile)
             console.log('Now loading extended/related profile resources.')
             displayProfile(profile)
-            return Solid.identity.loadExtendedProfile(profile)
+            return solid.identity.loadExtendedProfile(profile)
           })
           .then(function (extendedProfile) {
             console.log('Loaded extended profile: %o', extendedProfile)
@@ -167,16 +218,30 @@
           profile.webId
         document.getElementById('storageLinks').innerHTML =
           profile.storage.join('<br />')
-        document.getElementById('preferencesLinks').textContent =
+        document.getElementById('preferencesLink').textContent =
           profile.preferences.uri
         document.getElementById('inboxLink').textContent =
           profile.inbox.uri
-        document.getElementById('privateTypeIndexLink').textContent =
-          profile.typeIndexPrivate.uri
-        document.getElementById('publicTypeIndexLink').textContent =
-          profile.typeIndexPublic.uri
+        document.getElementById('unlistedTypeIndexLink').textContent =
+          profile.typeIndexUnlisted.uri
+        document.getElementById('listedTypeIndexLink').textContent =
+          profile.typeIndexListed.uri
         document.getElementById('profileContents').textContent =
           profile.response.raw().slice(0,500) + '\n...'
+      }
+      // Gets called when user presses 'Load Options' button
+      function loadOptionsTest (uri) {
+        console.log('Fetching OPTIONS for %s', uri)
+        solid.web.options(uri)
+          .then(function (response) {
+            displayResource(response)
+          })
+      }
+      // Updates the status of the solid resource, used by loadOptionsTest() etc
+      function displayResource (solidResponse) {
+        console.log('Options fetched. Response: %o', solidResponse)
+        document.getElementById('resourceStatus').textContent =
+          solidResponse.xhr.status + ' ' + solidResponse.xhr.statusText
       }
     </script>
   </body>
