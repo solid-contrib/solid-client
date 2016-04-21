@@ -1,3 +1,8 @@
+##### Version 0.14.2:
+
+- Expand `response.isContainer()` to also count `BasicContainer`
+  link rel type (in addition to `Container`)
+
 ##### Version 0.14.1:
 
 - Add `response.parsedGraph()` convenience method (for use with `web.get()`)
