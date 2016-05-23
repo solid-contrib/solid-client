@@ -649,11 +649,11 @@ solid.web.del(url).then(
 ### Managing Resource Permissions
 
 Add or modify the permissions for a particular resource or container programatically. This basically to enable applications manage the permissions of resources and containers it creates or has access to. Note that only the account owner has the privilege to add/modify the acl resources. There are 3 levels of permissions:
-* `Owner`- WebIDs for agents that indicates the owners of the resource who has full control over it.
+* `Control`- WebIDs for agents that indicates the owners of the resource who has full control over it.
 * `User`- Given the WebID of a user, a set of permissions that are assigned to the user.
 * `Everyone`- permissions granted for everyone.
 Every level of the list above could be assigned zero or more permission types. Permission types could be:
-* `PermissionType.Owner`- Indicates the owner of the resource/container who have full control over it.
+* `PermissionType.Control`- Indicates the user who can edit the acl resource.
 * `PermissionType.Read`- Indicates that the corresponding WebID can Read the resource.
 * `PermissionType.Write`- Indicates that the corresponding WebID can Write to the resource.
 * `PermissionType.Append`- Indicates that the corresponding WebID can Append to the resource.
