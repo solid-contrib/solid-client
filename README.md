@@ -18,8 +18,8 @@ Solid.js is currently intended for client-side use only (inside a web browser):
 Example `index.html`:
 
 ```html
-<script src="https://solid.github.io/releases/rdflib.js/rdflib-0.5.0.min.js"></script>
-<script src="https://solid.github.io/releases/solid.js/solid-0.13.0.min.js"></script>
+<script src="https://solid.github.io/releases/rdflib.js/rdflib-0.6.0.min.js"></script>
+<script src="https://solid.github.io/releases/solid.js/solid-0.14.1.min.js"></script>
 <script>
   // $rdf is exported as a global when you load RDFLib, above
   var solid = require('solid')
@@ -343,7 +343,7 @@ The response object also has some convenience methods:
 * `isContainer()` - determines whether the resource is a Container or a regular
     resource
 
-### Fetching a resource
+### Fetching a Resource
 
 Assuming that a resource or a container exists (see
 [creating resources](#creating-a-resource) and
@@ -366,47 +366,37 @@ solid.web.get(url)
       console.log('Raw resource: %s', response.raw())
 
       // You can parse it using RDFLib.js, etc:
-      var parsedGraph = $rdf.graph()
-      $rdf.parse(response.raw(), parsedGraph, response.url,
-        response.contentType())
-      // parsedGraph is now an instance of $rdf.IndexedFormula
+      var parsedGraph = response.parsedGraph()
     }
-  }
-).catch(
-  function(err) {
-    console.log(err) // error object
+  })
+  .catch(function(err) {
+      console.log(err) // error object
     // ...
-  }
-)
+   })
 ```
 
-#### Fetching a resource using RDFLib.js
+#### Fetching a Parsed Graph
 
-Alternatively, we can retrieve it already parsed (here, by `rdflib.js`), using
-the function  `solid.web.getParsedGraph()`.
-This function returns a graph object, which can then be queried.
+Once a resource is retrieved, we can access it as a parsed graph (here, parsed
+by `rdflib.js`). This graph can then be queried.
 
-```javascript
+```js
 var solid = require('solid')
-// $rdf is a global exposed by loading 'rdflib.js'
 solid.config.parser = 'rdflib'  // 'rdflib' is the default parser
-var RDF = $rdf.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
-var SIOC = $rdf.Namespace('http://rdfs.org/sioc/ns#')
+var vocab = solid.vocab
 
 var url = 'https://example.org/blog/hello-world'
 
-solid.web.getParsedGraph(url).then(
-  function(graphed) {
+solid.web.get(url)
+  .then(function(response) {
+    var graph = response.parsedGraph()
     // Print all statements matching resources of type foaf:Post
-    console.log(graphed.statementsMatching(undefined, RDF('type'),
-      SIOC('Post')))
-  }
-).catch(
-  function(err) {
+    console.log(graph.statementsMatching(undefined, vocab.rdf('type'),
+      vocab.sioc('Post')))
+  })
+  .catch(function(err) {
     console.log(err) // error object
-    // ...
-  }
-)
+  })
 ```
 
 ### Creating a Solid Container
@@ -573,10 +563,13 @@ blog post resource:
 ```javascript
 // $rdf is a global exposed by loading 'rdflib.js'
 var url = 'https://example.org/blog/hello-world'
+var vocab = solid.vocab
 
-var oldTitleTriple = $rdf.st($rdf.sym(url), $rdf.sym('http://purl.org/dc/terms/title'), "First post").toNT()
+var oldTitleTriple = $rdf.st($rdf.sym(url), vocab.dct('title'),
+  $rdf.lit("First post")).toNT()
 
-var newTitleTriple = $rdf.st($rdf.sym(url), $rdf.sym('http://purl.org/dc/terms/title'), "Hello").toNT()
+var newTitleTriple = $rdf.st($rdf.sym(url), vocab.dct('title'),
+  $rdf.lit("Hello")).toNT()
 ```
 
 Now we can actually patch the resource. The `solid.web.patch()` function (also
@@ -656,11 +649,11 @@ solid.web.del(url).then(
 ### Managing Resource Permissions
 
 Add or modify the permissions for a particular resource or container programatically. This basically to enable applications manage the permissions of resources and containers it creates or has access to. Note that only the account owner has the privilege to add/modify the acl resources. There are 3 levels of permissions:
-* `Owner`- WebIDs for agents that indicates the owners of the resource who has full control over it.
+* `Control`- WebIDs for agents that indicates the owners of the resource who has full control over it.
 * `User`- Given the WebID of a user, a set of permissions that are assigned to the user.
 * `Everyone`- permissions granted for everyone.
 Every level of the list above could be assigned zero or more permission types. Permission types could be:
-* `PermissionType.Owner`- Indicates the owner of the resource/container who have full control over it.
+* `PermissionType.Control`- Indicates the user who can edit the acl resource.
 * `PermissionType.Read`- Indicates that the corresponding WebID can Read the resource.
 * `PermissionType.Write`- Indicates that the corresponding WebID can Write to the resource.
 * `PermissionType.Append`- Indicates that the corresponding WebID can Append to the resource.
