@@ -235,6 +235,7 @@
             // Init the Write Permissions button
             document.getElementById('writePermissions').addEventListener('click',
               function() {
+                  var authorizations = []
                 var solidResourceURI =
                   document.getElementById('solidSetACLResourceURI').value
                   var agents =
@@ -252,7 +253,8 @@
                             var singular = isSingular[i].trim() === "true" ? true : false
                             var defaultForNew = inheritance[i].trim() === "true" ? true : false
                             agents[i] = new solid.permissions.agent(agents[i].trim(), singular)
-                            agents[i].isDefaultForNew = defaultForNew
+                            var authorization = new solid.permissions.authorization(agents[i], solidResourceURI, defaultForNew)
+                            authorizations.push(authorization)
                         }
                     }
 
@@ -265,12 +267,12 @@
                             }
 
                             if (i < agents.length) {
-                                agents[i].permissions = permissions[i]
+                                authorizations[i].permissions = permissions[i]
                             }
                         }
                     }
 
-                  writePermissions(solidResourceURI, agents, permissions)
+                  writePermissions(solidResourceURI, authorizations)
                 }
               })
 
@@ -364,11 +366,11 @@
         console.log('permissions: %o', permissions)
         var permissionString = ''
         for(var key in permissions) {
-            var agents = permissions[key]
+            var authorizations = permissions[key]
             permissionString += key + ': [\n'
-            for(var i in agents) {
-                var agent = agents[i]
-                permissionString += agent.uri + ' , \n'
+            for(var i in authorizations) {
+                var authorization = authorizations[i]
+                permissionString += authorization.agent.uri + ' , \n'
             }
             permissionString += ']\n'
         }
