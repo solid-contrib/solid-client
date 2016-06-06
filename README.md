@@ -426,7 +426,7 @@ solid.web.get(url)
       // Regular resource
       console.log('Raw resource: %s', response.raw())
 
-      // You can parse it using RDFLib.js, etc:
+      // You can access the parsed graph (parsed by RDFLib.js):
       var parsedGraph = response.parsedGraph()
     }
   })
