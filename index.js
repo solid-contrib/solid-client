@@ -52,7 +52,6 @@ var Solid = {
   signup: require('./lib/auth').signup,
   status: require('./lib/status'),
   typeRegistry: require('./lib/type-registry'),
-  util: require('./lib/util/web-util'),
   vocab: require('./lib/vocab'),
   web: require('./lib/web')
 }
