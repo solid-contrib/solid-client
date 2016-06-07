@@ -4,10 +4,11 @@
   "description": "Common library for writing Solid read-write-web applications",
   "main": "./index.js",
   "scripts": {
-    "build-browserified": "browserify -r ./index.js:solid --exclude 'xhr2' --exclude 'rdflib' > dist/solid.js",
-    "build-minified": "browserify -r ./index.js:solid --exclude 'xhr2' --exclude 'rdflib' -d -p [minifyify --no-map] > dist/solid.min.js",
+    "build-browserified": "browserify -r ./index.js:solid --exclude 'xhr2' --exclude 'rdflib' --standalone 'SolidClient' > dist/solid.js",
+    "build-minified": "browserify -r ./index.js:solid --exclude 'xhr2' --exclude 'rdflib' -d -p [minifyify --no-map] --standalone 'SolidClient' > dist/solid.min.js",
     "build": "npm run clean && mkdir -p dist/resources && npm run standard && npm run build-browserified && npm run build-minified",
     "build-qunit-resources": "browserify -r ./test/resources/profile-ldnode.js:test-ldnode-profile --exclude 'xhr2' --exclude 'rdflib' > dist/resources/test-ldnode-profile.js",
+    "prepublish": "npm run build",
     "clean": "rm -rf dist/",
     "standard": "standard lib/*",
     "tape": "tape test/unit/*.js",
