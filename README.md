@@ -64,6 +64,36 @@ npm test
 
 This runs the [Tape](https://github.com/substack/tape) unit test suite.
 
+## Releases
+
+The following steps specify how to release `solid.js`:
+
+Make sure you're at the HEAD of `master`.
+
+```shell
+$ git checkout master && git pull
+```
+
+Run `npm version` to bump the package version via git commit and git
+tags.
+
+```shell
+# refer to http://semver.org/ for which of (major, minor, patch) to use
+$ npm version [major|minor|patch]
+```
+
+Next, push the commit and tags:
+
+```shell
+$ git push --follow-tags
+```
+
+Finally release the package to `npmjs`.
+
+```shell
+$ npm publish
+```
+
 ## Logging In and User Profiles
 
 Before doing any sort of [reading or
