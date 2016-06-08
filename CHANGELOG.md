@@ -1,3 +1,9 @@
+##### Version 0.16.0:
+- Distribute bundled lib as UMD module
+
+##### Version 0.15.0:
+- Added WebID discovery
+
 ##### Version 0.14.2:
 
 - Expand `response.isContainer()` to also count `BasicContainer`
