@@ -1,3 +1,7 @@
+##### Version 0.17.0:
+- Only package necessary files
+- Document release process
+
 ##### Version 0.16.0:
 - Distribute bundled lib as UMD module
 
