@@ -3,6 +3,12 @@
   "version": "0.16.0",
   "description": "Common library for writing Solid read-write-web applications",
   "main": "./index.js",
+  "files": [
+    "index.js",
+    "config.js",
+    "lib",
+    "dist"
+  ],
   "scripts": {
     "build-browserified": "browserify -r ./index.js:solid --exclude 'xhr2' --exclude 'rdflib' --standalone 'SolidClient' > dist/solid.js",
     "build-minified": "browserify -r ./index.js:solid --exclude 'xhr2' --exclude 'rdflib' -d -p [minifyify --no-map] --standalone 'SolidClient' > dist/solid.min.js",
