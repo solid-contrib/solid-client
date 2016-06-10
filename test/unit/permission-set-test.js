@@ -6,6 +6,7 @@ var Authorization = require('../../lib/permissions/authorization')
 var PermissionSet = require('../../lib/permissions/permission-set')
 
 const resourceUrl = 'https://bob.example.com/docs/file1'
+const containerUrl = 'https://bob.example.com/docs/'
 const agentWebId1 = 'https://bob.example.com/#me'
 const agentWebId2 = 'https://alice.example.com/#me'
 // Not really sure what group webIDs will look like, not yet implemented:
@@ -24,6 +25,8 @@ test('a new PermissionSet() for a resource', function (t) {
   t.ok(ps.isEmpty(), 'should be empty')
   t.equal(ps.count(), 0, 'should have a count of 0')
   t.equal(ps.resourceUrl, resourceUrl)
+  t.equal(ps.resourceType, PermissionSet.RESOURCE,
+    'A permission set should be for a resource by default (not container)')
   t.end()
 })
 
@@ -74,5 +77,25 @@ test('PermissionSet can add and remove group authorizations', function (t) {
   t.equal(auth.group, groupWebId)
   ps.removePermission(groupWebId, [acl.READ, acl.WRITE])
   t.ok(ps.isEmpty())
+  t.end()
+})
+
+test('a PermissionSet() for a container', function (t) {
+  let ps = new PermissionSet(containerUrl, PermissionSet.CONTAINER)
+  t.ok(ps.isAuthInherited())
+  ps.addPermission(agentWebId1, acl.READ)
+  let auth = ps.permissionFor(agentWebId1)
+  t.ok(auth.isInherited(),
+    'An authorization intended for a container should be inherited by default')
+  t.end()
+})
+
+test('a PermissionSet() for a resource (not container)', function (t) {
+  let ps = new PermissionSet(containerUrl, PermissionSet.RESOURCE)
+  t.notOk(ps.isAuthInherited())
+  ps.addPermission(agentWebId1, acl.READ)
+  let auth = ps.permissionFor(agentWebId1)
+  t.notOk(auth.isInherited(),
+    'An authorization intended for a resource should not be inherited by default')
   t.end()
 })

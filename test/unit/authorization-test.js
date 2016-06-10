@@ -15,14 +15,14 @@ test('a new Authorization()', function (t) {
   t.notOk(auth.group)
   t.notOk(auth.webId())
   t.notOk(auth.resourceUrl)
-  t.equal(auth.resourceType, Authorization.RESOURCE,
-    'An Authorization is for a Resource type by default')
+  t.notOk(auth.isInherited(),
+    'An Authorization should not be inherited (acl:default) by default')
   t.ok(auth.isEmpty(), 'a new Authorization should be empty')
   t.end()
 })
 
-test('a new Authorization for a resource', function (t) {
-  let auth = new Authorization(resourceUrl, Authorization.CONTAINER)
+test('a new Authorization for a container', function (t) {
+  let auth = new Authorization(resourceUrl, Authorization.INHERIT)
   t.equal(auth.resourceUrl, resourceUrl)
   t.notOk(auth.agent)
   t.notOk(auth.group)
@@ -30,7 +30,8 @@ test('a new Authorization for a resource', function (t) {
   t.notOk(auth.allowsWrite())
   t.notOk(auth.allowsAppend())
   t.notOk(auth.allowsControl())
-  t.equal(auth.resourceType, Authorization.CONTAINER)
+  t.ok(auth.isInherited(),
+    'Authorizations for containers should be inherited by default')
   t.end()
 })
 
