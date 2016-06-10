@@ -17,6 +17,7 @@ test('a new Authorization()', function (t) {
   t.notOk(auth.resourceUrl)
   t.equal(auth.resourceType, Authorization.RESOURCE,
     'An Authorization is for a Resource type by default')
+  t.ok(auth.isEmpty(), 'a new Authorization should be empty')
   t.end()
 })
 
@@ -36,6 +37,7 @@ test('a new Authorization for a resource', function (t) {
 test('an Authorization allows editing permission modes', function (t) {
   let auth = new Authorization()
   auth.addMode(acl.CONTROL)
+  t.notOk(auth.isEmpty(), 'Adding an access mode means no longer empty')
   t.ok(auth.allowsControl(), 'Adding Control mode failed')
   t.notOk(auth.allowsRead(), 'Control mode should not imply Read')
   t.notOk(auth.allowsWrite(), 'Control mode should not imply Write')

@@ -27,12 +27,13 @@ test('a new PermissionSet() for a resource', function (t) {
   t.end()
 })
 
-test('PermissionSet can add authorizations', function (t) {
+test('PermissionSet can add and remove authorizations', function (t) {
   let ps = new PermissionSet(resourceUrl)
   // Notice that addPermission() is chainable:
   ps
     .addPermission(agentWebId1, acl.READ)
     .addPermission(agentWebId2, [acl.READ, acl.WRITE])
+  t.notOk(ps.isEmpty())
   t.equal(ps.count(), 2)
   let auth = ps.permissionFor(agentWebId1)
   t.equal(auth.agent, agentWebId1)
@@ -46,5 +47,32 @@ test('PermissionSet can add authorizations', function (t) {
   t.equal(ps.count(), 2)
   auth = ps.permissionFor(agentWebId1)
   t.ok(auth.allowsWrite())
+
+  // Now remove the added permission
+  ps.removePermission(agentWebId1, acl.READ)
+  // Still 2 authorizations, agent1 has a WRITE permission remaining
+  t.equal(ps.count(), 2)
+  auth = ps.permissionFor(agentWebId1)
+  t.notOk(auth.allowsRead())
+  t.ok(auth.allowsWrite())
+
+  // Now, if you remove the remaining WRITE permission from agent1, that whole
+  // authorization is removed
+  ps.removePermission(agentWebId1, acl.WRITE)
+  t.equal(ps.count(), 1, 'Only one authorization should remain')
+  t.notOk(ps.permissionFor(agentWebId1),
+    'No authorization for agent1 should be found')
+  t.end()
+})
+
+test('PermissionSet can add and remove group authorizations', function (t) {
+  let ps = new PermissionSet(resourceUrl)
+  // Let's add an agentClass permission
+  ps.addGroupPermission(groupWebId, [acl.READ, acl.WRITE])
+  t.equal(ps.count(), 1)
+  let auth = ps.permissionFor(groupWebId)
+  t.equal(auth.group, groupWebId)
+  ps.removePermission(groupWebId, [acl.READ, acl.WRITE])
+  t.ok(ps.isEmpty())
   t.end()
 })
