@@ -157,3 +157,18 @@ test('hashFragment() on an incomplete authorization should fail', function (t) {
   }, 'hashFragment() should fail if either webId OR resourceUrl are missing')
   t.end()
 })
+
+test('Authorization.isValid() test', function (t) {
+  let auth = new Authorization()
+  t.notOk(auth.isValid(), 'An empty authorization should not be valid')
+  auth.resourceUrl = resourceUrl
+  t.notOk(auth.isValid())
+  auth.setAgent(agentWebId)
+  t.notOk(auth.isValid())
+  auth.addMode(acl.READ)
+  t.ok(auth.isValid())
+  auth.agent = null
+  auth.setGroup(groupWebId)
+  t.ok(auth.isValid())
+  t.end()
+})
