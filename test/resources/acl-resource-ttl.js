@@ -1,0 +1,24 @@
+module.exports = `@prefix acl: <http://www.w3.org/ns/auth/acl#>.
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+<#authorization1>
+    a acl:Authorization;
+
+    # These statements specify access rules for the /docs/ container itself:
+    acl:agent <https://alice.databox.me/profile/card#me>;
+    acl:accessTo <https://alice.databox.me/docs/>;
+    acl:mode
+        acl:Read, acl:Write, acl:Control;
+
+    # defaultForNew says: this authorization (the statements above) will also
+    #   be inherited by any resource within that container that doesn't have its
+    #   own ACL.
+    acl:defaultForNew <>.
+    # soon to be:
+    # acl:default <>.
+
+<#authorization2>
+    a acl:Authorization;
+    acl:agentClass foaf:Agent;  # everyone
+    acl:mode acl:Read;  # has Read-only access
+    acl:accessTo <https://alice.databox.me/profile/card>. # to the public profile`

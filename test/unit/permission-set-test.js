@@ -1,22 +1,28 @@
 'use strict'
 
-var test = require('tape')
-var acl = require('../../lib/permissions/authorization').acls
-var Authorization = require('../../lib/permissions/authorization')
-var PermissionSet = require('../../lib/permissions/permission-set')
+const test = require('tape')
+const acl = require('../../lib/permissions/authorization').acls
+const Authorization = require('../../lib/permissions/authorization')
+const PermissionSet = require('../../lib/permissions/permission-set')
 
 const resourceUrl = 'https://bob.example.com/docs/file1'
+const aclUrl = 'https://bob.example.com/docs/file1.acl'
 const containerUrl = 'https://bob.example.com/docs/'
 const agentWebId1 = 'https://bob.example.com/#me'
 const agentWebId2 = 'https://alice.example.com/#me'
 // Not really sure what group webIDs will look like, not yet implemented:
 const groupWebId = 'https://devteam.example.com/something'
 
+// const parseGraph = require('../../lib/util/graph-util').parseGraph
+// const rawAclSource = require('../resources/acl-resource-ttl')
+// const parsedAclGraph = parseGraph(aclUrl, rawAclSource, 'text/turtle')
+
 test('a new PermissionSet()', function (t) {
   let ps = new PermissionSet()
   t.ok(ps.isEmpty(), 'should be empty')
   t.equal(ps.count(), 0, 'should have a count of 0')
   t.notOk(ps.resourceUrl, 'should have a null resource url')
+  t.notOk(ps.aclUrl, 'should have a null acl url')
   t.end()
 })
 
@@ -25,13 +31,15 @@ test('a new PermissionSet() for a resource', function (t) {
   t.ok(ps.isEmpty(), 'should be empty')
   t.equal(ps.count(), 0, 'should have a count of 0')
   t.equal(ps.resourceUrl, resourceUrl)
+  t.notOk(ps.aclUrl, 'An acl url should be set explicitly')
   t.equal(ps.resourceType, PermissionSet.RESOURCE,
     'A permission set should be for a resource by default (not container)')
   t.end()
 })
 
 test('PermissionSet can add and remove authorizations', function (t) {
-  let ps = new PermissionSet(resourceUrl)
+  let ps = new PermissionSet(resourceUrl, aclUrl)
+  t.equal(ps.aclUrl, aclUrl)
   // Notice that addPermission() is chainable:
   ps
     .addPermission(agentWebId1, acl.READ)
@@ -81,7 +89,8 @@ test('PermissionSet can add and remove group authorizations', function (t) {
 })
 
 test('a PermissionSet() for a container', function (t) {
-  let ps = new PermissionSet(containerUrl, PermissionSet.CONTAINER)
+  let isContainer = true
+  let ps = new PermissionSet(containerUrl, aclUrl, isContainer)
   t.ok(ps.isAuthInherited())
   ps.addPermission(agentWebId1, acl.READ)
   let auth = ps.permissionFor(agentWebId1)
@@ -91,7 +100,7 @@ test('a PermissionSet() for a container', function (t) {
 })
 
 test('a PermissionSet() for a resource (not container)', function (t) {
-  let ps = new PermissionSet(containerUrl, PermissionSet.RESOURCE)
+  let ps = new PermissionSet(containerUrl)
   t.notOk(ps.isAuthInherited())
   ps.addPermission(agentWebId1, acl.READ)
   let auth = ps.permissionFor(agentWebId1)
