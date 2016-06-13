@@ -5,8 +5,8 @@ module.exports = `@prefix acl: <http://www.w3.org/ns/auth/acl#>.
     a acl:Authorization;
 
     # These statements specify access rules for the /docs/ container itself:
-    acl:agent <https://alice.databox.me/profile/card#me>;
-    acl:accessTo <https://alice.databox.me/docs/>;
+    acl:agent <https://alice.example.com/#me>;
+    acl:accessTo <https://alice.example.com/docs/>;
     acl:mode
         acl:Read, acl:Write, acl:Control;
 
@@ -21,4 +21,4 @@ module.exports = `@prefix acl: <http://www.w3.org/ns/auth/acl#>.
     a acl:Authorization;
     acl:agentClass foaf:Agent;  # everyone
     acl:mode acl:Read;  # has Read-only access
-    acl:accessTo <https://alice.databox.me/profile/card>. # to the public profile`
+    acl:accessTo <https://alice.example.com/profile/card>. # to the public profile`

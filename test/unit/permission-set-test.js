@@ -7,15 +7,16 @@ const PermissionSet = require('../../lib/permissions/permission-set')
 
 const resourceUrl = 'https://bob.example.com/docs/file1'
 const aclUrl = 'https://bob.example.com/docs/file1.acl'
-const containerUrl = 'https://bob.example.com/docs/'
-const agentWebId1 = 'https://bob.example.com/#me'
-const agentWebId2 = 'https://alice.example.com/#me'
+const containerUrl = 'https://alice.example.com/docs/'
+const containerAclUrl = 'https://alice.example.com/docs/.acl'
+const bobWebId = 'https://bob.example.com/#me'
+const aliceWebId = 'https://alice.example.com/#me'
 // Not really sure what group webIDs will look like, not yet implemented:
 const groupWebId = 'https://devteam.example.com/something'
 
-// const parseGraph = require('../../lib/util/graph-util').parseGraph
-// const rawAclSource = require('../resources/acl-resource-ttl')
-// const parsedAclGraph = parseGraph(aclUrl, rawAclSource, 'text/turtle')
+const parseGraph = require('../../lib/util/graph-util').parseGraph
+const rawAclSource = require('../resources/acl-container-ttl')
+const parsedAclGraph = parseGraph(aclUrl, rawAclSource, 'text/turtle')
 
 test('a new PermissionSet()', function (t) {
   let ps = new PermissionSet()
@@ -42,36 +43,36 @@ test('PermissionSet can add and remove authorizations', function (t) {
   t.equal(ps.aclUrl, aclUrl)
   // Notice that addPermission() is chainable:
   ps
-    .addPermission(agentWebId1, acl.READ)
-    .addPermission(agentWebId2, [acl.READ, acl.WRITE])
+    .addPermission(bobWebId, acl.READ)
+    .addPermission(aliceWebId, [acl.READ, acl.WRITE])
   t.notOk(ps.isEmpty())
   t.equal(ps.count(), 2)
-  let auth = ps.permissionFor(agentWebId1)
-  t.equal(auth.agent, agentWebId1)
+  let auth = ps.permissionFor(bobWebId)
+  t.equal(auth.agent, bobWebId)
   t.equal(auth.resourceUrl, resourceUrl)
   t.equal(auth.resourceType, Authorization.RESOURCE)
   t.ok(auth.allowsRead())
   t.notOk(auth.allowsWrite())
   // adding further permissions for an existing agent just merges access modes
-  ps.addPermission(agentWebId1, acl.WRITE)
+  ps.addPermission(bobWebId, acl.WRITE)
   // should still only be 2 authorizations
   t.equal(ps.count(), 2)
-  auth = ps.permissionFor(agentWebId1)
+  auth = ps.permissionFor(bobWebId)
   t.ok(auth.allowsWrite())
 
   // Now remove the added permission
-  ps.removePermission(agentWebId1, acl.READ)
+  ps.removePermission(bobWebId, acl.READ)
   // Still 2 authorizations, agent1 has a WRITE permission remaining
   t.equal(ps.count(), 2)
-  auth = ps.permissionFor(agentWebId1)
+  auth = ps.permissionFor(bobWebId)
   t.notOk(auth.allowsRead())
   t.ok(auth.allowsWrite())
 
   // Now, if you remove the remaining WRITE permission from agent1, that whole
   // authorization is removed
-  ps.removePermission(agentWebId1, acl.WRITE)
+  ps.removePermission(bobWebId, acl.WRITE)
   t.equal(ps.count(), 1, 'Only one authorization should remain')
-  t.notOk(ps.permissionFor(agentWebId1),
+  t.notOk(ps.permissionFor(bobWebId),
     'No authorization for agent1 should be found')
   t.end()
 })
@@ -92,8 +93,8 @@ test('a PermissionSet() for a container', function (t) {
   let isContainer = true
   let ps = new PermissionSet(containerUrl, aclUrl, isContainer)
   t.ok(ps.isAuthInherited())
-  ps.addPermission(agentWebId1, acl.READ)
-  let auth = ps.permissionFor(agentWebId1)
+  ps.addPermission(bobWebId, acl.READ)
+  let auth = ps.permissionFor(bobWebId)
   t.ok(auth.isInherited(),
     'An authorization intended for a container should be inherited by default')
   t.end()
@@ -102,9 +103,28 @@ test('a PermissionSet() for a container', function (t) {
 test('a PermissionSet() for a resource (not container)', function (t) {
   let ps = new PermissionSet(containerUrl)
   t.notOk(ps.isAuthInherited())
-  ps.addPermission(agentWebId1, acl.READ)
-  let auth = ps.permissionFor(agentWebId1)
+  ps.addPermission(bobWebId, acl.READ)
+  let auth = ps.permissionFor(bobWebId)
   t.notOk(auth.isInherited(),
     'An authorization intended for a resource should not be inherited by default')
+  t.end()
+})
+
+test('a PermissionSet can be initialized from an .acl resource', function (t) {
+  let ps = new PermissionSet(containerUrl, containerAclUrl,
+    PermissionSet.CONTAINER)
+  ps.initFromGraph(parsedAclGraph)
+  let auth = ps.permissionFor(aliceWebId)
+  t.ok(auth, 'Container acl should have an authorization for Alice')
+  t.equal(auth.resourceUrl, containerUrl)
+  t.ok(auth.isInherited())
+  t.ok(auth.allowsWrite() && auth.allowsWrite() && auth.allowsControl())
+  t.equal(ps.count(), 2)
+  console.log(ps)
+  let otherUrl = 'https://alice.example.com/profile/card'
+  let publicAuth = ps.permissionFor(Authorization.EVERYONE, otherUrl)
+  t.ok(publicAuth.everyone())
+  t.notOk(publicAuth.isInherited())
+  t.ok(publicAuth.allowsRead())
   t.end()
 })
