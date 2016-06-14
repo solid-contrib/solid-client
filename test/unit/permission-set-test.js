@@ -120,7 +120,11 @@ test('a PermissionSet can be initialized from an .acl resource', function (t) {
   t.equal(auth.resourceUrl, containerUrl)
   t.ok(auth.isInherited())
   t.ok(auth.allowsWrite() && auth.allowsWrite() && auth.allowsControl())
-  t.equal(ps.count(), 2)
+  let auth2 = ps.permissionFor(bobWebId)
+  t.ok(auth2, 'Container acl should also have an authorization for Bob')
+  t.ok(auth2.isInherited())
+  t.ok(auth2.allowsWrite() && auth2.allowsWrite() && auth2.allowsControl())
+  t.equal(ps.count(), 3)
   let otherUrl = 'https://alice.example.com/profile/card'
   let publicAuth = ps.permissionFor(Authorization.EVERYONE, otherUrl)
   t.ok(publicAuth.everyone())
