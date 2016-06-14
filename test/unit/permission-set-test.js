@@ -170,7 +170,7 @@ test('PermissionSet equals test 4', function (t) {
   t.end()
 })
 
-test.only('PermissionSet serialized & deserialized round trip test', function (t) {
+test('PermissionSet serialized & deserialized round trip test', function (t) {
   let ps = new PermissionSet(containerUrl, containerAclUrl,
     PermissionSet.CONTAINER)
   ps.initFromGraph(parsedAclGraph)
