@@ -42,7 +42,7 @@
   "homepage": "https://github.com/solid/solid.js",
   "dependencies": {
     "rdf-ns": "0.0.2",
-    "rdflib": "^0.6.1",
+    "rdflib": "^0.7.0",
     "shorthash": "0.0.2",
     "standard-http-error": "^2.0.0",
     "xhr2": "^0.1.3"
