@@ -13,9 +13,9 @@ module.exports = `@prefix acl: <http://www.w3.org/ns/auth/acl#>.
     # defaultForNew says: this authorization (the statements above) will also
     #   be inherited by any resource within that container that doesn't have its
     #   own ACL.
-    acl:defaultForNew <>.
+    acl:defaultForNew <https://alice.example.com/docs/>.
     # soon to be:
-    # acl:default <>.
+    # acl:default <https://alice.example.com/docs/>.
 
 <#authorization2>
     a acl:Authorization;

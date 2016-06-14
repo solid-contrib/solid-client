@@ -172,3 +172,48 @@ test('Authorization.isValid() test', function (t) {
   t.ok(auth.isValid())
   t.end()
 })
+
+test('Comparing Authorizations test 1', function (t) {
+  let auth1 = new Authorization()
+  let auth2 = new Authorization()
+  t.ok(auth1.equals(auth2))
+  t.end()
+})
+
+test('Comparing Authorizations test 2', function (t) {
+  let auth1 = new Authorization(resourceUrl)
+  let auth2 = new Authorization()
+  t.notOk(auth1.equals(auth2))
+  auth2.resourceUrl = resourceUrl
+  t.ok(auth1.equals(auth2))
+  t.end()
+})
+
+test('Comparing Authorizations test 3', function (t) {
+  let auth1 = new Authorization()
+  auth1.setAgent(agentWebId)
+  let auth2 = new Authorization()
+  t.notOk(auth1.equals(auth2))
+  auth2.setAgent(agentWebId)
+  t.ok(auth1.equals(auth2))
+  t.end()
+})
+
+test('Comparing Authorizations test 4', function (t) {
+  let auth1 = new Authorization()
+  auth1.addMode([acl.READ, acl.WRITE])
+  let auth2 = new Authorization()
+  t.notOk(auth1.equals(auth2))
+  auth2.addMode([acl.READ, acl.WRITE])
+  t.ok(auth1.equals(auth2))
+  t.end()
+})
+
+test('Comparing Authorizations test 5', function (t) {
+  let auth1 = new Authorization(resourceUrl, Authorization.INHERIT)
+  let auth2 = new Authorization(resourceUrl)
+  t.notOk(auth1.equals(auth2))
+  auth2.inherited = Authorization.INHERIT
+  t.ok(auth1.equals(auth2))
+  t.end()
+})

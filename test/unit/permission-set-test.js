@@ -14,6 +14,7 @@ const aliceWebId = 'https://alice.example.com/#me'
 // Not really sure what group webIDs will look like, not yet implemented:
 const groupWebId = 'https://devteam.example.com/something'
 
+var rdf = require('../../lib/util/rdf-parser').rdflib
 const parseGraph = require('../../lib/util/graph-util').parseGraph
 const rawAclSource = require('../resources/acl-container-ttl')
 const parsedAclGraph = parseGraph(aclUrl, rawAclSource, 'text/turtle')
@@ -120,11 +121,71 @@ test('a PermissionSet can be initialized from an .acl resource', function (t) {
   t.ok(auth.isInherited())
   t.ok(auth.allowsWrite() && auth.allowsWrite() && auth.allowsControl())
   t.equal(ps.count(), 2)
-  console.log(ps)
   let otherUrl = 'https://alice.example.com/profile/card'
   let publicAuth = ps.permissionFor(Authorization.EVERYONE, otherUrl)
   t.ok(publicAuth.everyone())
   t.notOk(publicAuth.isInherited())
   t.ok(publicAuth.allowsRead())
   t.end()
+})
+
+test('PermissionSet equals test 1', function (t) {
+  let ps1 = new PermissionSet()
+  let ps2 = new PermissionSet()
+  t.ok(ps1.equals(ps2))
+  t.end()
+})
+
+test('PermissionSet equals test 2', function (t) {
+  let ps1 = new PermissionSet(resourceUrl)
+  let ps2 = new PermissionSet()
+  t.notOk(ps1.equals(ps2))
+  ps2.resourceUrl = resourceUrl
+  t.ok(ps1.equals(ps2))
+
+  ps1.aclUrl = aclUrl
+  t.notOk(ps1.equals(ps2))
+  ps2.aclUrl = aclUrl
+  t.ok(ps1.equals(ps2))
+  t.end()
+})
+
+test('PermissionSet equals test 3', function (t) {
+  let ps1 = new PermissionSet(containerUrl, containerAclUrl,
+    PermissionSet.CONTAINER)
+  let ps2 = new PermissionSet(containerUrl, containerAclUrl)
+  t.notOk(ps1.equals(ps2))
+  ps2.resourceType = PermissionSet.CONTAINER
+  t.ok(ps1.equals(ps2))
+  t.end()
+})
+
+test('PermissionSet equals test 4', function (t) {
+  let ps1 = new PermissionSet(resourceUrl)
+  ps1.addPermission(aliceWebId, acl.READ)
+  let ps2 = new PermissionSet(resourceUrl)
+  t.notOk(ps1.equals(ps2))
+  ps2.addPermission(aliceWebId, acl.READ)
+  t.ok(ps1.equals(ps2))
+  t.end()
+})
+
+test.only('PermissionSet serialized & deserialized round trip test', function (t) {
+  let ps = new PermissionSet(containerUrl, containerAclUrl,
+    PermissionSet.CONTAINER)
+  ps.initFromGraph(parsedAclGraph)
+  t.ok(ps.equals(ps), 'A PermissionSet should equal itself')
+  return ps.serialize()
+    .then((serializedTurtle) => {
+      // Now that the PermissionSet is serialized to a Turtle string,
+      // let's re-parse that string into a new graph
+      let parsedGraph = parseGraph(containerAclUrl, serializedTurtle,
+        'text/turtle')
+      let ps2 = new PermissionSet(containerUrl, containerAclUrl,
+        PermissionSet.CONTAINER)
+      ps2.initFromGraph(parsedGraph)
+      t.ok(ps.equals(ps2),
+        'A PermissionSet serialized and re-parsed should equal the original one')
+      t.end()
+    })
 })
