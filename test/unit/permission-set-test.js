@@ -115,16 +115,27 @@ test('a PermissionSet can be initialized from an .acl resource', function (t) {
   let ps = new PermissionSet(containerUrl, containerAclUrl,
     PermissionSet.CONTAINER)
   ps.initFromGraph(parsedAclGraph)
+  // Check to make sure Alice's authorizations were read in correctly
   let auth = ps.permissionFor(aliceWebId)
   t.ok(auth, 'Container acl should have an authorization for Alice')
   t.equal(auth.resourceUrl, containerUrl)
   t.ok(auth.isInherited())
   t.ok(auth.allowsWrite() && auth.allowsWrite() && auth.allowsControl())
+  // Check to make sure the `mailto:` agent objects were read in
+  // This is @private / unofficial functionality, used only in the root ACL
+  t.ok(auth.mailTo.length > 0, 'Alice agent should have a mailto: set')
+  t.equal(auth.mailTo[0], 'alice@example.com')
+  t.equal(auth.mailTo[1], 'bob@example.com')
+  // Check to make sure Bob's authorizations were read in correctly
   let auth2 = ps.permissionFor(bobWebId)
   t.ok(auth2, 'Container acl should also have an authorization for Bob')
   t.ok(auth2.isInherited())
   t.ok(auth2.allowsWrite() && auth2.allowsWrite() && auth2.allowsControl())
+  t.ok(auth2.mailTo.length > 0, 'Bob agent should have a mailto: set')
+  t.equal(auth2.mailTo[0], 'alice@example.com')
+  t.equal(auth2.mailTo[1], 'bob@example.com')
   t.equal(ps.count(), 3)
+  // Now check that the Public Read authorization was parsed
   let otherUrl = 'https://alice.example.com/profile/card'
   let publicAuth = ps.permissionFor(Authorization.EVERYONE, otherUrl)
   t.ok(publicAuth.everyone())

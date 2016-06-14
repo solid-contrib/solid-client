@@ -217,3 +217,13 @@ test('Comparing Authorizations test 5', function (t) {
   t.ok(auth1.equals(auth2))
   t.end()
 })
+
+test('Comparing Authorizations test 6', function (t) {
+  let auth1 = new Authorization()
+  auth1.addMailTo('alice@example.com')
+  let auth2 = new Authorization()
+  t.notOk(auth1.equals(auth2))
+  auth2.addMailTo('alice@example.com')
+  t.ok(auth1.equals(auth2))
+  t.end()
+})

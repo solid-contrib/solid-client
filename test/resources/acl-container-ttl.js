@@ -7,7 +7,9 @@ module.exports = `@prefix acl: <http://www.w3.org/ns/auth/acl#>.
     # These statements specify access rules for the /docs/ container itself:
     acl:agent 
         <https://alice.example.com/#me>,
-        <https://bob.example.com/#me>;
+        <https://bob.example.com/#me>,
+        <mailto:alice@example.com>,
+        <mailto:bob@example.com>;
     acl:accessTo <https://alice.example.com/docs/>;
     acl:mode
         acl:Read, acl:Write, acl:Control;
