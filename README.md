@@ -18,8 +18,8 @@ Solid.js is currently intended for client-side use only (inside a web browser):
 Example `index.html`:
 
 ```html
-<script src="https://solid.github.io/releases/rdflib.js/rdflib-0.6.0.min.js"></script>
-<script src="https://solid.github.io/releases/solid.js/solid-0.14.1.min.js"></script>
+<script src="https://solid.github.io/releases/rdflib.js/rdflib-0.7.0.min.js"></script>
+<script src="https://solid.github.io/releases/solid.js/solid-0.18.0.min.js"></script>
 <script>
   // $rdf is exported as a global when you load RDFLib, above
   var solid = require('solid')
@@ -357,7 +357,7 @@ The `SolidResponse` object returned by most `solid.web` calls, including
 * `meta` - the URL of the corresponding .meta resource //
   `https://example.org/blog/hello-world.meta`
 * `types` - An array of LDP types for the resource, if applicable. For example:
-    `[ 'http://www.w3.org/ns/ldp#LDPResource', 
+    `[ 'http://www.w3.org/ns/ldp#LDPResource',
        'http://www.w3.org/ns/ldp#Resource' ]`
 * `user` - the WebID of the authenticated user (if authenticated) //
   `https://user.example.org/profile#me`
@@ -375,14 +375,14 @@ The response object also has some convenience methods:
 
 ### Fetching a Resource
 
-Assuming that a resource or a container exists (see 
-[creating resources](#creating-a-resource) and 
+Assuming that a resource or a container exists (see
+[creating resources](#creating-a-resource) and
 [creating containers](#creating-a-solid-container) below), you can retrieve
 it using `web.get()`:
 
 ```js
 solid.web.get(url)
-  .then(function(response) {
+  .then(function (response) {
     if (response.isContainer()) {
       // This is an instance of SolidContainer, see Listing Containers below
       for (resourceUrl in response.resources) {
@@ -394,12 +394,12 @@ solid.web.get(url)
     } else {
       // Regular resource
       console.log('Raw resource: %s', response.raw())
-      
+
       // You can parse it using RDFLib.js, etc:
       var parsedGraph = response.parsedGraph()
     }
   })
-  .catch(function(err) {
+  .catch(function (err) {
       console.log(err) // error object
     // ...
    })
@@ -431,7 +431,7 @@ solid.web.get(url)
 
 ### Creating a Solid Container
 
-The Solid client offers a function called `solid.web.createContainer()`, 
+The Solid client offers a function called `solid.web.createContainer()`,
 which is used to create containers. The
 function accepts the following parameters:
 
@@ -443,7 +443,7 @@ function accepts the following parameters:
 * `data` (string) - Optional RDF data serialized as `text/turtle`; can also be an empty
   string if no data will be sent.
 
-In the example below we are also sending some meta data (semantics) about the 
+In the example below we are also sending some meta data (semantics) about the
 container, setting its type to `sioc:Blog`.
 
 ```javascript
@@ -474,7 +474,7 @@ do `solid.web.createContainer(url, name)`.
 ### Listing a Solid Container
 
 To list the contents of a Solid container, just use `solid.web.get()`.
-This returns a promise that resolves to a `SolidContainer` instance, 
+This returns a promise that resolves to a `SolidContainer` instance,
 which will contain various useful properties:
 
 - A short name (`.name`) and absolute URI (`.uri`)
@@ -566,14 +566,13 @@ var data = `
     <http://rdfs.org/sioc/ns#content> "Hello world! This is my first post" .
 `
 
-solid.web.post(parentDir, data, slug).then(
-  function(meta) {
-    console.log(meta.url) // URL of the newly created resource
-  }
-).catch(function(err){
-  console.log(err) // error object
-  // ...
-})
+solid.web.post(parentDir, data, slug)
+  .then(function (response) {
+    console.log(response.url) // URL of the newly created resource
+  })
+  .catch(function (err){
+    console.log(err) // error object
+  })
 ```
 
 ### Updating a resource
@@ -613,12 +612,13 @@ aliased to `solid.web.update()`) takes three arguments:
 var solid = require('solid')
 var toDel = [ oldTitleTriple ]
 var toIns = [ newTitleTriple ]
-solid.web.patch(url, toDel, toIns).then(function (meta){
-  console.log(meta.xhr.status) // HTTP 200 (OK)
-}).catch(function(err) {
-  console.log(err) // error object
-  // ...
-})
+solid.web.patch(url, toDel, toIns)
+  .then(function (response){
+    console.log(response.xhr.status) // HTTP 200 (OK)
+  })
+  .catch(function(err) {
+    console.log(err) // error object
+  })
 ```
 
 ### Replacing a resource
@@ -641,14 +641,13 @@ var solid = require('solid')
 var url = 'https://example.org/blog/hello-world'
 var data = '<> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/#Post> .'
 
-solid.web.put(url, data).then(
-  function (meta) {
-    console.log(meta.xhr.status) // HTTP 200 (OK)
-  }
-).catch(function(err){
-  console.log(err) // error object
-  // ...
-})
+solid.web.put(url, data)
+  .then(function (response) {
+    console.log(response.xhr.status) // HTTP 200 (OK)
+  })
+  .catch(function(err) {
+    console.log(err) // error object
+  })
 ```
 
 ### Deleting a resource
@@ -664,14 +663,138 @@ empty a container by recursively calling calling this function on its contents.
 var solid = require('solid')
 var url = 'https://example.org/blog/hello-world'
 
-solid.web.del(url).then(
-  function(success) {
-    console.log(success) // true/false
-  }
-).catch(
-  function(err) {
+solid.web.del(url)
+  .then(function (response) {
+    console.log(response)
+  }).catch(function (err) {
     console.log(err) // error object
-    // ...
-  }
-)
+  })
+```
+
+### Managing Resource Permissions
+
+Each Solid resource has a set of permissions that determine which user
+(identified by their WebID) has read and write access to it, called an
+*ACL resource*.
+(See the [`web-access-control-spec` repo](https://github.com/solid/web-access-control-spec)
+for the exact details.)
+
+`solid.js` has a set of convenience methods to help developers manage those
+permissions.
+
+#### Reading Permissions
+
+To load the corresponding ACL resource, for a given file:
+
+```js
+var solid = require('solid')
+var resourceUrl = 'https://example.org/blog/hello-world'
+
+solid.getPermissions(resourceUrl)
+  .then(function (permissionSet) {
+    // Now the permission set, parsed from `hello-world.acl` is loaded,
+    // and you can iterate over the individual authorizations
+    permissionSet.forEach(function (auth) {
+      if (auth.isAgent()) {
+        console.log('agent webId: ' + auth.agent)
+      } else if (auth.isPublic()) {
+        // this permission is for everyone (acl:agentClass foaf:Agent)
+      } else if (auth.isGroup()) {
+        console.log('agentClass webId: ' + auth.group)
+      }
+      // You can also use auth.webId() for all cases:
+      console.log('agent/group webId: ' + auth.webId())
+      // You can check what sort of access modes are granted:
+      auth.allowsRead()  // -> true if the authorization contains acl:Read mode
+      auth.allowsWrite()
+      auth.allowsAppend()
+      auth.allowsControl()
+      // Check to see if this Authorization is inherited (`acl:default`)
+      auth.isInherited()  // -> false for a resource, usually true for container
+      // Check to see if access is allowed from a given Origin
+      auth.allowsOrigin('https://example.com')
+    })
+  })
+```
+
+**Note:** You can read the permissions for a given resource *only* if you have
+`acl:Control` access mode for that resource. (You also need that access mode to
+edit those permissions, as well.)
+
+You can also access individual authorizations from a resource set:
+
+```js
+solid.getPermissions(resourceUrl)
+  .then(function (permissionSet) {
+    var auth = permissionSet.permissionFor(bobWebId)
+    auth.webId()  // -> bob's web id
+    auth.allowsRead()  // -> true if bob has acl:Read permission
+    auth.allModes()    // -> array of access modes granted
+    auth.allOrigins()  // -> array of allowed origin URLs
+    // If this is for the root container's ACL, you can also load a user's
+    // emails using the `mailTo` property. (Unofficial functionality)
+    auth.mailTo  // -> ['bob@example.com', 'bob@gmail.com']
+  })
+```
+
+#### Editing Permissions
+
+To manage the set of permissions for a given resource (provided the current
+user has `acl:Control` access mode granted to them for that resource), use
+the convenience methods provided by `PermissionSet`.
+
+The example below adds 3 different permissions:
+
+1. Allows Alice to Read, Write and Control the resource
+2. Allows Public Read access (that's the `solid.acl.EVERYONE`)
+3. Grants Bob Write access (in addition to the Read access he inherits from
+   the above permission, since he's a member of the Public).
+   Also, this Write access is only allowed from a particular *origin*.
+
+```js
+var solid = require('solid')
+var resourceUrl = 'https://example.org/blog/hello-world'
+var aliceWebId = 'https://alice.example.org/profile/card#me'
+var bobWebId = 'https://bob.example.org/profile/card#me'
+var allowedOrigin = 'https://example.org'
+
+solid.getPermissions(resourceUrl)
+  .then(function (permissionSet) {
+    return permissionSet
+      .addPermission(aliceWebId, [solid.acl.READ, solid.acl.WRITE,
+        solid.acl.CONTROL])
+      .addPermission(solid.acl.EVERYONE, solid.acl.READ)
+      // see also .addGroupPermission()
+      .addPermission(bobWebId, solid.acl.WRITE, allowedOrigin)
+      .save()
+  })
+  .then(function (response) {
+    console.log('Permissions saved successfully')
+  })
+  .catch(function (err) {
+    console.log('Error saving permissions')
+  })
+```
+
+To *delete* all permissions associated with a resource, use
+`clearPermissions()`. Keep in mind that permissions are inherited from a
+resource's parent container, and if you delete an individual ACL resource,
+this simply means that the permissions reset to that of the upstream container.
+You can also clear the ACLs of the container, all the way up to the root storage
+container's ACL, which cannot be deleted. Refer to the
+[ACL Inheritance Algorithm](https://github.com/solid/web-access-control-spec#acl-inheritance-algorithm)
+section of the spec.
+
+```js
+// If you have an existing PermissionSet as a result of `getPermissions()`:
+solid.getPermissions('https://www.example.com/file1')
+  .then(function (permissionSet) {
+    return permissionSet.clear()  // deletes the file1.acl resource
+  })
+// Otherwise, use the helper function
+//   solid.clearPermissions(resourceUrl) instead
+solid.clearPermissions('https://www.example.com/file1')
+  .then(function (response) {
+    // file1.acl is now deleted
+  })
 ```

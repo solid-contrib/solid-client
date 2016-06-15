@@ -40,10 +40,13 @@ https://github.com/solid/solid
  * @static
  */
 var Solid = {
+  acl: require('./lib/permissions/authorization').acl,
   auth: require('./lib/auth'),
   config: require('./config'),
   currentUser: require('./lib/auth').currentUser,
   getProfile: require('./lib/identity').getProfile,
+  getPermissions: require('./lib/permissions').getPermissions,
+  clearPermissions: require('./lib/permissions').clearPermissions,
   identity: require('./lib/identity'),
   login: require('./lib/auth').login,
   meta: require('./lib/meta'),
