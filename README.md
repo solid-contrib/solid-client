@@ -711,6 +711,8 @@ solid.getPermissions(resourceUrl)
       auth.allowsControl()
       // Check to see if this Authorization is inherited (`acl:default`)
       auth.isInherited()  // -> false for a resource, usually true for container
+      // Check to see if access is allowed from a given Origin
+      auth.allowsOrigin('https://example.com')
     })
   })
 ```
@@ -727,6 +729,8 @@ solid.getPermissions(resourceUrl)
     var auth = permissionSet.permissionFor(bobWebId)
     auth.webId()  // -> bob's web id
     auth.allowsRead()  // -> true if bob has acl:Read permission
+    auth.allModes()    // -> array of access modes granted
+    auth.allOrigins()  // -> array of allowed origin URLs
     // If this is for the root container's ACL, you can also load a user's
     // emails using the `mailTo` property. (Unofficial functionality)
     auth.mailTo  // -> ['bob@example.com', 'bob@gmail.com']
@@ -744,13 +748,15 @@ The example below adds 3 different permissions:
 1. Allows Alice to Read, Write and Control the resource
 2. Allows Public Read access (that's the `solid.acl.EVERYONE`)
 3. Grants Bob Write access (in addition to the Read access he inherits from
-   the above permission, since he's a member of the Public)
+   the above permission, since he's a member of the Public).
+   Also, this Write access is only allowed from a particular *origin*.
 
 ```js
 var solid = require('solid')
 var resourceUrl = 'https://example.org/blog/hello-world'
 var aliceWebId = 'https://alice.example.org/profile/card#me'
 var bobWebId = 'https://bob.example.org/profile/card#me'
+var allowedOrigin = 'https://example.org'
 
 solid.getPermissions(resourceUrl)
   .then(function (permissionSet) {
@@ -759,7 +765,7 @@ solid.getPermissions(resourceUrl)
         solid.acl.CONTROL])
       .addPermission(solid.acl.EVERYONE, solid.acl.READ)
       // see also .addGroupPermission()
-      .addPermission(bobWebId, solid.acl.WRITE)
+      .addPermission(bobWebId, solid.acl.WRITE, allowedOrigin)
       .save()
   })
   .then(function (response) {

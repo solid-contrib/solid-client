@@ -16,6 +16,9 @@ test('a new Authorization()', function (t) {
   t.notOk(auth.isPublic())
   t.notOk(auth.webId())
   t.notOk(auth.resourceUrl)
+  t.deepEqual(auth.mailTo, [])
+  t.deepEqual(auth.allOrigins(), [])
+  t.deepEqual(auth.allModes(), [])
   t.notOk(auth.isInherited(),
     'An Authorization should not be inherited (acl:default) by default')
   t.ok(auth.isEmpty(), 'a new Authorization should be empty')
@@ -49,6 +52,7 @@ test('an Authorization allows editing permission modes', function (t) {
     .addMode(acl.WRITE)
   t.ok(auth.allowsRead(), 'Adding Read mode failed')
   t.ok(auth.allowsWrite(), 'Adding Write mode failed')
+  t.equals(auth.allModes().length, 3)
   auth.removeMode(acl.READ)
   t.notOk(auth.allowsRead(), 'Removing Read mode failed')
   auth.removeMode(acl.CONTROL)
@@ -173,6 +177,18 @@ test('Authorization.isValid() test', function (t) {
   t.end()
 })
 
+test('Authorization origins test', function (t) {
+  let auth = new Authorization()
+  let origin = 'https://example.com/'
+  auth.addOrigin(origin)
+  t.deepEqual(auth.allOrigins(), [origin])
+  t.ok(auth.allowsOrigin(origin))
+  auth.removeOrigin(origin)
+  t.deepEqual(auth.allOrigins(), [])
+  t.notOk(auth.allowsOrigin(origin))
+  t.end()
+})
+
 test('Comparing Authorizations test 1', function (t) {
   let auth1 = new Authorization()
   let auth2 = new Authorization()
@@ -224,6 +240,17 @@ test('Comparing Authorizations test 6', function (t) {
   let auth2 = new Authorization()
   t.notOk(auth1.equals(auth2))
   auth2.addMailTo('alice@example.com')
+  t.ok(auth1.equals(auth2))
+  t.end()
+})
+
+test('Comparing Authorizations test 7', function (t) {
+  let origin = 'https://example.com/'
+  let auth1 = new Authorization()
+  auth1.addOrigin(origin)
+  let auth2 = new Authorization()
+  t.notOk(auth1.equals(auth2))
+  auth2.addOrigin(origin)
   t.ok(auth1.equals(auth2))
   t.end()
 })

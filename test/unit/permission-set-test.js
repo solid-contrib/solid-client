@@ -42,9 +42,10 @@ test('a new PermissionSet() for a resource', function (t) {
 test('PermissionSet can add and remove authorizations', function (t) {
   let ps = new PermissionSet(resourceUrl, aclUrl)
   t.equal(ps.aclUrl, aclUrl)
+  let origin = 'https://example.com/'
   // Notice that addPermission() is chainable:
   ps
-    .addPermission(bobWebId, acl.READ)
+    .addPermission(bobWebId, acl.READ, origin)  // only allow read from origin
     .addPermission(aliceWebId, [acl.READ, acl.WRITE])
   t.notOk(ps.isEmpty())
   t.equal(ps.count(), 2)
@@ -52,6 +53,7 @@ test('PermissionSet can add and remove authorizations', function (t) {
   t.equal(auth.agent, bobWebId)
   t.equal(auth.resourceUrl, resourceUrl)
   t.equal(auth.resourceType, Authorization.RESOURCE)
+  t.ok(auth.allowsOrigin(origin))
   t.ok(auth.allowsRead())
   t.notOk(auth.allowsWrite())
   // adding further permissions for an existing agent just merges access modes
@@ -132,6 +134,8 @@ test('a PermissionSet can be initialized from an .acl resource', function (t) {
   t.equal(auth.resourceUrl, containerUrl)
   t.ok(auth.isInherited())
   t.ok(auth.allowsWrite() && auth.allowsWrite() && auth.allowsControl())
+  // Check to make sure the acl:origin objects were read in
+  t.ok(auth.allowsOrigin('https://example.com/'))
   // Check to make sure the `mailto:` agent objects were read in
   // This is @private / unofficial functionality, used only in the root ACL
   t.ok(auth.mailTo.length > 0, 'Alice agent should have a mailto: set')
@@ -197,10 +201,13 @@ test('PermissionSet equals test 4', function (t) {
 })
 
 test('PermissionSet serialized & deserialized round trip test', function (t) {
-  let ps = new PermissionSet(containerUrl, containerAclUrl,
+  var ps = new PermissionSet(containerUrl, containerAclUrl,
     PermissionSet.CONTAINER)
   ps.initFromGraph(parsedAclGraph)
+  let auth = ps.permissionFor(aliceWebId)
+  // console.log(ps.serialize())
   t.ok(ps.equals(ps), 'A PermissionSet should equal itself')
+  // Now check to make sure serialize() & reparse results in the same set
   return ps.serialize()
     .then((serializedTurtle) => {
       // Now that the PermissionSet is serialized to a Turtle string,
@@ -210,6 +217,7 @@ test('PermissionSet serialized & deserialized round trip test', function (t) {
       let ps2 = new PermissionSet(containerUrl, containerAclUrl,
         PermissionSet.CONTAINER)
       ps2.initFromGraph(parsedGraph)
+      // console.log(ps2.serialize())
       t.ok(ps.equals(ps2),
         'A PermissionSet serialized and re-parsed should equal the original one')
       t.end()

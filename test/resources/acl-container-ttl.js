@@ -14,6 +14,9 @@ module.exports = `@prefix acl: <http://www.w3.org/ns/auth/acl#>.
     acl:mode
         acl:Read, acl:Write, acl:Control;
 
+    acl:origin
+        <https://example.com/>;
+
     # defaultForNew says: this authorization (the statements above) will also
     #   be inherited by any resource within that container that doesn't have its
     #   own ACL.
