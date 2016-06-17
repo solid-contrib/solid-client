@@ -22,6 +22,7 @@ module.exports = `@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 <#me>
     a    foaf:Person;
     foaf:name "Alice";
+    foaf:img </profile/img.png>;
     owl:sameAs </settings/privateProfile2.ttl>;
     cert:key
        <#key-1455289666916>;
