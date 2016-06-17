@@ -168,10 +168,10 @@ Javascript:
 var solid = require('solid')
 var login = function() {
   // Get the current user
-  solid.login().then(function(webId){
+  solid.login().then(function (webId){
     // authentication succeeded; do something with the WebID string
     console.log(webId)
-  }).catch(function(err) {
+  }).catch(function (err) {
     // authentication failed; display some error message
     console.log(err)
   })
@@ -196,13 +196,15 @@ Javascript:
 var solid = require('solid')
 // Signup for a WebID
 var signup = function() {
-  solid.signup().then(function(webId) {
-    // authentication succeeded; do something with the WebID string
-    console.log(webId)
-  }).catch(function(err) {
-    // authentication failed; display some error message
-    console.log(err)
-  })
+  solid.signup()
+    .then(function (webId) {
+      // authentication succeeded; do something with the WebID string
+      console.log(webId)
+    })
+    .catch(function (err) {
+      // authentication failed; display some error message
+      console.log(err)
+    })
 }
 ```
 
@@ -213,7 +215,7 @@ to load the user profile:
 
 ```javascript
 var profile = solid.login()
-  .then(function(webId){
+  .then(function (webId) {
     // have the webId, now load the profile
     return solid.getProfile(webId)
   })
@@ -223,6 +225,27 @@ The call to `getProfile(url)` loads the full [extended
 profile](https://github.com/solid/solid-spec/blob/master/solid-webid-profiles.md#extended-profile):
 the profile document itself, any `sameAs` and `seeAlso` links it finds there,
 as well as the Preferences file.
+
+Once a profile is loaded, you can access the values of the profile's pre-defined
+fields, or look for predicates in the profile's parsed graph using 
+`profile.find()` and `profile.findAll()`:
+
+```js
+var vocab = solid.vocab
+solid.login()
+  .then(function (webId) {
+    return solid.getProfile(webId)
+  })
+  .then(function (profile) {
+    profile.name  // -> 'Alice'
+    profile.picture   // -> 'https://example.com/profile/icon.png'
+    profile.find(vocab.solid('inbox'))    // -> 'https://example.com/inbox/'
+    profile.findAll(vocab.owl('sameAs'))  // -> [ url1, url2 ]
+  })
+  .catch(function (err) {
+    console.log('Error accessing profile: ' + err)
+  })
+```
 
 #### User Type Registry Index
 

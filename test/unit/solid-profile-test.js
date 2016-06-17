@@ -56,6 +56,40 @@ test('SolidProfile parse webId test', function (t) {
   t.equal(profile.webId, expectedWebId)
 })
 
+test('SolidProfile parsed profile test', function (t) {
+  let profileUrl = 'https://localhost:8443/profile/card'
+  let profile = new SolidProfile(profileUrl, parsedProfileGraph)
+  t.equal(profile.name, 'Alice',
+    'Name should be pre-loaded for a parsed profile')
+  t.equal(profile.picture, 'https://localhost:8443/profile/img.png',
+    'Picture url should be pre-loaded for a parsed profile')
+  t.end()
+})
+
+test('SolidProfile .find() test', function (t) {
+  let profileUrl = 'https://localhost:8443/profile/card'
+  let profile = new SolidProfile(profileUrl, parsedProfileGraph)
+  let expectedAnswer = 'Alice'
+  t.equal(profile.find(vocab.foaf('name')), expectedAnswer,
+    '.find() should fetch name')
+  expectedAnswer = 'https://localhost:8443/settings/privateProfile2.ttl'
+  t.equal(profile.find(vocab.owl('sameAs')), expectedAnswer,
+    '.find() should fetch owl:sameAs')
+  t.end()
+})
+
+test('SolidProfile .findAll() test', function (t) {
+  let profileUrl = 'https://localhost:8443/profile/card'
+  let profile = new SolidProfile(profileUrl, parsedProfileGraph)
+  let expectedAnswer = ['Alice']
+  t.deepEqual(profile.findAll(vocab.foaf('name')), expectedAnswer,
+    '.findAll() should fetch all names')
+  expectedAnswer = ['https://localhost:8443/settings/privateProfile2.ttl']
+  t.deepEqual(profile.findAll(vocab.owl('sameAs')), expectedAnswer,
+    '.findAll() should fetch all owl:sameAs values')
+  t.end()
+})
+
 test('SolidProfile preferences test', function (t) {
   let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
   let expectedPreferences = 'https://localhost:8443/settings/prefs.ttl'

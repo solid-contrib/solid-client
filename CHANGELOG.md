@@ -1,3 +1,8 @@
+##### Version 0.19.0
+- Refactored WebID discovery
+- Added `profile.find()` and `profile.findAll()` helper methods
+- Added profile fields `name` and `img` (parsed from graph automatically)
+
 ##### Version 0.18.0
 - Implemented ACL/permission API support, `getPermission()` etc.
 
