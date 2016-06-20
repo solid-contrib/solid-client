@@ -75,6 +75,8 @@ test('SolidProfile .find() test', function (t) {
   expectedAnswer = 'https://localhost:8443/settings/privateProfile2.ttl'
   t.equal(profile.find(vocab.owl('sameAs')), expectedAnswer,
     '.find() should fetch owl:sameAs')
+  t.equal(profile.find(vocab.foaf('undefined-predicate')), undefined,
+    '.find() should return `undefined` for unspecified predicates')
   t.end()
 })
 
