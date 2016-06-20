@@ -75,8 +75,9 @@ test('SolidProfile .find() test', function (t) {
   expectedAnswer = 'https://localhost:8443/settings/privateProfile2.ttl'
   t.equal(profile.find(vocab.owl('sameAs')), expectedAnswer,
     '.find() should fetch owl:sameAs')
-  t.equal(profile.find(vocab.foaf('undefined-predicate')), undefined,
-    '.find() should return `undefined` for unspecified predicates')
+
+  t.notOk(profile.find(vocab.solid('invalidPredicate')),
+    'Trying to find() non-existent resources should return null')
   t.end()
 })
 
@@ -89,6 +90,9 @@ test('SolidProfile .findAll() test', function (t) {
   expectedAnswer = ['https://localhost:8443/settings/privateProfile2.ttl']
   t.deepEqual(profile.findAll(vocab.owl('sameAs')), expectedAnswer,
     '.findAll() should fetch all owl:sameAs values')
+
+  t.deepEqual(profile.findAll(vocab.solid('invalidPredicate')), [],
+    'findAll() on non-existent resources should return []')
   t.end()
 })
 
