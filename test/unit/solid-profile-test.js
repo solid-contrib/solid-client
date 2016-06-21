@@ -4,7 +4,7 @@ var test = require('tape')
 var SolidProfile = require('../../lib/solid/profile')
 var parseGraph = require('../../lib/util/graph-util').parseGraph
 
-var rawProfileSource = require('../resources/profile-ldnode')
+var rawProfileSource = require('../resources/profile-extended')
 var sampleProfileUrl = 'https://localhost:8443/profile/card'
 var parsedProfileGraph = parseGraph(sampleProfileUrl,
   rawProfileSource, 'text/turtle')
@@ -13,9 +13,23 @@ var vocab = require('../../lib/vocab')
 var rdf = require('../../lib/util/rdf-parser').rdflib
 
 function getPrefsGraph (urlPrefs) {
-  let rawPrefsSource = require('../resources/profile-prefs')
+  let rawPrefsSource = require('../resources/profile-private')
   let graphPrefs = parseGraph(urlPrefs, rawPrefsSource, 'text/turtle')
   return graphPrefs
+}
+
+/**
+ * Returns a sample test profile with the following graphs loaded:
+ *   - test/resources/profile-extended.js
+ *   - test/resources/profile-private.js
+ */
+function sampleExtendedProfile () {
+  let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
+  let urlPrivateProfile = 'https://localhost:8443/settings/prefs.ttl'
+  let graphPrivateProfile = getPrefsGraph(urlPrivateProfile)
+  profile.appendFromGraph(graphPrivateProfile, urlPrivateProfile)
+  profile.isLoaded = true
+  return profile
 }
 
 test('SolidProfile empty profile test', function (t) {
@@ -28,6 +42,7 @@ test('SolidProfile empty profile test', function (t) {
     'Empty profile - no preferences')
   t.deepEqual(profile.storage, [],
     'Empty profile - no storage')
+  t.notOk(profile.hasStorage(), 'Empty profile - hasStorage() false')
   t.notOk(profile.typeIndexUnlisted.uri || profile.typeIndexUnlisted.graph,
     'Empty profile - no private type registry index')
   t.notOk(profile.typeIndexListed.uri || profile.typeIndexListed.graph,
@@ -127,6 +142,7 @@ test('SolidProfile storage test', function (t) {
   let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
   let expectedStorageLinks = ['https://localhost:8443/']
   t.deepEqual(profile.storage, expectedStorageLinks)
+  t.ok(profile.hasStorage())
   t.end()
 })
 
@@ -139,16 +155,58 @@ test('SolidProfile extended profile test', function (t) {
     .any(rdf.sym(profile.webId), vocab.foaf('name')).value
   t.equal(name, 'Alice')
 
-  // Also load and parse the Preferences resource
+  // Also load and parse the private profile (prefs.ttl) resource
   // This is where the link to privateTypeIndex.ttl comes from
-  let urlPrefs = 'https://localhost:8443/settings/prefs.ttl'
-  let graphPrefs = getPrefsGraph(urlPrefs)
-  profile.appendFromGraph(graphPrefs, urlPrefs)
+  profile = sampleExtendedProfile()
   // profile is an Extended Profile at this point
 
   // Make sure the original parsed graph is not overwritten at this point
   name = profile.parsedGraph
     .any(rdf.sym(profile.webId), vocab.foaf('name')).value
   t.equal(name, 'Alice')
+  t.end()
+})
+
+test('SolidProfile typeRegistryDefaultUri() test', function (t) {
+  let profile = new SolidProfile()
+  t.equal(profile.typeRegistryDefaultUri(), '/profile/',
+    'Default type registry uri for a profile without a web id should be /profile/')
+
+  let profileUrl = 'https://example.com/test/card'
+  profile = new SolidProfile(profileUrl)
+  t.equal(profile.typeRegistryDefaultUri(), 'https://example.com/test/',
+    'Default type registry uri should use the same container as profile')
+  t.end()
+})
+
+test('SolidProfile privateProfileUri() test', function (t) {
+  let profile = new SolidProfile()
+  t.equal(profile.privateProfileUri(), '/settings/prefs.ttl',
+    'Default private profile uri for new profile should be /settings/prefs.ttl')
+
+  t.end()
+})
+
+test('SolidProfile hasTypeRegistry*() test', function (t) {
+  let profileEmpty = new SolidProfile()
+  t.throws(function () {
+    profileEmpty.hasTypeRegistryPrivate()
+  }, 'Calling hasTypeRegistryPrivate() on unloaded profile should throw an error')
+  t.throws(function () {
+    profileEmpty.hasTypeRegistryPublic()
+  }, 'Calling hasTypeRegistryPublic() on unloaded profile should throw an error')
+
+  // Fake loading the profile. Now the hasTypeRegistry* methods should be false
+  profileEmpty.isLoaded = true
+  t.notOk(profileEmpty.hasTypeRegistryPublic(),
+    'Empty just-loaded profile should not have a public type registry')
+  t.notOk(profileEmpty.hasTypeRegistryPrivate(),
+    'Empty just-loaded profile should not have a private type registry')
+
+  let profileExtended = sampleExtendedProfile()
+  t.ok(profileExtended.hasTypeRegistryPublic(),
+    'Sample extended profile should have a link to the public type registry')
+  t.ok(profileExtended.hasTypeRegistryPrivate(),
+    'Sample extended profile should have a link to the private type registry')
   t.end()
 })

@@ -64,3 +64,17 @@ test('parseAllowedMethods() does not support json-patch', function (t) {
     acceptPatchHeader)
   t.deepEqual(allowedMethods, expectedAllowedMethods, 'JSON-Patch method is not supported')
 })
+
+test('hostname() test', function (t) {
+  var hostname = webUtil.hostname
+  t.equal(hostname('https://example.com'), 'https://example.com')
+  t.equal(hostname('https://example.com/'), 'https://example.com')
+  t.equal(hostname('//example.com/'), '//example.com')
+  t.equal(hostname('//example.com'), '//example.com')
+  t.equal(hostname('example.com'), 'example.com')
+  t.equal(hostname('https://username:password@www.example.com/'),
+    'https://username:password@www.example.com')
+  t.equal(hostname('https://example.com/dir1/'), 'https://example.com')
+  t.equal(hostname('https://example.com/dir1/dir2/#me?k=v'), 'https://example.com')
+  t.end()
+})
