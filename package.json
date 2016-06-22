@@ -10,10 +10,10 @@
     "dist"
   ],
   "scripts": {
-    "build-browserified": "browserify -r ./index.js:solid --exclude 'xhr2' --exclude 'rdflib' --standalone 'SolidClient' > dist/solid.js",
-    "build-minified": "browserify -r ./index.js:solid --exclude 'xhr2' --exclude 'rdflib' -d -p [minifyify --no-map] --standalone 'SolidClient' > dist/solid.min.js",
-    "build": "npm run clean && mkdir -p dist/resources && npm run standard && npm run build-browserified && npm run build-minified",
-    "build-qunit-resources": "browserify -r ./test/resources/profile-ldnode.js:test-ldnode-profile --exclude 'xhr2' --exclude 'rdflib' > dist/resources/test-ldnode-profile.js",
+    "build-with-rdflib": "browserify -r ./index.js:solid --exclude 'xhr2' -d -p [minifyify --no-map] --standalone 'SolidClient' -o dist/solid-client.min.js",
+    "build-without-rdflib": "browserify -r ./index.js:solid --exclude 'xhr2' --exclude 'rdflib' -d -p [minifyify --no-map] --standalone 'SolidClient' -o dist/solid-client-no-rdflib.min.js",
+    "build-qunit-resources": "browserify -r ./test/resources/profile-ldnode.js:test-ldnode-profile --exclude 'xhr2' --exclude 'rdflib' -o dist/resources/test-ldnode-profile.js",
+    "build": "npm run test && npm run clean && mkdir dist && npm run build-with-rdflib && npm run build-without-rdflib",
     "prepublish": "npm run build",
     "clean": "rm -rf dist/",
     "standard": "standard lib/*",
