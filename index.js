@@ -21,9 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-Solid.js is a Javascript library for Solid applications. This library currently
-depends on rdflib.js. Please make sure to load the rdflib.js script before
-loading solid.js.
+Solid.js is a Javascript library for Solid applications.
 
 If you would like to know more about the solid Solid project, please see
 https://github.com/solid/solid
@@ -50,6 +48,7 @@ var Solid = {
   identity: require('./lib/identity'),
   login: require('./lib/auth').login,
   meta: require('./lib/meta'),
+  rdflib: (typeof $rdf !== 'undefined') ? $rdf : require('rdflib'),
   signup: require('./lib/auth').signup,
   status: require('./lib/status'),
   vocab: require('./lib/vocab'),

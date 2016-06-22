@@ -8,29 +8,37 @@ applications. (See **[Changelog](CHANGELOG.md)** for version history.)
 
 ## Usage
 
-Solid.js is currently intended for client-side use only (inside a web browser):
+The solid client can be used by solid applications that run in the browser or on
+Node.js. A minified UMD bundle is provided along with the regular set of
+CommonJS modules.
 
-1. Load dependencies (currently,
-  [rdflib.js](https://github.com/linkeddata/rdflib.js/)).
-2. Load `solid.js` from a local copy (or directly from Github Pages).
-3. Use the `require('solid')` function provided by Browserify to import.
-
-Example `index.html`:
+For example:
 
 ```html
-<script src="https://solid.github.io/releases/rdflib.js/rdflib-0.7.0.min.js"></script>
-<script src="https://solid.github.io/releases/solid.js/solid-0.18.0.min.js"></script>
-<script>
-  // $rdf is exported as a global when you load RDFLib, above
-  var solid = require('solid')
-  // Use Solid client here ...
-  console.log('solid.js version: ' + solid.meta.version())
-</script>
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <script src="dist/solid-client.min.js"></script>
+  </head>
+  <body>
+    <script>
+      var solid = SolidClient
+    </script>
+  </body>
+</html>
 ```
+
+Or, using a module loader:
+
+```js
+var solid = require('solid-client')
+```
+
+See the [installation docs](docs/installing.md) for more installation examples.
 
 Take a look at the **[Solid.js Demo
 Page](https://solid.github.io/solid.js/demo/)** (source located in
-`demo/index.html`) for more usage examples.
+`demo/index.html`) for usage examples.
 
 ## Tutorials
 
@@ -227,7 +235,7 @@ the profile document itself, any `sameAs` and `seeAlso` links it finds there,
 as well as the Preferences file.
 
 Once a profile is loaded, you can access the values of the profile's pre-defined
-fields, or look for predicates in the profile's parsed graph using 
+fields, or look for predicates in the profile's parsed graph using
 `profile.find()` and `profile.findAll()`:
 
 ```js
@@ -288,7 +296,7 @@ var addressBookRegistrations = solid.getProfile(webId)
     locationUri: 'https://localhost:8443/personal-address-books/',
     locationType: 'container',
     isListed: false
-  )  
+  )
 ]
 */
 ```
