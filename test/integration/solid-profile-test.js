@@ -10,6 +10,8 @@ var prefsUrl = serverUrl + 'settings/test-test.ttl'
 var rawPrefsSource = require('test-minimal-prefs')
 var defaultPrivateTypeRegistryUrl = serverUrl + 'profile/privateTypeIndex.ttl'
 var defaultPublicTypeRegistryUrl = serverUrl + 'profile/publicTypeIndex.ttl'
+var defaultPrivateAppRegistryUrl = serverUrl + 'profile/privateAppRegistry.ttl'
+var defaultPublicAppRegistryUrl = serverUrl + 'profile/publicAppRegistry.ttl'
 
 function clearRegistries () {
   return clearResource(defaultPublicTypeRegistryUrl)
@@ -242,5 +244,94 @@ QUnit.test('unregisterType() test', function (assert) {
     })
     .then(function () {
       return clearRegistries()
+    })
+})
+
+QUnit.test('initAppRegistryPublic() test', function (assert) {
+  assert.expect(7)
+  var profile
+  return clearResource(defaultPublicAppRegistryUrl)
+    .then(function () {
+      // Make sure registry does not exist
+      // return resetProfile(profileUrl)
+      return solid.getProfile(profileUrl)
+    })
+    .then(function (profileResult) {
+      profile = profileResult
+      return solid.appRegistry.initAppRegistryPublic(profile)
+    })
+    .then(function () {
+      // Check to make sure the app registry is loaded after init
+      assert.ok(profile.hasAppRegistryPublic())
+      assert.equal(profile.appRegistryListed.uri, defaultPublicAppRegistryUrl,
+        'public app registry uri should be loaded after registry init')
+      assert.ok(profile.appRegistryListed.graph,
+        'public app registry graph should be loaded after init')
+      // reload the profile
+      return solid.getProfile(profileUrl)
+    })
+    .then(function (profileResult) {
+      profile = profileResult
+      assert.ok(profile.hasAppRegistryPublic(),
+        'hasTypeRegistryPublic() should be true after initAppRegistryPublic() + profile reload')
+      assert.equal(profile.appRegistryListed.uri, defaultPublicAppRegistryUrl,
+        'public app registry uri should be loaded after registry init + profile reload')
+      assert.notOk(profile.appRegistryListed.graph)
+      // The profile has been reloaded, but the app registry wasn't loaded.
+      // Load it now.
+      return profile.loadAppRegistry()
+    })
+    .then(function (profileResult) {
+      profile = profileResult
+      assert.ok(profile.appRegistryListed.graph,
+        'public app registry graph should be loaded after profile reload + loadAppRegistry()')
+      // Test to make sure that the freshly initialized registry is empty
+    })
+    .then(function () {
+      // return clearResource(defaultPublicAppRegistryUrl)
+    })
+})
+
+QUnit.test('initAppRegistryPrivate() test', function (assert) {
+  assert.expect(6)
+  var profile
+  return clearResource(defaultPrivateAppRegistryUrl)
+    .then(function () {
+      // Make sure registry does not exist
+      // return resetProfile(profileUrl)
+      return solid.getProfile(profileUrl)
+    })
+    .then(function (profileResult) {
+      profile = profileResult
+      return solid.appRegistry.initAppRegistryPrivate(profile)
+    })
+    .then(function () {
+      // Check to make sure the app registry is loaded after init
+      assert.ok(profile.hasAppRegistryPrivate())
+      assert.equal(profile.appRegistryUnlisted.uri, defaultPrivateAppRegistryUrl,
+        'private app registry uri should be loaded after registry init')
+      assert.ok(profile.appRegistryUnlisted.graph,
+        'private app registry graph should be loaded after init')
+      // reload the profile
+      return solid.getProfile(profileUrl)
+    })
+    .then(function (profileResult) {
+      profile = profileResult
+      assert.ok(profile.hasAppRegistryPrivate(),
+        'hasAppRegistryPrivate() should be true after initAppRegistryPrivate() + profile reload')
+      assert.equal(profile.appRegistryUnlisted.uri, defaultPrivateAppRegistryUrl,
+        'private app registry uri should be loaded after registry init + profile reload')
+      // The profile has been reloaded, but the app registry wasn't loaded.
+      // Load it now.
+      return profile.loadAppRegistry()
+    })
+    .then(function (profileResult) {
+      profile = profileResult
+      assert.ok(profile.appRegistryUnlisted.graph,
+        'private app registry graph should be loaded after profile reload + loadAppRegistry()')
+      // Test to make sure that the freshly initialized registry is empty
+    })
+    .then(function () {
+      return clearResource(defaultPrivateAppRegistryUrl)
     })
 })
