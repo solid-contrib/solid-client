@@ -13,10 +13,21 @@ var defaultPublicTypeRegistryUrl = serverUrl + 'profile/publicTypeIndex.ttl'
 var defaultPrivateAppRegistryUrl = serverUrl + 'profile/privateAppRegistry.ttl'
 var defaultPublicAppRegistryUrl = serverUrl + 'profile/publicAppRegistry.ttl'
 
+var AppRegistration = solid.AppRegistration
+
 function clearRegistries () {
   return clearResource(defaultPublicTypeRegistryUrl)
     .then(function () {
       return clearResource(defaultPrivateTypeRegistryUrl)
+    })
+    .then(function () {
+      return clearResource(defaultPrivateAppRegistryUrl)
+    })
+    .then(function () {
+      return clearResource(defaultPrivateAppRegistryUrl)
+    })
+    .then(function () {
+      return clearResource(defaultPublicAppRegistryUrl)
     })
 }
 
@@ -332,6 +343,55 @@ QUnit.test('initAppRegistryPrivate() test', function (assert) {
       // Test to make sure that the freshly initialized registry is empty
     })
     .then(function () {
-      return clearResource(defaultPrivateAppRegistryUrl)
+      // return clearResource(defaultPrivateAppRegistryUrl)
+    })
+})
+
+QUnit.test('profile.appsForType() test', function (assert) {
+  var REDIRECT_URI = 'https://solid.github.io/contacts/?uri={uri}'
+  assert.expect(9)
+  var profile
+  var typesForApp = [
+    vocab.vcard('AddressBook')
+  ]
+  return ensureProfile(profileUrl)
+    .then(function () {
+      return solid.getProfile(profileUrl)
+    })
+    .then(function (loadedProfile) {
+      profile = loadedProfile
+      // The registries have been initialized by the preceding tests
+      assert.ok(profile.hasAppRegistryPrivate())
+      assert.ok(profile.hasAppRegistryPublic())
+      // Check to make sure no registry entry exists
+      var registeredApps = profile.appsForType(vocab.vcard('AddressBook'))
+      assert.deepEqual(registeredApps, [],
+        'An empty app registry should have no registrations for AddressBook')
+      var options = {
+        name: 'Contact Manager',
+        shortdesc: 'desc',
+        redirectTemplateUri: REDIRECT_URI
+      }
+      var isListed = true
+      var app = new AppRegistration(options, typesForApp, isListed)
+      return profile.registerApp(app)
+    })
+    .then(function (updatedProfile) {
+      profile = updatedProfile
+      console.log(profile)
+      return profile.appsForType(vocab.vcard('AddressBook'))
+    })
+    .then(function (registrationResults) {
+      assert.equal(registrationResults.length, 1,
+        'Only one app should have been registered')
+      var app = registrationResults[0]
+      assert.equal(app.name, 'Contact Manager')
+      assert.equal(app.shortdesc, 'desc')
+      assert.equal(app.redirectTemplateUri, REDIRECT_URI)
+      assert.equal(app.types.length, 1)
+      assert.ok(app.isListed)
+    })
+    .then(function () {
+      return clearRegistries()
     })
 })
