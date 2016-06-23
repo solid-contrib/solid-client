@@ -1,3 +1,6 @@
+##### Version 0.20.0
+- Added initTypeRegistry() and initAppRegistry() functionality
+
 ##### Version 0.19.0
 - Refactored WebID discovery
 - Added `profile.find()` and `profile.findAll()` helper methods
