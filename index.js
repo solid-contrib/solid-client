@@ -39,6 +39,7 @@ https://github.com/solid/solid
  */
 var Solid = {
   acl: require('./lib/permissions/authorization').acl,
+  appRegistry: require('./lib/app-registry'),
   auth: require('./lib/auth'),
   config: require('./config'),
   currentUser: require('./lib/auth').currentUser,
@@ -52,7 +53,6 @@ var Solid = {
   signup: require('./lib/auth').signup,
   status: require('./lib/status'),
   typeRegistry: require('./lib/type-registry'),
-  util: require('./lib/util/web-util'),
   vocab: require('./lib/vocab'),
   web: require('./lib/web')
 }

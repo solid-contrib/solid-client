@@ -1,5 +1,6 @@
 'use strict'
 
+var registry = require('../../lib/registry')
 var test = require('tape')
 var typeRegistry = require('../../lib/type-registry')
 var parseGraph = require('../../lib/util/graph-util').parseGraph
@@ -30,20 +31,20 @@ test('blankPublicTypeIndex() test', function (t) {
   t.end()
 })
 
-test('Solid.typeRegistry isListedTypeIndex test', function (t) {
-  var url = 'https://localhost:8443/settings/publicTypeIndex.ttl'
+test('typeRegistry isListed() test', function (t) {
+  var url = 'https://localhost:8443/profile/publicTypeIndex.ttl'
   var rawIndexSource = require('../resources/type-index-listed')
   var graph = parseGraph(url, rawIndexSource, 'text/turtle')
-  var result = typeRegistry.isListedTypeIndex(graph)
+  var result = registry.isListed(graph)
   t.ok(result)
   t.end()
 })
 
-test('Solid.typeRegistry isUnlistedTypeIndex test', function (t) {
-  var url = 'https://localhost:8443/settings/privateTypeIndex.ttl'
+test('typeRegistry isUnlisted() test', function (t) {
+  var url = 'https://localhost:8443/profile/privateTypeIndex.ttl'
   var rawIndexSource = require('../resources/type-index-unlisted')
   var graph = parseGraph(url, rawIndexSource, 'text/turtle')
-  var result = typeRegistry.isUnlistedTypeIndex(graph)
+  var result = registry.isUnlisted(graph)
   t.ok(result)
   t.end()
 })

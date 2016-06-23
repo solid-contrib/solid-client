@@ -167,14 +167,14 @@ test('SolidProfile extended profile test', function (t) {
   t.end()
 })
 
-test('SolidProfile typeRegistryDefaultUri() test', function (t) {
+test('SolidProfile typeRegistryDefaultContainer() test', function (t) {
   let profile = new SolidProfile()
-  t.equal(profile.typeRegistryDefaultUri(), '/profile/',
+  t.equal(profile.typeRegistryDefaultContainer(), '/profile/',
     'Default type registry uri for a profile without a web id should be /profile/')
 
   let profileUrl = 'https://example.com/test/card'
   profile = new SolidProfile(profileUrl)
-  t.equal(profile.typeRegistryDefaultUri(), 'https://example.com/test/',
+  t.equal(profile.typeRegistryDefaultContainer(), 'https://example.com/test/',
     'Default type registry uri should use the same container as profile')
   t.end()
 })
