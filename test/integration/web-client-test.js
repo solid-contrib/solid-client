@@ -1,6 +1,6 @@
 'use strict'
 
-var solid = require('solid')
+var solid = SolidClient
 
 var serverUrl = 'https://localhost:8443/'
 
@@ -11,6 +11,8 @@ QUnit.test('web.head() test', function (assert) {
   return solid.web.head(serverUrl)
     .then(function (result) {
       assert.equal(result.xhr.status, 200)
-      assert.equal(result.type, 'http://www.w3.org/ns/ldp#BasicContainer')
+      assert.deepEqual(result.types,
+        ['http://www.w3.org/ns/ldp#BasicContainer',
+          'http://www.w3.org/ns/ldp#Container'])
     })
 })

@@ -15,7 +15,6 @@ module.exports = `@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 
 <>
   a foaf:PersonalProfileDocument;
-  foaf:maker <#me>;
   foaf:primaryTopic <#me>;
   rdfs:seeAlso </settings/privateProfile1.ttl>.
 
@@ -23,20 +22,31 @@ module.exports = `@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
     a    foaf:Person;
     foaf:name "Alice";
     foaf:img </profile/img.png>;
+
+    # owl:sameAs, rdfs:seeAlso, and sp:preferencesFile link
+    #   to the Extended Profile
     owl:sameAs </settings/privateProfile2.ttl>;
     cert:key
        <#key-1455289666916>;
+    # This preferencesFile can be thought of as a private profile
     sp:preferencesFile
        </settings/prefs.ttl>;
     # Add a duplicate Preferences link, to test client side de-duplication
     sp:preferencesFile
        </settings/prefs.ttl>;
+
+    # Link to root storage container
     sp:storage
        loc:;
+    # Link to the public (listed) Type Registry index.
+    # The link to the private (unlisted) index is in the private profile
     terms:publicTypeIndex
        </settings/publicTypeIndex.ttl>;
+    # Link to the Solid messaging inbox
     terms:inbox
        inbox:.
+
+# Public key certificate section
 <#key-1455289666916>
     ter:created
        "2016-02-12T15:07:46.916Z"^^XML:dateTime;
