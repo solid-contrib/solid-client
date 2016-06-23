@@ -57,7 +57,8 @@ var solid = require('solid-client')
 ### webpack
 
 Using solid-client with webpack requires some configuration. You'll need the
-json-loader for webpack and will need to exclude the xhr2 module from the build.
+json-loader for webpack and will need to exclude the xhr2 and xmlhttprequest
+modules from the build.
 
 First install solid-client and json-loader:
 
@@ -66,7 +67,8 @@ $ npm install solid-client --save
 $ npm install json-loader --save-dev
 ```
 
-Then add the JSON loader and declare the xhr2 external in `webpack.config.js`:
+Then add the JSON loader and declare the xhr2 and xmlhttprequest externals in
+`webpack.config.js`:
 
 ```js
 module.exports = {
@@ -80,7 +82,8 @@ module.exports = {
     ]
   },
   externals: {
-    'xhr2': 'XMLHttpRequest'
+    xhr2: 'XMLHttpRequest',
+    xmlhttprequest: 'XMLHttpRequest'
   },
   // ...
 }
