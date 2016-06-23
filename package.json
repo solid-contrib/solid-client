@@ -10,9 +10,9 @@
     "dist"
   ],
   "scripts": {
-    "build-with-rdflib": "browserify -r ./index.js:solid --exclude 'xhr2' -d -p [minifyify --no-map] --standalone 'SolidClient' -o dist/solid-client.min.js",
-    "build-without-rdflib": "browserify -r ./index.js:solid --exclude 'xhr2' --exclude 'rdflib' -d -p [minifyify] --standalone 'SolidClient' -o dist/solid-client-no-rdflib.min.js",
-    "build-qunit-resources": "npm run clean && mkdir -p dist/resources && npm run build-without-rdflib && browserify -r ./test/resources/profile-minimal.js:test-minimal-profile -o dist/resources/test-minimal-profile.js && browserify -r ./test/resources/profile-private.js:test-minimal-prefs -o dist/resources/test-minimal-prefs.js",
+    "build-with-rdflib": "browserify -r ./index.js:solid --exclude 'xhr2' -d -p [minifyify --map dist/solid-client.js.map --output dist/solid-client.js.map] --standalone 'SolidClient' -o dist/solid-client.min.js",
+    "build-without-rdflib": "browserify -r ./index.js:solid --exclude 'xhr2' --exclude 'rdflib' -d -p [minifyify --map dist/solid-client-no-rdflib.js.map --output dist/solid-client-no-rdflib.js.map] --standalone 'SolidClient' -o dist/solid-client-no-rdflib.min.js",
+    "build-qunit-resources": "npm run clean && mkdir -p dist/resources && npm run build-with-rdflib && browserify -r ./test/resources/profile-minimal.js:test-minimal-profile -o dist/resources/test-minimal-profile.js && browserify -r ./test/resources/profile-private.js:test-minimal-prefs -o dist/resources/test-minimal-prefs.js",
     "build": "npm run test && npm run clean && mkdir dist && npm run build-with-rdflib && npm run build-without-rdflib",
     "prepublish": "npm run build",
     "clean": "rm -rf dist/",
@@ -58,6 +58,7 @@
   "standard": {
     "globals": [
       "$rdf",
+      "SolidClient",
       "tabulator",
       "QUnit"
     ]

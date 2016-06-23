@@ -1,6 +1,6 @@
 'use strict'
 
-var solid = require('solid')
+var solid = SolidClient
 var vocab = solid.vocab
 
 var serverUrl = 'https://localhost:8443/'
