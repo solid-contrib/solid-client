@@ -1,5 +1,10 @@
 ##### Version 0.20.0
 - Added initTypeRegistry() and initAppRegistry() functionality
+- (**breaking change**) distribute two bundles as minified UMD modules.  One
+  includes `rdflib` in the bundle, and one does not.  Clients using the bundles
+  without a module bundler (e.g. referencing the library in `<script>` tags)
+  should use the global `SolidClient` object.
+- Fix `require('solid-client')` for client apps using a CommonJS module loader.
 
 ##### Version 0.19.0
 - Refactored WebID discovery
