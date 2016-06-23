@@ -21,7 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-Solid.js is a Javascript library for Solid applications.
+solid-client is a Javascript library for Solid applications.
 
 If you would like to know more about the solid Solid project, please see
 https://github.com/solid/solid
@@ -29,8 +29,8 @@ https://github.com/solid/solid
 'use strict'
 /**
  * Provides a Solid client helper object (which exposes various static modules).
- * @module solid.js
- * @main solid.js
+ * @module solid-client
+ * @main solid-client
  */
 
 /**

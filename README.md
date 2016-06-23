@@ -1,7 +1,7 @@
-# solid.js
+# solid-client
 [![](https://img.shields.io/badge/project-Solid-7C4DFF.svg?style=flat)](https://github.com/solid/solid)
 [![NPM Version](https://img.shields.io/npm/v/solid-client.svg?style=flat)](https://npm.im/solid-client)
-[![Build Status](https://travis-ci.org/solid/solid.js.svg?branch=master)](https://travis-ci.org/solid/solid.js)
+[![Build Status](https://travis-ci.org/solid/solid-client.svg?branch=master)](https://travis-ci.org/solid/solid-client)
 
 Javascript library for writing [Solid](https://github.com/solid/solid)
 applications. (See **[Changelog](CHANGELOG.md)** for version history.)
@@ -36,19 +36,19 @@ var solid = require('solid-client')
 
 See the [installation docs](docs/installing.md) for more installation examples.
 
-Take a look at the **[Solid.js Demo
-Page](https://solid.github.io/solid.js/demo/)** (source located in
+Take a look at the **[solid-client demo
+page](https://solid.github.io/solid-client/demo/)** (source located in
 `demo/index.html`) for usage examples.
 
 ## Tutorials
 
-If you would like to learn how to build Solid apps using Solid.js, please see:
+If you would like to learn how to build Solid apps using solid-client, please see:
 
 * [solid introduction tutorial](https://github.com/solid/solid-tutorial-intro)
 * [pastebin example tutorial](https://github.com/solid/solid-tutorial-pastebin)
 * [using rdflib.js tutorial](https://github.com/solid/solid-tutorial-rdflib.js)
 
-## Developing Solid.js
+## Developing solid-client
 
 Install dev dependencies:
 
@@ -56,7 +56,7 @@ Install dev dependencies:
 npm install
 ```
 
-Building (uses Browserify, builds to `dist/solid.js` and `dist/solid.min.js`):
+Building (uses Browserify, builds to `solid-client.js` and `dist/solid-client-no-rdflib.js`):
 
 ```
 npm run build
@@ -74,7 +74,7 @@ This runs the [Tape](https://github.com/substack/tape) unit test suite.
 
 ## Releases
 
-The following steps specify how to release `solid.js`:
+The following steps specify how to release solid-client:
 
 Make sure you're at the HEAD of `master`.
 
@@ -136,7 +136,7 @@ request to the relevant resource:
 2. to the requested resource (if it's an app that's acting as a viewer or
   editor, and requires a resource URI as a parameter)
 
-For the first case (standalone apps), Solid.js provides a convenience
+For the first case (standalone apps), solid-client provides a convenience
 `solid.currentUser()` method (which does a HEAD request to the current page in
 the background). Usage:
 
@@ -343,7 +343,7 @@ profile.unregisterType(classToRemove, isListed)
 
 ## Web operations
 
-Solid.js uses a mix of [LDP](http://www.w3.org/TR/ldp/) and Solid-specific
+solid-client uses a mix of [LDP](http://www.w3.org/TR/ldp/) and Solid-specific
 functions to manipulate Web resources. Please see the
 [Solid spec](https://github.com/solid/solid-spec) for more details.
 
@@ -478,7 +478,7 @@ In the example below we are also sending some meta data (semantics) about the
 container, setting its type to `sioc:Blog`.
 
 ```javascript
-// Assumes you've loaded rdflib.js and solid.js, see Dependences above
+// Assumes you've loaded rdflib.js and solid-client, see Dependences above
 var solid = require('solid')
 var parentUrl = 'https://example.org/'
 var containerName = 'blog'
@@ -710,7 +710,7 @@ Each Solid resource has a set of permissions that determine which user
 (See the [`web-access-control-spec` repo](https://github.com/solid/web-access-control-spec)
 for the exact details.)
 
-`solid.js` has a set of convenience methods to help developers manage those
+solid-client has a set of convenience methods to help developers manage those
 permissions.
 
 #### Reading Permissions
