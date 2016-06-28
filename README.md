@@ -255,6 +255,44 @@ solid.login()
   })
 ```
 
+#### Profile App Registry
+
+The profile provides an interface to the user's App Registry.
+
+```js
+var vocab = solid.vocab
+solid.login()
+  .then(function (webId) {
+    return solid.getProfile(webId)
+  })
+  .then(function (profile) {
+    return profile.loadAppRegistry()
+  })
+  .then(function (profile) {
+    // The profile has been updated, app registry loaded. Now you can register
+    // apps with is.
+    var options = {
+      name: 'Contact Manager',
+      shortdesc: 'A reference contact manager',
+      redirectTemplateUri: 'https://solid.github.io/contacts/?uri={uri}'
+    }
+    var typesForApp = [ vocab.vcard('AddressBook') ]
+    var isListed = true
+    var app = new AppRegistration(options, typesForApp, isListed)
+    return profile.registerApp(app)
+  })
+  .then(function (profile) {
+    // The app entry was created. You can now query the registry for it
+    return profile.appsForType(vocab.vcard('AddressBook'))
+  })
+  .then(function (registrationResults) {
+    var app = registrationResults[0]
+    app.name  // -> 'Contact Manager'
+    app.shortdesc  // -> ... 
+    app.redirectTemplateUri
+  })
+```
+
 #### User Type Registry Index
 
 If your application needs to do data discovery, it can also call
