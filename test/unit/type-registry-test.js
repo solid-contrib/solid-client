@@ -4,7 +4,7 @@ var registry = require('../../lib/registry')
 var test = require('tape')
 var typeRegistry = require('../../lib/type-registry')
 var parseGraph = require('../../lib/util/graph-util').parseGraph
-var SolidProfile = require('../../lib/solid/profile')
+var SolidProfile = require('../../lib/models/profile')
 var vocab = require('../../lib/vocab')
 // var rdf = require('../../lib/util/rdf-parser').rdflib
 

@@ -1,7 +1,7 @@
 'use strict'
 
 var test = require('tape')
-var SolidResponse = require('../../lib/solid/response')
+var SolidResponse = require('../../lib/models/response')
 
 test('empty SolidResponse test', function (t) {
   let response = new SolidResponse()
