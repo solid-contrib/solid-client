@@ -1,5 +1,10 @@
+##### Version 0.21.0
+- Added `profile.registerApp()` functionality (adds an app entry to the App
+  Registry), and `profile.appsForType()` (queries for app registry entries for
+  a given type).
+
 ##### Version 0.20.0
-- Added initTypeRegistry() and initAppRegistry() functionality
+- Added `initTypeRegistry()` and `initAppRegistry()` functionality
 - (**breaking change**) distribute two bundles as minified UMD modules.  One
   includes `rdflib` in the bundle, and one does not.  Clients using the bundles
   without a module bundler (e.g. referencing the library in `<script>` tags)
