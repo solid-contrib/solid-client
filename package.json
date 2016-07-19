@@ -35,6 +35,12 @@
     "data"
   ],
   "author": "Andrei Sambra <andrei@fcns.eu>",
+  "maintainers": [
+    {
+      "name": "Dmitri Zagidulin",
+      "url": "https://github.com/dmitrizagidulin/"
+    }
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/solid/solid-client/issues"
