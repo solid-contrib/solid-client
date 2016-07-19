@@ -1,6 +1,7 @@
 'use strict'
 
 var test = require('tape')
+var solid = require('../../index')
 var SolidNotification = require('../../lib/models/notification')
 const parseGraph = require('../../lib/util/graph-util').parseGraph
 const rawNotificationSource = require('../resources/notification-ttl')
@@ -32,7 +33,7 @@ test('Notification serialized & deserialized round trip test', function (t) {
   // Now check to make sure serialize() & reparse results in the same set
   return notification.serialize()
     .then((serializedTurtle) => {
-      console.log(serializedTurtle)
+      // console.log(serializedTurtle)
       // Now that the Notification is serialized to a Turtle string,
       // let's re-parse that string into a new graph
       let parsedGraph = parseGraph(notificationUrl, serializedTurtle,
@@ -50,3 +51,12 @@ test('Notification serialized & deserialized round trip test', function (t) {
       t.end()
     })
 })
+
+test('Sending notifications errors if sender or receiver missing', function (t) {
+  let n = new SolidNotification()
+  t.throws(function () {
+    solid.sendNotification(n)
+  }, 'Trying to send a notification with no receiver should throw an error')
+  t.end()
+})
+
