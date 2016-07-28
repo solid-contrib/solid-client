@@ -1,9 +1,9 @@
 'use strict'
 
 var test = require('tape')
-var SolidResource = require('../../lib/solid/resource')
-var SolidContainer = require('../../lib/solid/container')
-var SolidResponse = require('../../lib/solid/response')
+var SolidResource = require('../../lib/models/resource')
+var SolidContainer = require('../../lib/models/container')
+var SolidResponse = require('../../lib/models/response')
 
 var rawContainerSource = require('../resources/solid-container-ttl')
 var sampleContainerUrl = 'https://localhost:8443/settings/'

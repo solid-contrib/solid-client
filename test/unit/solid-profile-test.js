@@ -1,7 +1,7 @@
 'use strict'
 
 var test = require('tape')
-var SolidProfile = require('../../lib/solid/profile')
+var SolidProfile = require('../../lib/models/profile')
 var parseGraph = require('../../lib/util/graph-util').parseGraph
 
 var rawProfileSource = require('../resources/profile-extended')

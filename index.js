@@ -51,6 +51,7 @@ var Solid = {
   login: require('./lib/auth').login,
   meta: require('./lib/meta'),
   rdflib: (typeof $rdf !== 'undefined') ? $rdf : require('rdflib'),
+  sendNotification: require('./lib/notifications').sendNotification,
   signup: require('./lib/auth').signup,
   status: require('./lib/status'),
   typeRegistry: require('./lib/type-registry'),
