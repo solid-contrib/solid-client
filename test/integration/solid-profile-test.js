@@ -2,6 +2,7 @@
 
 var solid = SolidClient
 var vocab = solid.vocab
+var webClient = solid.web
 
 var serverUrl = 'https://localhost:8443/'
 var profileUrl = serverUrl + 'profile/test-profile-card'
@@ -127,7 +128,7 @@ QUnit.test('initTypeRegistryPublic() test', function (assert) {
     })
     .then(function (profileResult) {
       profile = profileResult
-      return solid.typeRegistry.initTypeRegistryPublic(profile)
+      return solid.typeRegistry.initTypeRegistryPublic(profile, webClient)
     })
     .then(function () {
       // Check to make sure the type index is loaded after init
@@ -147,7 +148,7 @@ QUnit.test('initTypeRegistryPublic() test', function (assert) {
         'public type index uri should be loaded after registry init + profile reload')
       // The profile has been reloaded, but the type registry wasn't loaded.
       // Load it now.
-      return profile.loadTypeRegistry()
+      return profile.loadTypeRegistry(webClient)
     })
     .then(function (profileResult) {
       profile = profileResult
@@ -171,7 +172,7 @@ QUnit.test('initTypeRegistryPrivate() test', function (assert) {
     })
     .then(function (profileResult) {
       profile = profileResult
-      return solid.typeRegistry.initTypeRegistryPrivate(profile)
+      return solid.typeRegistry.initTypeRegistryPrivate(profile, webClient)
     })
     .then(function () {
       // Check to make sure the type index is loaded after init
@@ -191,7 +192,7 @@ QUnit.test('initTypeRegistryPrivate() test', function (assert) {
         'private type index uri should be loaded after registry init + profile reload')
       // The profile has been reloaded, but the type registry wasn't loaded.
       // Load it now.
-      return profile.loadTypeRegistry()
+      return profile.loadTypeRegistry(webClient)
     })
     .then(function (profileResult) {
       profile = profileResult
@@ -204,12 +205,13 @@ QUnit.test('initTypeRegistryPrivate() test', function (assert) {
     })
 })
 
-QUnit.test('registerType() test', function (assert) {
-  assert.expect(4)
+QUnit.test('registerType()/unregisterType() test', function (assert) {
+  assert.expect(5)
   var classToRegister = vocab.sioc('Post')
   var locationToRegister = 'https://localhost:8443/posts-container/'
   var isListed = true
   var profile
+  console.log('** registerType() -- reset profile and registries')
   return clearRegistries()
     .then(function () {
       return resetProfile(profileUrl)
@@ -229,23 +231,27 @@ QUnit.test('registerType() test', function (assert) {
       assert.equal(newRegistration.locationType, 'container')
       assert.equal(newRegistration.locationUri, locationToRegister)
       assert.equal(newRegistration.rdfClass.uri, vocab.sioc('Post').uri)
+      return profile
     })
-})
-
-/**
- * Note: unregisterType() depends on registerType() having run first.
- */
-QUnit.test('unregisterType() test', function (assert) {
-  assert.expect(1)
-  var classToRemove = vocab.sioc('Post')
-  var isListed = true
-  var profile
-  return solid.getProfile(profileUrl)
+    .catch(function (err) {
+      console.log('Error while registerType()', err)
+    })
+    .then(function () {
+      console.log('** unregisterType() test - reloading profile')
+      return solid.getProfile(profileUrl)
+    })
     .then(function (profileResult) {
       profile = profileResult
+      var classToRemove = vocab.sioc('Post')
+      var isListed = true
+      console.log('loadedProfile: ', profileResult)
+      console.log('Calling unregisterType()')
       // At this point, the profile has been loaded, but the type registries
       // have not been. They will be loaded during unregisterType()
       return profile.unregisterType(classToRemove, isListed)
+    })
+    .catch(function (err) {
+      console.log('Error while unregisterType:', err)
     })
     .then(function (profileResult) {
       profile = profileResult
@@ -254,6 +260,7 @@ QUnit.test('unregisterType() test', function (assert) {
       assert.equal(registrations.length, 0)
     })
     .then(function () {
+      console.log('clearing registries...')
       return clearRegistries()
     })
 })
@@ -261,6 +268,7 @@ QUnit.test('unregisterType() test', function (assert) {
 QUnit.test('initAppRegistryPublic() test', function (assert) {
   assert.expect(7)
   var profile
+  console.log('** initAppRegistryPublic() test')
   return clearResource(defaultPublicAppRegistryUrl)
     .then(function () {
       // Make sure registry does not exist
@@ -269,7 +277,7 @@ QUnit.test('initAppRegistryPublic() test', function (assert) {
     })
     .then(function (profileResult) {
       profile = profileResult
-      return solid.appRegistry.initAppRegistryPublic(profile)
+      return solid.appRegistry.initAppRegistryPublic(profile, webClient)
     })
     .then(function () {
       // Check to make sure the app registry is loaded after init
@@ -290,7 +298,7 @@ QUnit.test('initAppRegistryPublic() test', function (assert) {
       assert.notOk(profile.appRegistryListed.graph)
       // The profile has been reloaded, but the app registry wasn't loaded.
       // Load it now.
-      return profile.loadAppRegistry()
+      return profile.loadAppRegistry(webClient)
     })
     .then(function (profileResult) {
       profile = profileResult
@@ -314,7 +322,7 @@ QUnit.test('initAppRegistryPrivate() test', function (assert) {
     })
     .then(function (profileResult) {
       profile = profileResult
-      return solid.appRegistry.initAppRegistryPrivate(profile)
+      return solid.appRegistry.initAppRegistryPrivate(profile, webClient)
     })
     .then(function () {
       // Check to make sure the app registry is loaded after init
@@ -334,7 +342,7 @@ QUnit.test('initAppRegistryPrivate() test', function (assert) {
         'private app registry uri should be loaded after registry init + profile reload')
       // The profile has been reloaded, but the app registry wasn't loaded.
       // Load it now.
-      return profile.loadAppRegistry()
+      return profile.loadAppRegistry(webClient)
     })
     .then(function (profileResult) {
       profile = profileResult
@@ -374,11 +382,10 @@ QUnit.test('profile.appsForType() test', function (assert) {
       }
       var isListed = true
       var app = new AppRegistration(options, typesForApp, isListed)
-      return profile.registerApp(app)
+      return profile.registerApp(app, webClient)
     })
     .then(function (updatedProfile) {
       profile = updatedProfile
-      console.log(profile)
       return profile.appsForType(vocab.vcard('AddressBook'))
     })
     .then(function (registrationResults) {

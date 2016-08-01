@@ -4,17 +4,18 @@ var test = require('tape')
 var SolidProfile = require('../../lib/solid/profile')
 var parseGraph = require('../../lib/util/graph-util').parseGraph
 
+var rdf = require('../../lib/util/rdf-parser')
+var vocab = require('solid-namespace')(rdf)
+
 var rawProfileSource = require('../resources/profile-extended')
 var sampleProfileUrl = 'https://localhost:8443/profile/card'
 var parsedProfileGraph = parseGraph(sampleProfileUrl,
-  rawProfileSource, 'text/turtle')
+  rawProfileSource, 'text/turtle', rdf)
 
-var vocab = require('../../lib/vocab')
-var rdf = require('../../lib/util/rdf-parser').rdflib
 
 function getPrefsGraph (urlPrefs) {
   let rawPrefsSource = require('../resources/profile-private')
-  let graphPrefs = parseGraph(urlPrefs, rawPrefsSource, 'text/turtle')
+  let graphPrefs = parseGraph(urlPrefs, rawPrefsSource, 'text/turtle', rdf)
   return graphPrefs
 }
 
@@ -24,7 +25,7 @@ function getPrefsGraph (urlPrefs) {
  *   - test/resources/profile-private.js
  */
 function sampleExtendedProfile () {
-  let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
+  let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph, rdf)
   let urlPrivateProfile = 'https://localhost:8443/settings/prefs.ttl'
   let graphPrivateProfile = getPrefsGraph(urlPrivateProfile)
   profile.appendFromGraph(graphPrivateProfile, urlPrivateProfile)
@@ -65,7 +66,7 @@ test('SolidProfile base profile url test', function (t) {
 test('SolidProfile parse webId test', function (t) {
   t.plan(1)
   let profileUrl = 'https://localhost:8443/profile/card'
-  let profile = new SolidProfile(profileUrl, parsedProfileGraph)
+  let profile = new SolidProfile(profileUrl, parsedProfileGraph, rdf)
   // Make sure the webId (different from the profileUrl) was parsed correctly
   let expectedWebId = 'https://localhost:8443/profile/card#me'
   t.equal(profile.webId, expectedWebId)
@@ -73,7 +74,7 @@ test('SolidProfile parse webId test', function (t) {
 
 test('SolidProfile parsed profile test', function (t) {
   let profileUrl = 'https://localhost:8443/profile/card'
-  let profile = new SolidProfile(profileUrl, parsedProfileGraph)
+  let profile = new SolidProfile(profileUrl, parsedProfileGraph, rdf)
   t.equal(profile.name, 'Alice',
     'Name should be pre-loaded for a parsed profile')
   t.equal(profile.picture, 'https://localhost:8443/profile/img.png',
@@ -83,7 +84,7 @@ test('SolidProfile parsed profile test', function (t) {
 
 test('SolidProfile .find() test', function (t) {
   let profileUrl = 'https://localhost:8443/profile/card'
-  let profile = new SolidProfile(profileUrl, parsedProfileGraph)
+  let profile = new SolidProfile(profileUrl, parsedProfileGraph, rdf)
   let expectedAnswer = 'Alice'
   t.equal(profile.find(vocab.foaf('name')), expectedAnswer,
     '.find() should fetch name')
@@ -98,7 +99,7 @@ test('SolidProfile .find() test', function (t) {
 
 test('SolidProfile .findAll() test', function (t) {
   let profileUrl = 'https://localhost:8443/profile/card'
-  let profile = new SolidProfile(profileUrl, parsedProfileGraph)
+  let profile = new SolidProfile(profileUrl, parsedProfileGraph, rdf)
   let expectedAnswer = ['Alice']
   t.deepEqual(profile.findAll(vocab.foaf('name')), expectedAnswer,
     '.findAll() should fetch all names')
@@ -112,14 +113,14 @@ test('SolidProfile .findAll() test', function (t) {
 })
 
 test('SolidProfile preferences test', function (t) {
-  let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
+  let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph, rdf)
   let expectedPreferences = 'https://localhost:8443/settings/prefs.ttl'
   t.equal(profile.preferences.uri, expectedPreferences)
   t.end()
 })
 
 test('SolidProfile relatedProfilesLinks() test', function (t) {
-  let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
+  let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph, rdf)
   // Make sure the Preferences, seeAlso and sameAs are parsed
   let expectedLinks =
     [
@@ -132,14 +133,14 @@ test('SolidProfile relatedProfilesLinks() test', function (t) {
 })
 
 test('SolidProfile inbox test', function (t) {
-  let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
+  let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph, rdf)
   let expectedInboxLink = 'https://localhost:8443/inbox/'
   t.equal(profile.inbox.uri, expectedInboxLink)
   t.end()
 })
 
 test('SolidProfile storage test', function (t) {
-  let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
+  let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph, rdf)
   let expectedStorageLinks = ['https://localhost:8443/']
   t.deepEqual(profile.storage, expectedStorageLinks)
   t.ok(profile.hasStorage())
@@ -149,7 +150,7 @@ test('SolidProfile storage test', function (t) {
 test('SolidProfile extended profile test', function (t) {
   // Load the initial parsed profile graph
   // The public profile has the link to publicTypeIndex.ttl
-  let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
+  let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph, rdf)
   // Test that the parsed profile graph is loaded, and contains the name
   let name = profile.parsedGraph
     .any(rdf.sym(profile.webId), vocab.foaf('name')).value

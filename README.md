@@ -239,7 +239,7 @@ fields, or look for predicates in the profile's parsed graph using
 `profile.find()` and `profile.findAll()`:
 
 ```js
-var vocab = solid.vocab
+var ns = solid.vocab
 solid.login()
   .then(function (webId) {
     return solid.getProfile(webId)
@@ -247,8 +247,8 @@ solid.login()
   .then(function (profile) {
     profile.name  // -> 'Alice'
     profile.picture   // -> 'https://example.com/profile/icon.png'
-    profile.find(vocab.solid('inbox'))    // -> 'https://example.com/inbox/'
-    profile.findAll(vocab.owl('sameAs'))  // -> [ url1, url2 ]
+    profile.find(ns.solid('inbox'))    // -> 'https://example.com/inbox/'
+    profile.findAll(ns.owl('sameAs'))  // -> [ url1, url2 ]
   })
   .catch(function (err) {
     console.log('Error accessing profile: ' + err)
@@ -260,7 +260,7 @@ solid.login()
 The profile provides an interface to the user's App Registry.
 
 ```js
-var vocab = solid.vocab
+var ns = solid.vocab
 solid.login()
   .then(function (webId) {
     return solid.getProfile(webId)
@@ -276,19 +276,19 @@ solid.login()
       shortdesc: 'A reference contact manager',
       redirectTemplateUri: 'https://solid.github.io/contacts/?uri={uri}'
     }
-    var typesForApp = [ vocab.vcard('AddressBook') ]
+    var typesForApp = [ ns.vcard('AddressBook') ]
     var isListed = true
     var app = new AppRegistration(options, typesForApp, isListed)
     return profile.registerApp(app)
   })
   .then(function (profile) {
     // The app entry was created. You can now query the registry for it
-    return profile.appsForType(vocab.vcard('AddressBook'))
+    return profile.appsForType(ns.vcard('AddressBook'))
   })
   .then(function (registrationResults) {
     var app = registrationResults[0]
     app.name  // -> 'Contact Manager'
-    app.shortdesc  // -> ... 
+    app.shortdesc  // -> ...
     app.redirectTemplateUri
   })
 ```
@@ -312,7 +312,7 @@ Now, both listed and unlisted type indexes are loaded, and you can look up
 where the user keeps various types.
 
 ```js
-var vocab = solid.vocab
+var ns = solid.vocab
 // .. load profile and load type registry
 
 var addressBookRegistrations = solid.getProfile(webId)
@@ -320,7 +320,7 @@ var addressBookRegistrations = solid.getProfile(webId)
     return profile.loadTypeRegistry()
   })
   .then(function (profile) {
-    return profile.typeRegistryForClass(vocab.vcard('AddressBook'))
+    return profile.typeRegistryForClass(ns.vcard('AddressBook'))
   })
 /*
 -->
@@ -357,7 +357,7 @@ To register an RDF Class with a user's Type Registry (listed or unlisted),
 use `profile.registerType()`:
 
 ```js
-var vocab = solid.vocab
+var ns = solid.vocab
 // .. load profile
 
 var classToRegister = vocab.sioc('Post')
@@ -367,15 +367,15 @@ profile.registerType(classToRegister, locationToRegister, 'container', isListed)
   .then(function (profile) {
     // Now the type is registered, and the profile's type registry is refreshed
     // querying the registry now will include the new container
-    profile.typeRegistryForClass(vocab.sioc('Post'))
+    profile.typeRegistryForClass(ns.sioc('Post'))
   })
 
 // To remove the same class from registry:
-var classToRemove = vocab.sioc('Post')
+var classToRemove = ns.sioc('Post')
 profile.unregisterType(classToRemove, isListed)
   .then(function (profile) {
     // Type is removed
-    profile.typeRegistryForClass(vocab.sioc('Post'))   // --> []
+    profile.typeRegistryForClass(ns.sioc('Post'))   // --> []
   })
 ```
 
@@ -481,7 +481,6 @@ by `rdflib.js`). This graph can then be queried.
 
 ```js
 var solid = require('solid')
-solid.config.parser = 'rdflib'  // 'rdflib' is the default parser
 var vocab = solid.vocab
 
 var url = 'https://example.org/blog/hello-world'
@@ -658,16 +657,16 @@ replace it.
 Let's create the statements and serialize them to Turtle before patching the
 blog post resource:
 
-```javascript
-// $rdf is a global exposed by loading 'rdflib.js'
+```js
+var rdf = require('rdflib')
 var url = 'https://example.org/blog/hello-world'
-var vocab = solid.vocab
+var vocab = ns.vocab
 
-var oldTitleTriple = $rdf.st($rdf.sym(url), vocab.dct('title'),
-  $rdf.lit("First post")).toNT()
+var oldTitleTriple = rdf.triple(rdf.namedNode(url), ns.dct('title'),
+  rdf.literal("First post")).toCanonical()
 
-var newTitleTriple = $rdf.st($rdf.sym(url), vocab.dct('title'),
-  $rdf.lit("Hello")).toNT()
+var newTitleTriple = rdf.triple(rdf.namedNode(url), ns.dct('title'),
+  rdf.literal("Hello")).toCanonical()
 ```
 
 Now we can actually patch the resource. The `solid.web.patch()` function (also

@@ -5,11 +5,12 @@ var parseGraph = require('../../lib/util/graph-util').parseGraph
 var registry = require('../../lib/registry')
 var test = require('tape')
 var AppRegistration = require('../../lib/solid/app-registration')
-var vocab = require('../../lib/vocab')
-var rdf = require('../../lib/util/rdf-parser').rdflib
+
+var rdf = require('../../lib/util/rdf-parser')
+var vocab = require('solid-namespace')(rdf)
 
 test('blankPublicAppRegistry() test', function (t) {
-  let blankRegistry = appRegistry.blankPublicAppRegistry()
+  let blankRegistry = appRegistry.blankPublicAppRegistry(rdf)
   t.equal(blankRegistry.slug, 'publicAppRegistry.ttl')
   t.notOk(blankRegistry.uri)
   t.equal(typeof blankRegistry.data, 'string')
@@ -18,7 +19,7 @@ test('blankPublicAppRegistry() test', function (t) {
 })
 
 test('blankPrivateAppRegistry() test', function (t) {
-  let blankRegistry = appRegistry.blankPrivateAppRegistry()
+  let blankRegistry = appRegistry.blankPrivateAppRegistry(rdf)
   t.equal(blankRegistry.slug, 'privateAppRegistry.ttl')
   t.notOk(blankRegistry.uri)
   t.equal(typeof blankRegistry.data, 'string')
@@ -29,8 +30,8 @@ test('blankPrivateAppRegistry() test', function (t) {
 test('appRegistry isListed() test', function (t) {
   var url = 'https://localhost:8443/profile/publicAppRegistry.ttl'
   var rawSource = require('../resources/app-registry-listed')
-  var graph = parseGraph(url, rawSource, 'text/turtle')
-  var result = registry.isListed(graph)
+  var graph = parseGraph(url, rawSource, 'text/turtle', rdf)
+  var result = registry.isListed(graph, rdf)
   t.ok(result)
   t.end()
 })
@@ -38,8 +39,8 @@ test('appRegistry isListed() test', function (t) {
 test('appRegistry isUnlisted() test', function (t) {
   var url = 'https://localhost:8443/profile/privateAppRegistry.ttl'
   var rawSource = require('../resources/app-registry-unlisted')
-  var graph = parseGraph(url, rawSource, 'text/turtle')
-  var result = registry.isUnlisted(graph)
+  var graph = parseGraph(url, rawSource, 'text/turtle', rdf)
+  var result = registry.isUnlisted(graph, rdf)
   t.ok(result)
   t.end()
 })
@@ -67,10 +68,10 @@ test('app registration isValid() test', function (t) {
 test('app registrationsFromGraph test', function (t) {
   var url = 'https://localhost:8443/profile/publicAppRegistry.ttl'
   var rawSource = require('../resources/app-registry-listed')
-  var graph = parseGraph(url, rawSource, 'text/turtle')
+  var graph = parseGraph(url, rawSource, 'text/turtle', rdf)
   var isListed = true
   var registrations = appRegistry.registrationsFromGraph(graph,
-    vocab.vcard('AddressBook'), isListed)
+    vocab.vcard('AddressBook'), rdf)
   var app = registrations[0]
   t.equal(app.name, 'Contact Manager')
   t.equal(app.shortdesc, 'A reference contact manager')
