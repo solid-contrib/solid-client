@@ -5,6 +5,8 @@
   [`solid-web-client`](https://github.com/solid/solid-web-client),
   [`solid-permissions`](https://github.com/solid/solid-permissions) and
   [`solid-namespace`](https://github.com/solid/solid-namespace))
+- **(breaking change)** Deprecated `solid.web.getParsedGraph()`. Use
+  `solid.web.get().then(response => { return response.parsedGraph() })` instead.
 - Added `profile.registerApp()` functionality (adds an app entry to the App
   Registry), and `profile.appsForType()` (queries for app registry entries for
   a given type).
