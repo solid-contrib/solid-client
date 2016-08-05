@@ -50,6 +50,8 @@ If you would like to learn how to build Solid apps using solid-client, please se
 
 ## Developing solid-client
 
+**Node version:** 6.0+.
+
 Install dev dependencies:
 
 ```
