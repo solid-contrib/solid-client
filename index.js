@@ -33,29 +33,46 @@ https://github.com/solid/solid
  * @main solid-client
  */
 
+var rdf = require('./lib/util/rdf-parser')
+var acl = require('solid-permissions')
+var auth = require('solid-auth-tls')
+var identity = require('./lib/identity')
+var ns = require('solid-namespace')(rdf)
+var webClient = require('solid-web-client')(rdf)
+
 /**
  * @class Solid
  * @static
  */
 var Solid = {
-  acl: require('./lib/permissions/authorization').acl,
+  acl: acl.acl,
   AppRegistration: require('./lib/solid/app-registration'),
   appRegistry: require('./lib/app-registry'),
-  auth: require('./lib/auth'),
+  auth: auth,
   config: require('./config'),
-  currentUser: require('./lib/auth').currentUser,
-  getProfile: require('./lib/identity').getProfile,
-  getPermissions: require('./lib/permissions').getPermissions,
-  clearPermissions: require('./lib/permissions').clearPermissions,
+  currentUser: auth.currentUser,
   identity: require('./lib/identity'),
-  login: require('./lib/auth').login,
+  login: auth.login,
   meta: require('./lib/meta'),
-  rdflib: (typeof $rdf !== 'undefined') ? $rdf : require('rdflib'),
-  signup: require('./lib/auth').signup,
+  rdflib: rdf,
+  signup: auth.signup,
   status: require('./lib/status'),
   typeRegistry: require('./lib/type-registry'),
-  vocab: require('./lib/vocab'),
-  web: require('./lib/web')
+  vocab: ns,
+  web: webClient
+}
+
+Solid.clearPermissions = function clearPermissions (uri) {
+  return acl.clearPermissions(uri, webClient)
+}
+Solid.discoverWebID = function discoverWebID (url) {
+  return identity.discoverWebID(url, webClient, ns)
+}
+Solid.getPermissions = function getPermissions (uri) {
+  return acl.getPermissions(uri, webClient, rdf)
+}
+Solid.getProfile = function getProfile (profileUrl, options) {
+  return identity.getProfile(profileUrl, options, webClient, rdf)
 }
 
 module.exports = Solid

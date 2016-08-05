@@ -11,16 +11,6 @@ module.exports = {
   authEndpoint: 'https://databox.me/',
 
   /**
-   * Default RDF parser library
-   */
-  parser: 'rdflib',
-
-  /**
-   * Default proxy URL for servicing CORS requests
-   */
-  proxyUrl: 'https://databox.me/,proxy?uri={uri}',
-
-  /**
    * Default signup endpoints (list of identity providers)
    */
   signupEndpoint: 'https://solid.github.io/solid-idps/',
@@ -33,10 +23,5 @@ module.exports = {
   /**
    * Default width of the Signup popup window, in pixels
    */
-  signupWindowWidth: 1024,
-
-  /**
-   * Timeout for web/ajax operations, in milliseconds
-   */
-  timeout: 50000
+  signupWindowWidth: 1024
 }

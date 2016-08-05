@@ -10,9 +10,10 @@
     "dist"
   ],
   "scripts": {
-    "build-with-rdflib": "browserify -r ./index.js:solid --exclude 'xhr2' -d -p [minifyify --map dist/solid-client.js.map --output dist/solid-client.js.map] --standalone 'SolidClient' -o dist/solid-client.min.js",
-    "build-without-rdflib": "browserify -r ./index.js:solid --exclude 'xhr2' --exclude 'rdflib' -d -p [minifyify --map dist/solid-client-no-rdflib.js.map --output dist/solid-client-no-rdflib.js.map] --standalone 'SolidClient' -o dist/solid-client-no-rdflib.min.js",
-    "build-qunit-resources": "npm run clean && mkdir -p dist/resources && npm run build-with-rdflib && browserify -r ./test/resources/profile-minimal.js:test-minimal-profile -o dist/resources/test-minimal-profile.js && browserify -r ./test/resources/profile-private.js:test-minimal-prefs -o dist/resources/test-minimal-prefs.js",
+    "build-full": "webpack --progress --config webpack.config.js --output-filename ./dist/solid-client.js",
+    "build-with-rdflib": "webpack --progress --colors --optimize-minimize --optimize-occurrence-order --optimize-dedupe --config webpack.config.js",
+    "build-without-rdflib": "webpack --progress --colors --optimize-minimize --optimize-occurrence-order --optimize-dedupe --config webpack-no-rdflib.config.js",
+    "build-qunit-resources": "npm run clean && mkdir -p dist/resources && npm run build-full && browserify -r ./test/resources/profile-minimal.js:test-minimal-profile -o dist/resources/test-minimal-profile.js && browserify -r ./test/resources/profile-private.js:test-minimal-prefs -o dist/resources/test-minimal-prefs.js",
     "build": "npm run test && npm run clean && mkdir dist && npm run build-with-rdflib && npm run build-without-rdflib",
     "prepublish": "npm run build",
     "clean": "rm -rf dist/",
@@ -20,6 +21,11 @@
     "tape": "tape test/unit/*.js",
     "test": "npm run standard && npm run tape",
     "qunit": "npm run build-qunit-resources && open test/integration/index.html"
+  },
+  "babel": {
+    "presets": [
+      "es2015"
+    ]
   },
   "repository": {
     "type": "git",
@@ -47,19 +53,24 @@
   },
   "homepage": "https://github.com/solid/solid-client",
   "dependencies": {
-    "rdf-ns": "0.0.2",
-    "rdflib": "^0.7.0",
+    "rdflib": "^0.8.0",
     "shorthash": "0.0.2",
-    "standard-http-error": "^2.0.0",
-    "xhr2": "^0.1.3"
+    "solid-auth-tls": "0.0.3",
+    "solid-namespace": "0.0.1",
+    "solid-permissions": "0.1.0",
+    "solid-web-client": "0.0.4"
   },
   "devDependencies": {
+    "babel-cli": "^6.11.4",
+    "babel-core": "^6.11.4",
+    "babel-loader": "^6.2.4",
+    "babel-preset-es2015": "^6.9.0",
     "blue-tape": "^0.2.0",
-    "browserify": "^13.0.0",
-    "minifyify": "^7.2.1",
+    "json-loader": "^0.5.4",
     "qunit": "^0.9.0",
     "standard": "^5.4.1",
-    "tape": "^4.4.0"
+    "tape": "^4.4.0",
+    "webpack": "^1.13.1"
   },
   "standard": {
     "globals": [

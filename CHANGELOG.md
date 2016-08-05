@@ -1,4 +1,10 @@
 ##### Version 0.21.0
+- Massive refactoring, extracting authentication, permissions and web client
+  into standalone repositories
+  ([`solid-auth-tls`](https://github.com/solid/solid-auth-tls),
+  [`solid-web-client`](https://github.com/solid/solid-web-client),
+  [`solid-permissions`](https://github.com/solid/solid-permissions) and
+  [`solid-namespace`](https://github.com/solid/solid-namespace))
 - Added `profile.registerApp()` functionality (adds an app entry to the App
   Registry), and `profile.appsForType()` (queries for app registry entries for
   a given type).

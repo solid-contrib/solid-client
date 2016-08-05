@@ -1,9 +1,9 @@
 'use strict'
 
 var test = require('tape')
-var vocab = require('../../lib/vocab')
+var solid = require('../../index')
 
-test('Solid.vocab test', function (t) {
+test('solid.vocab test', function (t) {
   t.plan(1)
-  t.ok(vocab.ldp('Resource'), 'vocab.ldp("Resource") should exist')
+  t.ok(solid.vocab.ldp('Resource'), 'vocab.ldp("Resource") should exist')
 })

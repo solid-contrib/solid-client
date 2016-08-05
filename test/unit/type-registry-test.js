@@ -5,16 +5,16 @@ var test = require('tape')
 var typeRegistry = require('../../lib/type-registry')
 var parseGraph = require('../../lib/util/graph-util').parseGraph
 var SolidProfile = require('../../lib/solid/profile')
-var vocab = require('../../lib/vocab')
-// var rdf = require('../../lib/util/rdf-parser').rdflib
+var rdf = require('../../lib/util/rdf-parser')
+var vocab = require('solid-namespace')(rdf)
 
 var rawProfileSource = require('../resources/profile-extended')
 var sampleProfileUrl = 'https://localhost:8443/profile/card'
 var parsedProfileGraph = parseGraph(sampleProfileUrl,
-  rawProfileSource, 'text/turtle')
+  rawProfileSource, 'text/turtle', rdf)
 
 test('blankPrivateTypeIndex() test', function (t) {
-  let blankIndex = typeRegistry.blankPrivateTypeIndex()
+  let blankIndex = typeRegistry.blankPrivateTypeIndex(rdf)
   t.equal(blankIndex.slug, 'privateTypeIndex.ttl')
   t.notOk(blankIndex.uri)
   t.equal(typeof blankIndex.data, 'string')
@@ -23,7 +23,7 @@ test('blankPrivateTypeIndex() test', function (t) {
 })
 
 test('blankPublicTypeIndex() test', function (t) {
-  let blankIndex = typeRegistry.blankPublicTypeIndex()
+  let blankIndex = typeRegistry.blankPublicTypeIndex(rdf)
   t.equal(blankIndex.slug, 'publicTypeIndex.ttl')
   t.notOk(blankIndex.uri)
   t.equal(typeof blankIndex.data, 'string')
@@ -34,8 +34,8 @@ test('blankPublicTypeIndex() test', function (t) {
 test('typeRegistry isListed() test', function (t) {
   var url = 'https://localhost:8443/profile/publicTypeIndex.ttl'
   var rawIndexSource = require('../resources/type-index-listed')
-  var graph = parseGraph(url, rawIndexSource, 'text/turtle')
-  var result = registry.isListed(graph)
+  var graph = parseGraph(url, rawIndexSource, 'text/turtle', rdf)
+  var result = registry.isListed(graph, rdf)
   t.ok(result)
   t.end()
 })
@@ -43,8 +43,8 @@ test('typeRegistry isListed() test', function (t) {
 test('typeRegistry isUnlisted() test', function (t) {
   var url = 'https://localhost:8443/profile/privateTypeIndex.ttl'
   var rawIndexSource = require('../resources/type-index-unlisted')
-  var graph = parseGraph(url, rawIndexSource, 'text/turtle')
-  var result = registry.isUnlisted(graph)
+  var graph = parseGraph(url, rawIndexSource, 'text/turtle', rdf)
+  var result = registry.isUnlisted(graph, rdf)
   t.ok(result)
   t.end()
 })
@@ -61,13 +61,13 @@ test('SolidProfile addTypeRegistry() test', function (t) {
   let urlListed = 'https://localhost:8443/settings/publicTypeIndex.ttl'
   let rawIndexSourceListed = require('../resources/type-index-listed')
   let graphListedIndex = parseGraph(urlListed, rawIndexSourceListed,
-      'text/turtle')
+      'text/turtle', rdf)
 
   let urlUnlisted = 'https://localhost:8443/settings/privateTypeIndex.ttl'
   let rawIndexSourceUnlisted = require('../resources/type-index-unlisted')
   let graphUnlistedIndex = parseGraph(urlUnlisted, rawIndexSourceUnlisted,
-    'text/turtle')
-  let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph)
+    'text/turtle', rdf)
+  let profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph, rdf)
 
   profile.addTypeRegistry(graphListedIndex, urlListed)
   profile.addTypeRegistry(graphUnlistedIndex, urlUnlisted)
