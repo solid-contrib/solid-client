@@ -346,9 +346,9 @@ You can then load the resources from the returned locations, as usual.
 ```js
 addressBookRegistrations.forEach(function (registration) {
   if (registration.isInstance()) {
-    // load the instance via web.get()
+    // This is an instance (an individual resource)
   } else if (registration.isContainer()) {
-    // this is a container with many address books, use web.list()
+    // This is a container with many address books
   }
 })
 ```
@@ -567,7 +567,7 @@ Containers also have several convenience methods:
 For example:
 
 ```js
-var container = solid.web.list('/settings/')
+var container = solid.web.get('/settings/')
                   .then(function (container) {
                     console.log(container)
                     // See below
