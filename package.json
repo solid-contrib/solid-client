@@ -1,6 +1,6 @@
 {
   "name": "solid-client",
-  "version": "0.21.1",
+  "version": "0.21.2",
   "description": "Common library for writing Solid read-write-web applications",
   "main": "./index.js",
   "files": [
