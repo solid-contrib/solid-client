@@ -35,10 +35,11 @@ https://github.com/solid/solid
 
 var rdf = require('./lib/util/rdf-parser')
 var acl = require('solid-permissions')
-var auth = require('solid-auth-tls')
+var webClient = require('solid-web-client')(rdf)
+var ClientAuthTLS = require('solid-auth-tls')
+var auth = new ClientAuthTLS(webClient)
 var identity = require('./lib/identity')
 var ns = require('solid-namespace')(rdf)
-var webClient = require('solid-web-client')(rdf)
 
 /**
  * @class Solid
