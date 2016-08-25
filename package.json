@@ -58,7 +58,7 @@
     "solid-auth-tls": "0.0.4",
     "solid-namespace": "0.0.1",
     "solid-permissions": "^0.2.1",
-    "solid-web-client": "0.0.7"
+    "solid-web-client": "0.0.8"
   },
   "devDependencies": {
     "babel-cli": "^6.11.4",
