@@ -14,13 +14,15 @@
     "build-with-rdflib": "webpack --progress --colors --optimize-minimize --optimize-occurrence-order --optimize-dedupe --config webpack.config.js",
     "build-without-rdflib": "webpack --progress --colors --optimize-minimize --optimize-occurrence-order --optimize-dedupe --config webpack-no-rdflib.config.js",
     "build-qunit-resources": "npm run clean && mkdir -p dist/resources && npm run build-full && browserify -r ./test/resources/profile-minimal.js:test-minimal-profile -o dist/resources/test-minimal-profile.js && browserify -r ./test/resources/profile-private.js:test-minimal-prefs -o dist/resources/test-minimal-prefs.js",
-    "build": "npm run test && npm run clean && mkdir dist && npm run build-with-rdflib && npm run build-without-rdflib",
-    "prepublish": "npm run build",
+    "build": "npm run clean && mkdir dist && npm run build-with-rdflib && npm run build-without-rdflib",
     "clean": "rm -rf dist/",
     "standard": "standard lib/*",
     "tape": "tape test/unit/*.js",
     "test": "npm run standard && npm run tape",
-    "qunit": "npm run build-qunit-resources && open test/integration/index.html"
+    "qunit": "npm run build-qunit-resources && open test/integration/index.html",
+    "preversion": "npm test",
+    "postversion": "git push --follow-tags",
+    "prepublish": "npm run build"
   },
   "babel": {
     "presets": [
@@ -58,7 +60,7 @@
     "solid-auth-tls": "0.0.4",
     "solid-namespace": "0.0.1",
     "solid-permissions": "^0.2.1",
-    "solid-web-client": "0.0.7"
+    "solid-web-client": "0.0.8"
   },
   "devDependencies": {
     "babel-cli": "^6.11.4",
