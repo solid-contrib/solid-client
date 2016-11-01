@@ -33,20 +33,22 @@ https://github.com/solid/solid
  * @main solid-client
  */
 
-var rdf = require('./lib/util/rdf-parser')
-var acl = require('solid-permissions')
-var webClient = require('solid-web-client')(rdf)
-var ClientAuthTLS = require('solid-auth-tls')
-var auth = new ClientAuthTLS(webClient)
-var identity = require('./lib/identity')
-var ns = require('solid-namespace')(rdf)
+const rdf = require('./lib/util/rdf-parser')
+const webClient = require('solid-web-client')(rdf)
+const ClientAuthTLS = require('solid-auth-tls')
+const auth = new ClientAuthTLS(webClient)
+const identity = require('./lib/identity')
+const ns = require('solid-namespace')(rdf)
+const acl = require('solid-permissions')
+Object.assign(acl, acl.Authorization.acl)
+acl.ALL_MODES = acl.Authorization.ALL_MODES
 
 /**
  * @class Solid
  * @static
  */
-var Solid = {
-  acl: acl.acl,
+const Solid = {
+  acl: acl,
   AppRegistration: require('./lib/solid/app-registration'),
   appRegistry: require('./lib/app-registry'),
   auth: auth,
