@@ -40,18 +40,16 @@ const auth = new ClientAuthTLS(webClient)
 const identity = require('./identity')
 const ns = require('solid-namespace')(rdf)
 const acl = require('solid-permissions')
-Object.assign(acl, acl.Authorization.acl)
-acl.ALL_MODES = acl.Authorization.ALL_MODES
 
 /**
  * @class Solid
  * @static
  */
 const Solid = {
-  acl: acl,
+  acl,
   AppRegistration: require('./solid/app-registration'),
   appRegistry: require('./app-registry'),
-  auth: auth,
+  auth,
   config: require('../config'),
   currentUser: auth.currentUser.bind(auth),
   identity: require('./identity'),

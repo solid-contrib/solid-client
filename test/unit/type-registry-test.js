@@ -1,11 +1,11 @@
 'use strict'
 
-var registry = require('../../lib/registry')
+var registry = require('../../src/registry')
 var test = require('tape')
-var typeRegistry = require('../../lib/type-registry')
-var parseGraph = require('../../lib/util/graph-util').parseGraph
-var SolidProfile = require('../../lib/solid/profile')
-var rdf = require('../../lib/util/rdf-parser')
+var typeRegistry = require('../../src/type-registry')
+var parseGraph = require('../../src/util/graph-util').parseGraph
+var SolidProfile = require('../../src/solid/profile')
+var rdf = require('../../src/util/rdf-parser')
 var vocab = require('solid-namespace')(rdf)
 
 var rawProfileSource = require('../resources/profile-extended')

@@ -1,6 +1,6 @@
 'use strict'
 const test = require('tape')
-const solid = require('../../lib/index')
+const solid = require('../../src/index')
 
 test('solid-permissions api export test', t => {
   t.ok(solid.acl, 'solid-permissions lib not exposed as solid.acl')

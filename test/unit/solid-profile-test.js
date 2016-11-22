@@ -1,10 +1,10 @@
 'use strict'
 
 var test = require('tape')
-var SolidProfile = require('../../lib/solid/profile')
-var parseGraph = require('../../lib/util/graph-util').parseGraph
+var SolidProfile = require('../../src/solid/profile')
+var parseGraph = require('../../src/util/graph-util').parseGraph
 
-var rdf = require('../../lib/util/rdf-parser')
+var rdf = require('../../src/util/rdf-parser')
 var vocab = require('solid-namespace')(rdf)
 
 var rawProfileSource = require('../resources/profile-extended')
