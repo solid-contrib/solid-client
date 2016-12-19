@@ -2,7 +2,7 @@ var path = require('path')
 
 module.exports = {
   entry: [
-    './index.js'
+    './lib/index.js'
   ],
   output: {
     path: path.join(__dirname, '/dist/'),
@@ -19,7 +19,7 @@ module.exports = {
     loaders: [
       {
         test: /\.js$/,
-        // exclude: /(node_modules)/,
+        exclude: /(node_modules)/,
         loader: 'babel',
         query: {
           presets: ['es2015']

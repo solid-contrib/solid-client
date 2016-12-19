@@ -1,12 +1,12 @@
 'use strict'
 
-var appRegistry = require('../../lib/app-registry')
-var parseGraph = require('../../lib/util/graph-util').parseGraph
-var registry = require('../../lib/registry')
+var appRegistry = require('../../src/app-registry')
+var parseGraph = require('../../src/util/graph-util').parseGraph
+var registry = require('../../src/registry')
 var test = require('tape')
-var AppRegistration = require('../../lib/solid/app-registration')
+var AppRegistration = require('../../src/solid/app-registration')
 
-var rdf = require('../../lib/util/rdf-parser')
+var rdf = require('../../src/util/rdf-parser')
 var vocab = require('solid-namespace')(rdf)
 
 test('blankPublicAppRegistry() test', function (t) {

@@ -33,32 +33,32 @@ https://github.com/solid/solid
  * @main solid-client
  */
 
-var rdf = require('./lib/util/rdf-parser')
-var acl = require('solid-permissions')
-var webClient = require('solid-web-client')(rdf)
-var ClientAuthTLS = require('solid-auth-tls')
-var auth = new ClientAuthTLS(webClient)
-var identity = require('./lib/identity')
-var ns = require('solid-namespace')(rdf)
+const rdf = require('./util/rdf-parser')
+const webClient = require('solid-web-client')(rdf)
+const ClientAuthTLS = require('solid-auth-tls')
+const auth = new ClientAuthTLS(webClient)
+const identity = require('./identity')
+const ns = require('solid-namespace')(rdf)
+const acl = require('solid-permissions')
 
 /**
  * @class Solid
  * @static
  */
-var Solid = {
-  acl: acl.acl,
-  AppRegistration: require('./lib/solid/app-registration'),
-  appRegistry: require('./lib/app-registry'),
-  auth: auth,
-  config: require('./config'),
+const Solid = {
+  acl,
+  AppRegistration: require('./solid/app-registration'),
+  appRegistry: require('./app-registry'),
+  auth,
+  config: require('../config'),
   currentUser: auth.currentUser.bind(auth),
-  identity: require('./lib/identity'),
+  identity: require('./identity'),
   login: auth.login.bind(auth),
-  meta: require('./lib/meta'),
+  meta: require('./meta'),
   rdflib: rdf,
   signup: auth.signup.bind(auth),
-  status: require('./lib/status'),
-  typeRegistry: require('./lib/type-registry'),
+  status: require('./status'),
+  typeRegistry: require('./type-registry'),
   vocab: ns,
   web: webClient
 }

@@ -1,7 +1,7 @@
 'use strict'
 
 var test = require('tape')
-var solid = require('../../index')
+var solid = require('../../src/index')
 
 test('solid.vocab test', function (t) {
   t.plan(1)
