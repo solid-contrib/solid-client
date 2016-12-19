@@ -22,7 +22,7 @@
     "qunit": "npm run build-qunit-resources && open test/integration/index.html",
     "preversion": "npm test",
     "postversion": "git push --follow-tags",
-    "prepublish": "npm run build && npm run test"
+    "prepublish": "npm run test && npm run build"
   },
   "babel": {
     "presets": [
