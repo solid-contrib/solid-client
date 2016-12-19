@@ -21,7 +21,7 @@
     "test": "npm run standard && npm run tape",
     "qunit": "npm run build-qunit-resources && open test/integration/index.html",
     "preversion": "npm test",
-    "postpublish": "git push --follow-tags",
+    "postversion": "git push --follow-tags",
     "prepublish": "npm run build && npm run test"
   },
   "babel": {
