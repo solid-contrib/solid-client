@@ -61,7 +61,7 @@
     "solid-auth-tls": "0.0.4",
     "solid-namespace": "^0.1.0",
     "solid-permissions": "^0.5.1",
-    "solid-web-client": "^0.2.0"
+    "solid-web-client": "git://github.com/solid/solid-web-client.git#oidc-v0.2.0-001"
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",
