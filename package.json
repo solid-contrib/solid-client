@@ -55,8 +55,9 @@
   },
   "homepage": "https://github.com/solid/solid-client",
   "dependencies": {
-    "rdflib": "^0.13.0",
+    "rdflib": "^0.12.1",
     "shorthash": "0.0.2",
+    "solid-auth-oidc": "0.0.1",
     "solid-auth-tls": "0.0.4",
     "solid-namespace": "^0.1.0",
     "solid-permissions": "^0.5.1",

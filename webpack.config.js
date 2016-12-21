@@ -35,8 +35,12 @@ module.exports = {
     fs: 'empty'
   },
   externals: {
-    xhr2: 'XMLHttpRequest',
-    xmlhttprequest: 'XMLHttpRequest'
+    'xhr2': 'XMLHttpRequest',
+    'xmlhttprequest': 'XMLHttpRequest',
+    'node-fetch': 'fetch',
+    'text-encoding': 'TextEncoder',
+    'urlutils': 'URL',
+    'webcrypto': 'crypto'
   },
   devtool: 'source-map'
 }

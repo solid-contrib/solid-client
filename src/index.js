@@ -36,7 +36,9 @@ https://github.com/solid/solid
 const rdf = require('./util/rdf-parser')
 const webClient = require('solid-web-client')(rdf)
 const ClientAuthTLS = require('solid-auth-tls')
-const auth = new ClientAuthTLS(webClient)
+const tls = new ClientAuthTLS(webClient)
+const ClientAuthOIDC = require('solid-auth-oidc')
+const auth = new ClientAuthOIDC()
 const identity = require('./identity')
 const ns = require('solid-namespace')(rdf)
 const acl = require('solid-permissions')
@@ -50,13 +52,14 @@ const Solid = {
   AppRegistration: require('./solid/app-registration'),
   appRegistry: require('./app-registry'),
   auth,
+  tls,
   config: require('../config'),
-  currentUser: auth.currentUser.bind(auth),
+  currentUser: tls.currentUser.bind(tls),
   identity: require('./identity'),
-  login: auth.login.bind(auth),
+  login: tls.login.bind(tls),
   meta: require('./meta'),
   rdflib: rdf,
-  signup: auth.signup.bind(auth),
+  signup: tls.signup.bind(tls),
   status: require('./status'),
   typeRegistry: require('./type-registry'),
   vocab: ns,
