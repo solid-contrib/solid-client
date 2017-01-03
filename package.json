@@ -67,6 +67,7 @@
   "devDependencies": {
     "json-loader": "^0.5.4",
     "qunit": "^0.9.0",
+    "sinon": "^1.17.6",
     "standard": "^5.4.1",
     "tape": "^4.4.0",
     "webpack": "^1.13.1"

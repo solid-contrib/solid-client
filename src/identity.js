@@ -50,7 +50,7 @@ function discoverWebID (url, webClient, ns) {
  * Fetches a user's WebId profile, optionally follows `sameAs` etc links,
  *   and return a promise with a parsed SolidProfile instance.
  * @method getProfile
- * @param profileUrl {String} WebId or Location of a user's profile.
+ * @param webId {String} WebId
  * @param [options={}] Options hashmap (see solid.web.solidRequest()
  *   function docs)
  * @param [options.ignoreExtended=false] Do not load extended profile if true.
@@ -58,7 +58,7 @@ function discoverWebID (url, webClient, ns) {
  * @param rdf {RDF} RDF Library
  * @return {Promise<SolidProfile>}
  */
-function getProfile (profileUrl, options, webClient, rdf) {
+function getProfile (webId, options, webClient, rdf) {
   options = options || {}
   // Politely ask for Turtle formatted profiles
   options.headers = options.headers || {
@@ -66,10 +66,10 @@ function getProfile (profileUrl, options, webClient, rdf) {
   }
   options.noCredentials = true  // profiles are always public
   // Load main profile
-  return webClient.get(profileUrl, options)
+  return webClient.get(webId, options)
     .then(function (response) {
       var parsedProfile = response.parsedGraph()
-      var profile = new SolidProfile(profileUrl, parsedProfile, rdf, webClient,
+      var profile = new SolidProfile(response.url, parsedProfile, rdf, webClient,
         response)
       profile.isLoaded = true
       if (options.ignoreExtended) {
