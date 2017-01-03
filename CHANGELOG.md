@@ -1,6 +1,11 @@
+##### Version 0.23.0
+
+- `getProfile()` now handles 30x redirects
+- Fix response.url and Content-Type handling in `solid-web-client`
+
 ##### Version 0.22.5
 
-- Misc. fixes and refactoringq
+- Misc. fixes and refactoring
 
 ##### Version 0.21.0
 - Massive refactoring, extracting authentication, permissions and web client
