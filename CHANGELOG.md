@@ -1,3 +1,6 @@
+##### Version 0.23.1
+- Use newest rdflib v0.13.0
+
 ##### Version 0.23.0
 
 - `getProfile()` now handles 30x redirects
