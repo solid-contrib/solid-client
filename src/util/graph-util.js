@@ -56,7 +56,7 @@ function statementToNT (statement, excludeDot) {
 function graphFromStatements (statements, rdf) {
   var graph = rdf.graph()
   statements.forEach(function (st) {
-    graph.addStatement(st)
+    graph.add(st)
   })
   return graph
 }
