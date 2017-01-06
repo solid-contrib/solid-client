@@ -4,6 +4,7 @@
  * Registry files, and with registering resources with them.
  * @module type-registry
  */
+module.exports.addToTypeIndex = addToTypeIndex
 module.exports.blankPrivateTypeIndex = blankPrivateTypeIndex
 module.exports.blankPublicTypeIndex = blankPublicTypeIndex
 module.exports.initTypeRegistryPrivate = initTypeRegistryPrivate
@@ -225,7 +226,7 @@ function addToTypeIndex (profile, rdfClass, location, webClient,
       if (registryGraph) {
         graphUtil.appendGraph(registryGraph, newRegistration)
       } else {
-        registryGraph = newRegistration
+        profile[isListed ? 'typeIndexListed' : 'typeIndexUnlisted'].graph = newRegistration
       }
       return profile
     })

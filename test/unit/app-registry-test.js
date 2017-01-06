@@ -1,13 +1,26 @@
 'use strict'
 
-var appRegistry = require('../../src/app-registry')
-var parseGraph = require('../../src/util/graph-util').parseGraph
-var registry = require('../../src/registry')
-var test = require('tape')
-var AppRegistration = require('../../src/solid/app-registration')
+const nock = require('nock')
+const test = require('tape')
 
-var rdf = require('../../src/util/rdf-parser')
-var vocab = require('solid-namespace')(rdf)
+const appRegistry = require('../../src/app-registry')
+const parseGraph = require('../../src/util/graph-util').parseGraph
+const registry = require('../../src/registry')
+const AppRegistration = require('../../src/solid/app-registration')
+const SolidProfile = require('../../src/solid/profile')
+
+const rdf = require('../../src/util/rdf-parser')
+const vocab = require('solid-namespace')(rdf)
+const webClient = require('solid-web-client')(rdf)
+
+const sampleProfileUrl = 'https://localhost:8443/profile/card'
+const rawProfileSource = require('../resources/profile-extended')
+const parsedProfileGraph = parseGraph(
+  sampleProfileUrl,
+  rawProfileSource,
+  'text/turtle',
+  rdf
+)
 
 test('blankPublicAppRegistry() test', function (t) {
   let blankRegistry = appRegistry.blankPublicAppRegistry(rdf)
@@ -77,4 +90,33 @@ test('app registrationsFromGraph test', function (t) {
   t.equal(app.shortdesc, 'A reference contact manager')
   t.equal(app.redirectTemplateUri, 'https://solid.github.io/contacts/?uri={uri}')
   t.end()
+})
+
+test('app registry addToAppRegistry() updates the profile with new registry when there was previously nothing in the app registry', t => {
+  nock('https://localhost:8443/')
+    .patch('/settings/publicAppRegistry.ttl')
+    .reply(200)
+
+  const profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph, rdf)
+  const app = new AppRegistration(
+    {
+      name: 'Example App',
+      shortdesc: 'An example app registration for testing',
+      redirectTemplateUri: 'https://example.com/app/?uri={uri}'
+    },
+    [],
+    true
+  )
+
+  appRegistry.addToAppRegistry(profile, app, webClient)
+    .then(updatedProfile => {
+      app.rdfStatements(rdf).map(st => {
+        t.ok(
+          updatedProfile.appRegistryListed.graph.anyStatementMatching(
+            st.subject, st.predicate, st.object
+          )
+        )
+      })
+      t.end()
+    })
 })

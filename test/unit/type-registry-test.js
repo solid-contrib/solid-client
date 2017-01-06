@@ -1,12 +1,14 @@
 'use strict'
 
-var registry = require('../../src/registry')
-var test = require('tape')
-var typeRegistry = require('../../src/type-registry')
-var parseGraph = require('../../src/util/graph-util').parseGraph
-var SolidProfile = require('../../src/solid/profile')
-var rdf = require('../../src/util/rdf-parser')
-var vocab = require('solid-namespace')(rdf)
+const registry = require('../../src/registry')
+const test = require('tape')
+const nock = require('nock')
+const typeRegistry = require('../../src/type-registry')
+const parseGraph = require('../../src/util/graph-util').parseGraph
+const SolidProfile = require('../../src/solid/profile')
+const rdf = require('../../src/util/rdf-parser')
+const vocab = require('solid-namespace')(rdf)
+const webClient = require('solid-web-client')(rdf)
 
 var rawProfileSource = require('../resources/profile-extended')
 var sampleProfileUrl = 'https://localhost:8443/profile/card'
@@ -103,4 +105,26 @@ test('SolidProfile addTypeRegistry() test', function (t) {
   // profile.registerType(classToRegister, location, locationType)
 
   t.end()
+})
+
+test('type registry addToTypeIndex() updates the profile with new registry when there was previously nothing in the type index', t => {
+  nock('https://localhost:8443/')
+    .patch('/settings/publicTypeIndex.ttl')
+    .reply(200)
+
+  const profile = new SolidProfile(sampleProfileUrl, parsedProfileGraph, rdf)
+  const rdfClass = vocab.vcard('Contact')
+  const location = 'https://example.com/Contacts'
+  const locationType = 'instance'
+  const isListed = true
+
+  typeRegistry.addToTypeIndex(profile, rdfClass, location, webClient, locationType, isListed)
+    .then(updatedProfile => {
+      const graph = profile.typeIndexListed.graph
+      const subj = graph.any(null, vocab.rdf('type'), vocab.solid('TypeRegistration')).subject
+      t.ok(graph.any(subj, vocab.rdf('type'), vocab.solid('TypeRegistration')))
+      t.ok(graph.any(subj, vocab.solid('forClass'), rdfClass))
+      t.ok(graph.any(subj, vocab.solid('instance'), rdf.namedNode(location)))
+      t.end()
+    })
 })
