@@ -42,6 +42,9 @@ module.exports = `@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
     # The link to the private (unlisted) index is in the private profile
     terms:publicTypeIndex
        </settings/publicTypeIndex.ttl>;
+    # Link to the public App Registry.
+    terms:publicAppRegistry
+      </settings/publicAppRegistry.ttl>;
     # Link to the Solid messaging inbox
     terms:inbox
        inbox:.

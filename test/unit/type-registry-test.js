@@ -107,7 +107,7 @@ test('SolidProfile addTypeRegistry() test', function (t) {
   t.end()
 })
 
-test('type registry addToTypeIndex() updates the profile with new registry when there was previously no type index', t => {
+test('type registry addToTypeIndex() updates the profile with new registry when there was previously nothing in the type index', t => {
   nock('https://localhost:8443/')
     .patch('/settings/publicTypeIndex.ttl')
     .reply(200)

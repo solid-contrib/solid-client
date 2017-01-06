@@ -57,7 +57,7 @@ function addToAppRegistry (profile, app, webClient) {
       if (registryGraph) {
         graphUtil.appendGraph(registryGraph, newRegistration)
       } else {
-        registryGraph = newRegistration
+        profile[app.isListed ? 'appRegistryListed' : 'appRegistryUnlisted'].graph = newRegistration
       }
       return profile
     })
