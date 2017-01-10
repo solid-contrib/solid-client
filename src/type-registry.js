@@ -267,6 +267,11 @@ function loadTypeRegistry (profile, webClient, options) {
   }
   return webClient.loadParsedGraphs(links, options)
     .then(function (loadedGraphs) {
+      const allFailed = loadedGraphs.length &&
+        loadedGraphs.reduce((acc, cur) => acc && !cur.value, true)
+      if (allFailed) {
+        throw new Error('Could not load any type index')
+      }
       loadedGraphs.forEach(function (graph) {
         // For each index resource loaded, add it to `profile.typeIndexListed`
         //  or `profile.typeIndexUnlisted` as appropriate
