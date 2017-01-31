@@ -1,3 +1,6 @@
+##### Version 0.23.7
+- Update solid-web-client to 0.2.0
+
 ##### Version 0.23.1
 - Use newest rdflib v0.13.0
 
