@@ -52,7 +52,7 @@
   "dependencies": {
     "rdflib": "^0.13.0",
     "shorthash": "0.0.2",
-    "solid-auth-oidc": "0.0.3",
+    "solid-auth-oidc": "0.0.5",
     "solid-auth-tls": "0.0.4",
     "solid-namespace": "^0.1.0",
     "solid-permissions": "^0.5.1",
@@ -65,7 +65,7 @@
     "json-loader": "^0.5.4",
     "nock": "^9.0.2",
     "qunit": "^0.9.0",
-    "sinon": "^1.17.6",
+    "sinon": "^2.1.0",
     "standard": "^5.4.1",
     "tape": "^4.4.0",
     "webpack": "^1.13.1"
