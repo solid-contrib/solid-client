@@ -24,11 +24,6 @@
     "postversion": "git push --follow-tags",
     "prepublish": "npm run test && npm run build"
   },
-  "babel": {
-    "presets": [
-      "es2015"
-    ]
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/solid/solid-client"
@@ -57,10 +52,11 @@
   "dependencies": {
     "rdflib": "^0.13.0",
     "shorthash": "0.0.2",
+    "solid-auth-oidc": "0.0.5",
     "solid-auth-tls": "0.0.4",
     "solid-namespace": "^0.1.0",
     "solid-permissions": "^0.5.1",
-    "solid-web-client": "^0.2.0"
+    "solid-web-client": "^0.3.0"
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",
@@ -69,7 +65,7 @@
     "json-loader": "^0.5.4",
     "nock": "^9.0.2",
     "qunit": "^0.9.0",
-    "sinon": "^1.17.6",
+    "sinon": "^2.1.0",
     "standard": "^5.4.1",
     "tape": "^4.4.0",
     "webpack": "^1.13.1"
