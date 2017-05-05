@@ -3,13 +3,10 @@
  * Provides misc utility functions for the web client
  * @module web-util
  */
-module.exports.composePatchQuery = composePatchQuery
 module.exports.parseAllowedMethods = parseAllowedMethods
 module.exports.parseLinkHeader = parseLinkHeader
 module.exports.absoluteUrl = absoluteUrl
 module.exports.hostname = hostname
-
-var graphUtil = require('./graph-util')
 
 /**
  * Extracts the allowed HTTP methods from the 'Allow' and 'Accept-Patch'
@@ -122,29 +119,4 @@ function absoluteUrl (baseUrl, pathUrl) {
     }).join('/')
   }
   return pathUrl
-}
-
-/**
- * Composes and returns a PATCH SPARQL query (for use with `web.patch()`)
- * @method composePatchQuery
- * @param toDel {Array<String|Statement>} List of triples to delete
- * @param toIns {Array<String|Statement>} List of triples to insert
- * @return {String} SPARQL query for use with PATCH
- */
-function composePatchQuery (toDel, toIns) {
-  var query = ''
-  var excludeDot = true
-  if (toDel && toDel.length > 0) {
-    toDel = toDel.map(function (st) {
-      return graphUtil.statementToNT(st, excludeDot)
-    })
-    query += 'DELETE DATA { ' + toDel.join(' . ') + ' };\n'
-  }
-  if (toIns && toIns.length > 0) {
-    toIns = toIns.map(function (st) {
-      return graphUtil.statementToNT(st, excludeDot)
-    })
-    query += 'INSERT DATA { ' + toIns.join(' . ') + ' };\n'
-  }
-  return query
 }
