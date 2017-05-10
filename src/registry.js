@@ -16,7 +16,7 @@ var vocab = require('solid-namespace')
  */
 function isUnlisted (graph, rdf) {
   var ns = vocab(rdf)
-  return graph.any(null, null, ns.solid('UnlistedDocument'), graph.uri)
+  return graph.any(graph.uri, ns.rdf('type'), ns.solid('UnlistedDocument'), graph.uri)
 }
 
 /**
@@ -27,5 +27,5 @@ function isUnlisted (graph, rdf) {
  */
 function isListed (graph, rdf) {
   var ns = vocab(rdf)
-  return graph.any(null, null, ns.solid('ListedDocument'), graph.uri)
+  return graph.any(graph.uri, ns.rdf('type'), ns.solid('ListedDocument'), graph.uri)
 }
