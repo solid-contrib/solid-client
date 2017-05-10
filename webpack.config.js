@@ -40,7 +40,7 @@ module.exports = {
     'node-fetch': 'fetch',
     'text-encoding': 'TextEncoder',
     'urlutils': 'URL',
-    'webcrypto': 'crypto'
+    '@trust/webcrypto': 'crypto'
   },
   devtool: 'source-map'
 }
