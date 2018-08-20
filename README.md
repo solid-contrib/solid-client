@@ -727,7 +727,7 @@ Delete an RDF resource from the Web. For example, we can delete the blog post
 
 **NOTE:** while this function can also be used to delete containers, it will
 only work for empty containers. For now, app developers should make sure to
-empty a container by recursively calling calling this function on its contents.
+empty a container by recursively calling this function on its contents.
 
 ```javascript
 var solid = require('solid')
