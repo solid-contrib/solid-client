@@ -3,6 +3,8 @@
 [![NPM Version](https://img.shields.io/npm/v/solid-client.svg?style=flat)](https://npm.im/solid-client)
 [![Build Status](https://travis-ci.org/solid/solid-client.svg?branch=master)](https://travis-ci.org/solid/solid-client)
 
+## NOT SUPPORTED - PLEASE USE solid-auth-client
+
 Javascript library for writing [Solid](https://github.com/solid/solid)
 applications. (See **[Changelog](CHANGELOG.md)** for version history.)
 
