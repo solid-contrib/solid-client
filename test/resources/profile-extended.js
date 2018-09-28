@@ -8,6 +8,7 @@ module.exports = `@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 @prefix sp: <http://www.w3.org/ns/pim/space#>.
 @prefix loc: </>.
 @prefix terms: <http://www.w3.org/ns/solid/terms#>.
+@prefix ldp: <http://www.w3.org/ns/ldp#>.
 @prefix inbox: </inbox/>.
 @prefix cert: <http://www.w3.org/ns/auth/cert#>.
 @prefix ter: <http://purl.org/dc/terms/>.
@@ -46,7 +47,7 @@ module.exports = `@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
     terms:publicAppRegistry
       </settings/publicAppRegistry.ttl>;
     # Link to the Solid messaging inbox
-    terms:inbox
+    ldp:inbox
        inbox:.
 
 # Public key certificate section
