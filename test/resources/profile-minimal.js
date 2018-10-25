@@ -5,7 +5,7 @@ module.exports = `@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 @prefix foaf: <http://xmlns.com/foaf/0.1/>.
 @prefix sp: <http://www.w3.org/ns/pim/space#>.
 @prefix loc: </>.
-@prefix terms: <http://www.w3.org/ns/solid/terms#>.
+@prefix ldp: <http://www.w3.org/ns/ldp#> .
 @prefix inbox: </inbox/>.
 
 <>
@@ -19,6 +19,6 @@ module.exports = `@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 
     sp:storage
        loc:;
-    terms:inbox
+    ldp:inbox
        inbox:.
 `
