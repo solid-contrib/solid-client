@@ -251,7 +251,7 @@ solid.login()
   .then(function (profile) {
     profile.name  // -> 'Alice'
     profile.picture   // -> 'https://example.com/profile/icon.png'
-    profile.find(ns.solid('inbox'))    // -> 'https://example.com/inbox/'
+    profile.find(ldp.solid('inbox'))    // -> 'https://example.com/inbox/'
     profile.findAll(ns.owl('sameAs'))  // -> [ url1, url2 ]
   })
   .catch(function (err) {
